@@ -1,0 +1,85 @@
+BODY
+{
+	font-family:		sans-serif;
+	background:		url(images/Background.png) repeat-x;
+	height:			100%;
+}
+
+DIV.banner
+{
+	height:			105px;
+	background:		url(images/Banner.png) no-repeat;
+	font-size:		24px;
+	width:			960px !important;
+	margin:			0;
+	color:			#f2be20;
+	padding-top:		20px;
+}
+
+DIV.utility1
+{
+	background-color:	#bf5b04;
+	color:			#000;
+	height:			34px;
+	margin:			0;
+	text-align:		right;
+	width:			615px !important;
+	font-size:		14pt;
+	text-align:		left;
+	padding-left:		25px;
+	padding-top:		6px;
+}
+
+DIV.utility2
+{
+	background-color:	#bf7e04;
+	height:			30px;
+	margin:			0;
+	padding-right:		10px;
+	padding-top:		10px;
+	text-align:		right;
+	width:			310px !important;
+	color:			#f0f0d3;
+}
+
+DIV.utility2 a { text-decoration: none; }
+DIV.utility2 a:link { color: #f0f0d3; }
+DIV.utility2 a:visited { color: #f0f0d3; }
+DIV.utility2 a:hover { text-decoration: underline; }
+
+
+DIV.spacer
+{
+	height:			7px;
+}
+
+DIV.footer
+{
+	background-color:	#d6880d;
+	background:		url(images/Bottom.png) no-repeat;
+	height:			40px;
+	text-align:		center;
+	width:			960px !important;
+	margin:			0px;
+	padding-top:		25px;
+	position:		fixed;
+	bottom:			0px;
+	color:			#f2f0e2;
+	padding-left:		150px;
+	font-style:		italic;
+}
+
+TD
+{
+	vertical-align:		top;
+}
+
+TABLE.formtable TH { text-align: right; padding-right: 1em }
+TABLE.formtable TD { vertical-align: middle; }
+TABLE.formtable { border-spacing: 0; }
+TABLE.formtable TR.error1 TD { border: 1px solid #cd0a0a; border-bottom: 0; -moz-border-radius-topleft: 4px; -moz-border-radius-topright: 4px; background: #fcc5c5 url(jquery/images/ui-bg_diagonals-small_95_fcc5c5_40x40.png) 50% 50% repeat; color: #cd0a0a; padding: 10px; }
+TABLE.formtable TR.error2 TD, TABLE.formtable TR.error2 TH { background: #fcc5c5 url(jquery/images/ui-bg_diagonals-small_95_fcc5c5_40x40.png) 50% 50% repeat; color: #cd0a0a; }
+TABLE.formtable TR.error2 TD { border-right: 1px solid #cd0a0a; border-bottom: 1px solid #cd0a0a; -moz-border-radius-bottomright: 4px; padding-bottom: 10px; }
+TABLE.formtable TR.error2 TH { border-left: 1px solid #cd0a0a; border-bottom: 1px solid #cd0a0a; -moz-border-radius-bottomleft: 4px; padding-bottom: 10px; }
+
+

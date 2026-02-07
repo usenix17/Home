@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Course Objectives</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	1 – Policy Overview&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What
+	is the purpose of the Child Protection Policy and to whom does it apply? &lt;/SPAN&gt;&lt;/P&gt;
+	
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	2 – Conduct &lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What are the conduct requirements within the policy?&lt;/SPAN&gt;
+	&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	3 – Background Checks&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What are the requirements regarding background and sex offender registry checks?  Are there exceptions to those requirements?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	4 – Reporting Violations&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;Who has a duty to report child abuse or neglect?  What are the procedures for reporting suspected violations?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	5 – Supervision and Safety Requirements&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What are the requirements involving authorized adult supervision, overnight stays, and general safety?&lt;/SPAN&gt;
+	&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	6 –  Responsibility&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What are the roles and responsibilities according to job title?  What are the rules for maintaining a list of child-related programs?  Are  organizations unrelated to the University that utilize University owned and leased facilities bound by the regulations of this policy?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	7 – Penalties and Protections&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What are the sanctions involved when violating this policy?  Are there protections in place for retaliation?&lt;/SPAN&gt;&lt;/P&gt;
+
+	
+&lt;/UL&gt;
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

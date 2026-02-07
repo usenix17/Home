@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">What is FERPA &amp; Who Must Comply?</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="multiple" randomize="FALSE" number="1">
+ <text lang="EN">The Family Education Rights &amp; Privacy Act is intended to protect</text>
+ <option lang="EN" answer="FALSE" suggestion="">the privacy of faculty records</option>
+ <option lang="EN" answer="TRUE" suggestion="">the privacy of student education records</option>
+ <option lang="EN" answer="TRUE" suggestion="">accuracy of student education records</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">In general, it's safe to consider the student as the “owner” of the education record and the school as the “custodian” of the education record.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="3">
+ <text lang="EN">Only records departments need to be familiar with FERPA regulations.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="4">
+ <text lang="EN">What is the penalty for noncompliance?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Removal of student from the institution</option>
+ <option lang="EN" answer="FALSE" suggestion="">Removal of faculty from the institution</option>
+ <option lang="EN" answer="TRUE" suggestion="">Loss of federal funding for the entire institution</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

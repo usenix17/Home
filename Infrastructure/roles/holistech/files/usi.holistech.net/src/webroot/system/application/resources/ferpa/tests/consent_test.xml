@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Consent &amp; Requests for Nondisclosure</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="multiple" randomize="FALSE" number="1">
+ <text lang="EN">When is consent NOT required to release student information?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Legitimate educational interest</option>
+ <option lang="EN" answer="TRUE" suggestion="">Health/safety emergency</option>
+ <option lang="EN" answer="TRUE" suggestion="">Judicial order</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">An &quot;education official&quot; always has access to students' records regardless of the circumstances.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

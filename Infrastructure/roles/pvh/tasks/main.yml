@@ -1,0 +1,8 @@
+---
+
+- name: "Install packages for Physical Virtual Hosts"
+  import_tasks: packages.yml
+
+- name: "Setup unattended upgrades"
+  import_tasks: unattended-upgrades.yml
+  when: ansible_os_family == "Debian"

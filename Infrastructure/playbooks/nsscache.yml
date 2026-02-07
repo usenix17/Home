@@ -1,0 +1,6 @@
+---
+- name: "Configure nsscache and SSH CA"
+  hosts: "all"
+  become: true
+  roles:
+    - role: "nsscache"

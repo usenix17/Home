@@ -1,0 +1,11 @@
+---
+
+- name: "Configure log push to graylog"
+  hosts: all
+  become: true
+  roles:
+    - syslog
+  vars:
+    log_server_host: "log.starnix.net"
+    log_server_port: "1517"
+

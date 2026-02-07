@@ -1,0 +1,35 @@
+---
+- name: Configure rsyslog to forward logs
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Ensure rsyslog is installed
+      package:
+        name: rsyslog
+        state: present
+
+    - name: Write rsyslog forwarding config
+      copy:
+        dest: /etc/rsyslog.d/50-forwarding.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # rsyslog configuration file
+
+          # Load the imuxsock module for listening to /dev/log
+          module(load="imuxsock")
+
+          # Load the imklog module for kernel logging
+          module(load="imklog")
+
+          # Forward all logs to a remote server
+          *.* @log.starnix.net:1517;RSYSLOG_SyslogProtocol23Format
+
+    - name: Ensure rsyslog is enabled and started
+      service:
+        name: rsyslog
+        state: restarted
+        enabled: yes
+

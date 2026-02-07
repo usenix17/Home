@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Education Records</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN>Education Records Defined</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/dreamstime_education_records_file.png&quot; STYLE=&quot;float: right; width: 20em; margin: 0 0 1em 3em&quot;&gt;
+
+&lt;P&gt;An education record is any
+	record which:&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;&lt;P&gt; contains &quot;personally
+	identifiable information&quot; of a student AND&lt;/P&gt;&lt;/LI&gt;
+&lt;LI&gt;&lt;P&gt; is maintained by
+	an educational institution or by a party acting for the institution&lt;/P&gt;&lt;/LI&gt;
+&lt;/UL&gt;
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Personally Identifiable Information</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/question_mark_man_dreamstime.png&quot; STYLE=&quot;float: right; width: 20em; margin: 0 0 0 3em&quot;&gt;
+
+&lt;P&gt;
+	Personally Identifiable Information is the
+	kind of information or data from which the identity of a specific
+	person can be determined.  For example:&lt;/P&gt;
+	&lt;UL&gt;
+		&lt;LI&gt;&lt;P&gt;
+		student's
+		name&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		student's address&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		social security number&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		student
+		number&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		date
+		of birth&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		place
+		of birth&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		mother’s
+		maiden name&lt;/P&gt;
+&lt;/UL&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions</EN>
+   </title>
+   <content1>
+    <EN>&lt;P &gt;The
+	following are NOT considered part of education records and are therefore NOT
+	subject to the privacy protections of FERPA:&lt;/P&gt;
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P &gt;Sole
+	Possession Records&lt;/P&gt;
+	&lt;LI&gt;&lt;P &gt;Law
+	Enforcement Records&lt;/P&gt;
+	&lt;LI&gt;&lt;P &gt;Employment
+	Records&lt;/P&gt;
+	&lt;LI&gt;&lt;P &gt;Medical
+	/ Treatment Records&lt;/P&gt;
+	&lt;LI&gt;&lt;P &gt;Alumni
+	Records&lt;/P&gt;
+	&lt;LI&gt;&lt;P &gt;Unrecorded
+	Grades 
+ &lt;/UL&gt;
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Sole Possession Records</EN>
+   </title>
+   <content1>
+    <EN>[CAMPUSCLUE]As a member of the college community, you may create your own
+	private notes about students in order to help you remember details about your students.[/CAMPUSCLUE]
+   
+&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;
+	Sole possession records are defined as records (notes maintained by a faculty member) kept in the &lt;I&gt;sole possession&lt;/I&gt; of the [TERM maker]the person who created the record[/TERM] exclusively for the purpose of jogging the maker's memory.&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	These records are not accessible or reviewed by any other person except a [TERM temporary substitute]Someone who temporarily takes the place of the person
+	who created the record[/TERM].&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	Sole possession records are not part of a student's education record.  However, once the contents of a sole possession record are disclosed to any party other than a temporary substitute, the record becomes an education record and is protected under FERPA.
+	
+	&lt;/P&gt;
+
+    &lt;/UL&gt;
+
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Law Enforcement Records</EN>
+   </title>
+   <content1>
+    <EN>[CAMPUSCLUE]If your school shares part of a student's record with a law
+	enforcement unit, that record is still considered an &quot;education
+	record&quot; and is therefore protected under FERPA.[/CAMPUSCLUE]
+
+    &lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;Records
+	&lt;B&gt;maintained&lt;/B&gt;
+	and &lt;B&gt;stored&lt;/B&gt;
+	by [TERM law enforcement]any law enforcement unit or campus security[/TERM]
+	for law enforcement purposes&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	Law
+	enforcement may refuse to allow access to these records
+	without students' consent 
+	&lt;/P&gt;
+
+    &lt;/UL&gt;
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Employment 	Records</EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;Records
+	relating to employees of the institution are excluded from education records.&lt;/P&gt;&lt;/LI&gt;
+
+        &lt;LI&gt;&lt;P&gt;If the employment records are pertaining to a position that only students can fill (&lt;I&gt;e.g.&lt;/I&gt; work-study, graduate teaching assistants, &lt;I&gt;etc.&lt;/I&gt;)
+ then these records ARE considered part of the student's education record and are therefore protected under FERPA.&lt;/P&gt;&lt;/LI&gt;
+&lt;/UL&gt;
+[NOTE]Find out if being a lab aide is another example of protected employment records[/NOTE]
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Medical 	/ Treatment Records</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/dreamstime_doctor.png&quot; STYLE=&quot;float: right; width: 15em; margin: 0 0 1em 3em&quot;&gt;
+
+&lt;P&gt;These records are made, maintained, and used only in connection with treatment of the student by a [TERM recognized medical professional]physician, psychiatrist, or other medical professional[/TERM].
+&lt;/P&gt;
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Alumni 	Records</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/dreamstime_graduation.png&quot; STYLE=&quot;float: left; height: 5em; margin: 0 3em 1em 0;&quot;&gt;
+
+&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;
+	Records
+	CREATED AFTER the student has graduated&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	If
+	these records relate to a period when a person was a student, they would then
+	be covered under FERPA. 
+	&lt;/P&gt;
+
+    &lt;/UL&gt;
+&lt;BR&gt;
+[CASESTUDY Tom graduated from his university many years ago. Since graduating, he has been very involved as an alumnus. A journalist wants to write a story about his involvement at the university, both as a student and as an alumnus. According to FERPA, what information can be released?]Alumni records are generally open to the public because they are not &quot;education records&quot; under FERPA. However, that does not mean that Tom’s education records (information from when he was a student) is releasable. Unless Tom provides written consent, only directory information from when he was a student can be disclosed.[/CASESTUDY]
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Exclusions - Unrecorded 	Grades</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/graded_work_dreamstime.jpg&quot; STYLE=&quot;width: 15em; float: right; margin: 0 0 1em 1em&quot;&gt;
+&lt;P&gt;These are grades that have not been viewed or recorded by the instructor. &lt;/P&gt;
+&lt;UL&gt;
+
+&lt;LI&gt;&lt;P&gt;Instructors are allowed to have students grade each
+	other's work and publicly announce the student's grade for the
+	instructor to record since at the time of the vocalization, the
+	grades were not considered education records.&lt;/P&gt;&lt;/LI&gt;
+&lt;LI&gt;&lt;P&gt;Once
+	the grades have been recorded and maintained by the instructor,
+	these records become part of the student's education record.&lt;/P&gt;&lt;/LI&gt;
+&lt;/UL&gt;</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

@@ -1,0 +1,7 @@
+---
+
+- name: "Install Netdata and pdagent"
+  hosts: "all"
+  roles:
+    - role: "netdata"
+    - role: "pagerduty"

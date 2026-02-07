@@ -1,0 +1,10 @@
+---
+
+- name: "User Desktop/Laptop Setup"
+  hosts: local
+  connection: local
+  gather_facts: false
+  become: True
+  tags: [never, workspace]
+  roles:
+    - role: local

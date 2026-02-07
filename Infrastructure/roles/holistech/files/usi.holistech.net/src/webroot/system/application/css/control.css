@@ -1,0 +1,20 @@
+.control_frame_div {
+	border:		1px solid #AAA;
+	width:		100%;
+	padding:	6px;
+	margin-bottom:	15px;
+}
+/************************/
+/* Tech Support Section */
+/************************/
+
+TABLE.tech_support_results TR.hit { font-weight: bold; }
+TABLE.tech_support_results TR.miss { color: #555; }
+TABLE.tech_support_results TD { font-size: 9pt; }
+
+TABLE.pagination { margin-left: auto; margin-right: auto; }
+TABLE.pagination TD { text-align: center; width: 1.5em; background: white; padding: 3px; border: 1px solid black; white-space: nowrap;}
+
+TABLE.codes_table TD { padding: 0; }
+
+TABLE.control_enrollments_list TD.nowrap { white-space: nowrap; text-align: center; }

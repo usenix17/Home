@@ -1,0 +1,35 @@
+[domain/starnix.net]
+
+id_provider = ipa
+ipa_server = _srv_, ipa1.starnix.net
+ipa_domain = starnix.net
+ipa_hostname = {{ ansible_host }}
+auth_provider = ipa
+chpass_provider = ipa
+access_provider = ipa
+cache_credentials = True
+ldap_tls_cacert = /etc/ipa/ca.crt
+dyndns_update = True
+dyndns_iface = {{ ansible_default_ipv4.interface }}
+krb5_store_password_if_offline = True
+[sssd]
+services = nss, pam, ssh, sudo
+
+domains = starnix.net
+[nss]
+homedir_substring = /home
+
+[pam]
+
+[sudo]
+
+[autofs]
+
+[ssh]
+
+[pac]
+
+[ifp]
+
+[session_recording]
+

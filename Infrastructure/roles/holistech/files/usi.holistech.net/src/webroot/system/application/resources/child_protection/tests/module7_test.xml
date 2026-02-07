@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Practice Quiz 7 - Penalties and Protections</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>TRUE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">Any violation of university policies, including the Child Protection Policy, may be met by the following consequences:</text>
+ <option lang="EN" answer="FALSE" suggestion="">Denied permission to continue operation at the university</option>
+ <option lang="EN" answer="FALSE" suggestion="">Suspension from the university</option>
+ <option lang="EN" answer="FALSE" suggestion="">Other legal action</option>
+ <option lang="EN" answer="FALSE" suggestion="">Both b and c</option>
+ <option lang="EN" answer="TRUE" suggestion="">All of the above</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="2">
+ <text lang="EN">Retaliation against anyone acting in good faith who has reported inappropriate conduct / child abuse is in violation of this policy.  Which of the following acts are considered a retaliatory action?</text>
+ <option lang="EN" answer="TRUE" suggestion="">employment actions affecting salary, promotion, job duties, work schedules and/or work locations </option>
+ <option lang="EN" answer="FALSE" suggestion="">attending child safety seminars</option>
+ <option lang="EN" answer="TRUE" suggestion="">actions negatively impacting a student’s academic record or progress </option>
+ <option lang="EN" answer="TRUE" suggestion="">any action affecting the campus environment, including harassment and intimidation</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

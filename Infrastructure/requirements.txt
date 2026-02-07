@@ -1,0 +1,6 @@
+# https://pip.pypa.io/en/stable/reference/pip_install/#requirement-specifiers
+setuptools
+six
+jinja2
+PyYAML
+cryptography

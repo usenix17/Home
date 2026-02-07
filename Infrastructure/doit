@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# Wildly assuming git is installed because you would need to get this from git first
+#
+#
+
+ANSIBLEVER="2.10"
+PIPCMD="python3 -m pip install -qq --user --upgrade"
+ANSIBLECOLDIR=".ansible/collections/ansible_collections/"
+ANSIBLEREPO="https://github.com/ansible/ansible.git"
+ANSIBLEINSTALLDIR="ansible"
+
+echo "Setup IAC"
+echo "1. Confim Ansible Repo"
+if [ ! -d "ansible" ]; then
+    echo "    Download Ansible"
+    git clone --depth 1 -b stable-$ANSIBLEVER --single-branch $ANSIBLEREPO $ANSIBLEINSTALLDIR
+else
+    echo "    Update Ansible"
+    git -C $ANSIBLEINSTALLDIR pull
+fi
+echo "2. Converting Ansible to Python 3"
+sed -i "s/env python$/env python3/" $ANSIBLEINSTALLDIR/lib/ansible/cli/scripts/*.py
+sed -i "s/which python /which python3 /" $ANSIBLEINSTALLDIR/hacking/env-setup
+echo "3. Install dependencies locally"
+# bootstrapping with python -m ensurepip --default-pip
+$PIPCMD pip --break-system-packages
+$PIPCMD -r requirements.txt --break-system-packages
+$PIPCMD -r $ANSIBLEINSTALLDIR/requirements.txt --break-system-packages
+#if [ ! command -v sshpass &> /dev/null ]; then
+#    echo "    sshpass installed"
+#else
+#    echo "Please install sshpass"
+#    exit 0
+#fi
+echo "4. Setup Ansible env"
+source $ANSIBLEINSTALLDIR/hacking/env-setup -q
+echo "5. Install desired collections"
+ansible-galaxy install -r requirements.yml >/dev/null 2>&1
+# ansible-playbook playbooks/workspace.yml
+echo "6. Install Finished"
+echo "    Review config with: ansible-config view"
+echo "    Run the playbook with: ansible-playbook playbook.yml"
+echo "    Enjoy!"
+echo "    You have selected Ansible version: "$ANSIBLEVER" from "$ANSIBLEREPO
+$SHELL

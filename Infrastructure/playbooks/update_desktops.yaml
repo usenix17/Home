@@ -1,0 +1,7 @@
+---
+
+- name: "Run Updates on Desktops / Workstations"
+  hosts: "desktops"
+  roles:
+    - role: "updates"
+

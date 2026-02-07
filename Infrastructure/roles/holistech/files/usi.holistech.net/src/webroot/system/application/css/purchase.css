@@ -1,0 +1,5 @@
+LABEL.purchase_radio { font-size: 16pt; }
+#purchase_text { font-size: 18pt; width: 100%; text-align: CENTER; }
+#purchase_text .registration { display: none; }
+#purchase_course_num_codes { width: 2em; font-size: 18pt; text-align: center; }
+#purchase_login_form { display: none; }

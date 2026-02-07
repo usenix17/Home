@@ -1,0 +1,203 @@
+DIV.tabs
+{
+	background-color: 	#AAD;
+}
+
+#main
+{
+	overflow:		hidden;
+}
+
+#pulldown
+{
+	height:			0;
+	background-color:	#d98;
+	overflow:		auto;
+}
+
+#navigation
+{
+	list-style:		none;
+	padding:		0;
+	margin:			0;
+	position:		relative;
+	/* Following line necessary to read initial 0 on #navigation top property */
+	top:			0px;
+}
+
+#navigation LI
+{
+	border:			0px solid lime;
+	padding:		5px;
+	font-size:		14px;
+	width:			215px;
+	margin:			5px;
+	line-height:		1.1;
+	cursor:			pointer;
+}
+
+#selector
+{
+	border:			5px solid black;
+	border-radius:		5px;
+	-moz-border-radius:	5px;
+	height:			0px;
+	width:			219px;
+	position:		absolute;
+	top:			-4px;
+	left:			-4px;
+}
+
+#navwrapper
+{
+	width:			100%;
+	height:			100%;
+	overflow:		hidden;
+}
+
+#navwrapper .up, #navwrapper .down
+{
+	background-color:	#2D1;
+	width:			100%;
+	position:		absolute;
+	height:			15px;
+	z-index:		2;
+	font-size:		10px;
+	text-align:		center;
+	display:		none;
+}
+	
+#navwrapper .up { top: 0px; }
+#navwrapper .down { bottom: 0px; }
+	
+DIV.content
+{
+	background-color:	#DDA;
+	height:			100%;
+}
+
+DIV.nav
+{
+	background-color:	#DAA;
+}
+
+/* main vertical scroll */
+#content {
+	position:relative;
+	overflow:hidden;
+}
+
+/* root element for pages */
+#content .modules {
+	position:absolute;
+	height:20000em;
+	clear: both;
+	width: 700px;
+}
+
+.module
+{
+	float: left;
+	padding: 0px;
+	background: #2Ad;
+	width: 700px;
+	position: relative;
+}
+
+/* main horizontal scroll */
+.scrollable {
+	position:absolute;
+	overflow:hidden;
+	height: 100%;
+	width: 620px;
+	left: 40px;
+	top: 35px;
+	background: lime;
+}
+
+/* root element for pages */
+.scrollable .pages {
+	position:absolute;
+	width:20000em;
+	clear: both;
+}
+
+.page
+{
+	float: left;
+	padding: 0px;
+	width: 620px;
+	overflow: hidden;
+	position: relative;
+}
+
+#scrollbar
+{
+	position: absolute;
+	right: 13px;
+	top: 50px;
+}
+
+
+/* prev, next, prevPage and nextPage buttons */
+a.arrows {
+	background:url(../../../images/hori_large.png) no-repeat;
+	display:block;
+	width:30px;
+	height:30px;
+	float:left;
+	cursor:pointer;
+	font-size:1px;
+	position: absolute;
+	top: 5px;
+}
+
+/* right */
+a.right
+{
+	background-position: 0 -30px; 
+	clear:right; 
+	margin-right: 0px;
+	right: 5px;
+}
+
+a.right:hover 	{ background-position:-30px -30px; }
+a.right:active 	{ background-position:-60px -30px; } 
+
+
+/* left */
+a.left
+{ 
+	margin-left: 0px; 
+	left: 5px;
+}
+
+a.left:hover  	{ background-position:-30px 0; }
+a.left:active  	{ background-position:-60px 0; }
+
+
+
+/* disabled navigational button */
+a.disabled {
+	visibility:hidden !important;		
+} 	
+
+
+
+
+
+
+
+
+/* position and dimensions of the navigator */
+div.navi {
+	/*background:pink none repeat scroll 0 0;
+	height:30px;*/
+	margin-left:48px;
+	margin-top:5px;
+	top: 8px;
+	/*text-align:center;*/
+	width:600px;
+}
+
+

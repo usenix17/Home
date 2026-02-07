@@ -1,0 +1,43 @@
+---
+
+- name: "Configure pdagent yum repo"
+  ansible.builtin.copy:
+    src: "pdagent.repo"
+    dest: "/etc/yum.repos.d/pdagent.repo"
+    owner: root
+    group: root
+    mode: "0400"
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: "Configure pdagent apt repo"
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.pagerduty.com/pdagent deb/"
+    filename: pdagent
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Import pdagent apt key"
+  ansible.builtin.apt_key:
+    url: "https://packages.pagerduty.com/GPG-KEY-pagerduty"
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Install latest pdagent version"
+  ansible.builtin.yum:
+    name: pdagent
+    state: latest
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: "Install latest pdagent version"
+  ansible.builtin.apt:
+    name: pdagent
+    state: latest
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Configure netdata for alerting"
+  ansible.builtin.copy:
+    src: "health_alarm_notify.conf"
+    dest: "/etc/netdata/health_alarm_notify.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"

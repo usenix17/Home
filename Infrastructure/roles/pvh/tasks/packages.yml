@@ -1,0 +1,10 @@
+---
+
+- name: "PVH Packages to install"
+  apt: 
+    name: '{{ pvh_packages }}'
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags:
+    - packages
+

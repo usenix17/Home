@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Student Rights</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">In the college setting, FERPA protections apply to all students regardless of age.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="2">
+ <text lang="EN">What rights does FERPA give students regarding their education records?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Right to Inspect and Review</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right to Seek to Amend</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right Over Disclosure</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right to File a Complaint</option>
+ <option lang="EN" answer="FALSE" suggestion="">Right to Dispute a Grade</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="3">
+ <text lang="EN">Students have the right to review ALL information presented in their education record.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="4">
+ <text lang="EN">Under FERPA, institutions are not permitted to:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Require search and retrieval fees of education records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Deny the viewing of transcripts until an outstanding financial obligation is paid</option>
+ <option lang="EN" answer="FALSE" suggestion="">Put a watermark on a transcript that says &quot;Unofficial Transcript&quot;</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="5">
+ <text lang="EN">Students can request that various types of personally identifiable information not be disclosed, even “directory information” that is generally considered not harmful or an invasion of privacy.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

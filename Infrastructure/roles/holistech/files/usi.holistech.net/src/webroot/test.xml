@@ -1,0 +1,575 @@
+<?xml version='1.0'?> 
+<TEST>
+	<EMAIL></EMAIL>
+	<NUMQUESTIONS></NUMQUESTIONS>
+	<MINSCORE></MINSCORE>
+	<MAXATTEMPTS></MAXATTEMPTS>
+	<NEXTURL></NEXTURL>
+	<SHOWHINTS>0</SHOWHINTS>
+
+	<TITLE LANG="EN">Domain 2. Water and Waste Water - Test 2</TITLE>
+
+	<RANDOMIZE>FALSE</RANDOMIZE>
+	<SURVEY>FALSE</SURVEY>
+	<SUPPRESSRESULTS>FALSE</SUPPRESSRESULTS>
+	<SUPPRESSSCORE>FALSE</SUPPRESSSCORE>
+
+	<QUESTIONS>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the purpose of a percolation test?</TEXT>
+
+			<OPTION LANG="EN">To determine whether a site is acceptable for an on-site wastewater system</OPTION>
+			<OPTION LANG="EN">To determine whether a site is acceptable for a domestic water well</OPTION>
+			<OPTION LANG="EN">To determine the absorption factor of water on a particular site</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Both A and C</OPTION>
+			<OPTION LANG="EN">All of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the best supporting evidence to prove that a particular septic system is leaking?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Presence of a colored dye in the effluent</OPTION>
+			<OPTION LANG="EN">Bacterial contamination</OPTION>
+			<OPTION LANG="EN">Positive results from nitrate testing</OPTION>
+			<OPTION LANG="EN">None of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">In calculating the size of a septic tank for a residence, what should be taken into consideration?</TEXT>
+
+			<OPTION LANG="EN">Number of bedrooms</OPTION>
+			<OPTION LANG="EN">Number of fixture units</OPTION>
+			<OPTION LANG="EN">Number of people living in the house</OPTION>
+			<OPTION LANG="EN">Number of people and animals living in the house</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Number of bedrooms AND fixture units</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">In a septic tank, bacteria do which of the following?</TEXT>
+
+			<OPTION LANG="EN">Rid the tank of up to 75% of the pathogens</OPTION>
+			<OPTION LANG="EN">Reduce the amount of liquid</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Digest solids</OPTION>
+			<OPTION LANG="EN">Separate the solids from the liquid</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Percolation testing requires that:</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">The soil is thoroughly saturated</OPTION>
+			<OPTION LANG="EN">The hydrological conditions of the area are taken into consideration</OPTION>
+			<OPTION LANG="EN">The size of the septic system has already been determined</OPTION>
+			<OPTION LANG="EN">Testing is performed only after it rains</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">The "biochemical oxygen demand" is:</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">The amount of oxygen needed by microorganisms to decompose organic matter in water</OPTION>
+			<OPTION LANG="EN">The amount of dissolved oxygen water needs to support microorganisms</OPTION>
+			<OPTION LANG="EN">The rate at which oxygen is dissolved in water</OPTION>
+			<OPTION LANG="EN">The rate at which chemicals deplete dissolved oxygen in water</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following most reliably indicates sewage pollution of water?</TEXT>
+
+			<OPTION LANG="EN">Low BOD</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">High Nitrates</OPTION>
+			<OPTION LANG="EN">Low Nitrates</OPTION>
+			<OPTION LANG="EN">High Sulfates</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">When planning a new rural subdivision, which of the following would be used to determine if both on-site wastewater systems and private water wells could be placed on each lot?</TEXT>
+
+			<OPTION LANG="EN">The topographical conditions of the area</OPTION>
+			<OPTION LANG="EN">The hydrological conditions of the area</OPTION>
+			<OPTION LANG="EN">The proposed size of the residences</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">The size of the lot</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">A subdivision with private sewage disposal systems and water wells has had ongoing water supply and contamination problems in addition to a high rate of septic failures. The subdivision is adjacent to a municipality. Which of the following would be a good solution to these issues?</TEXT>
+
+			<OPTION LANG="EN">Condemnation of the homes</OPTION>
+			<OPTION LANG="EN">Ongoing chlorination of the wells</OPTION>
+			<OPTION LANG="EN">Replacement of the on-site wastewater systems</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Obtain permission to connect to the municipal water/sewer systems</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">A local assisted living facility has a sewage back-up. This is a repeat violation from another inspection. Management is not being cooperative. What is the next step?</TEXT>
+
+			<OPTION LANG="EN">Order the building be evacuated and closed.</OPTION>
+			<OPTION LANG="EN">Interview employees </OPTION>
+			<OPTION LANG="EN">Obtain a sewage sample and have it tested</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Find who the owner is and attempt to contact for repair</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following could most likely result from exposure to untreated sewage? </TEXT>
+
+			<OPTION LANG="EN">Methemoglobinemia </OPTION>
+			<OPTION LANG="EN">Leptospirosis</OPTION>
+			<OPTION LANG="EN">Plague</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Hepatitis</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is a direct result of an excess of nitrates in drinking water and food?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Methemoglobinemia </OPTION>
+			<OPTION LANG="EN">Leptospirosis</OPTION>
+			<OPTION LANG="EN">Plague</OPTION>
+			<OPTION LANG="EN">Hepatitis</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">You may see a mound system installed when which of the following limiting conditions exist: </TEXT>
+
+			<OPTION LANG="EN">Sandy Soil</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">High groundwater</OPTION>
+			<OPTION LANG="EN">Bedrock at 15 ft.</OPTION>
+			<OPTION LANG="EN">Both A and B</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following soil types is most suitable for an on-site wastewater system?</TEXT>
+
+			<OPTION LANG="EN">Sandy Clay</OPTION>
+			<OPTION LANG="EN">Sandy Clay Loam</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Sandy Loam</OPTION>
+			<OPTION LANG="EN">Fine Sand</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following would have the greatest effect on lowering suspended solids in effluent?</TEXT>
+
+			<OPTION LANG="EN">A grease trap and septic tank in series</OPTION>
+			<OPTION LANG="EN">A two-compartment septic tank which is sized twice as large as requied</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">An aeration unit</OPTION>
+			<OPTION LANG="EN">A septic tank with an effluent filter</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is correctly matched with its descriptive term?</TEXT>
+
+			<OPTION LANG="EN">Bar screening: secondary</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Sedimentation: Primary</OPTION>
+			<OPTION LANG="EN">Filtration: preliminary</OPTION>
+			<OPTION LANG="EN">Nitrification: secondary</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Calculate the liquid capacity of the following tank: five feet wide, nine feet long and depth of three feet nine inches</TEXT>
+
+			<OPTION LANG="EN">1,525.7 gallons</OPTION>
+			<OPTION LANG="EN">945.7 gallons</OPTION>
+			<OPTION LANG="EN">1,052.3 gallons</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">1,265.6 gallons</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is best used for finding leaks in septic tanks/systems?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Fluorescent dye test</OPTION>
+			<OPTION LANG="EN">Babcock Test</OPTION>
+			<OPTION LANG="EN">Nitrate test</OPTION>
+			<OPTION LANG="EN">pH test</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following are most collected at a sewage treatment plant?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Papers/rags</OPTION>
+			<OPTION LANG="EN">Plastics/metals</OPTION>
+			<OPTION LANG="EN">Landscaping materials</OPTION>
+			<OPTION LANG="EN">Pebbles/rocks</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following matches the characteristics of a stabilization pond?</TEXT>
+
+			<OPTION LANG="EN">Anaerobic at top surface area </OPTION>
+			<OPTION LANG="EN">Aerobic at bottom surface area</OPTION>
+			<OPTION LANG="EN">Aerobic at top surface area </OPTION>
+			<OPTION LANG="EN">Anaerobic at bottom surface area</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Both C and D</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the primary function in a domestic septic tank?</TEXT>
+
+			<OPTION LANG="EN">Sedimentation of solids </OPTION>
+			<OPTION LANG="EN">Anaerobic bacteria digestion</OPTION>
+			<OPTION LANG="EN">Aerobic bacteria digestion</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Both A and B</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following are found in septic tank effluent?</TEXT>
+
+			<OPTION LANG="EN">Aerobic bacteria</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Disease-causing bacteria</OPTION>
+			<OPTION LANG="EN">Low BOD</OPTION>
+			<OPTION LANG="EN">Both B and C</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What can digested sludge be used for?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">A soil conditioner</OPTION>
+			<OPTION LANG="EN">Pesticide activities</OPTION>
+			<OPTION LANG="EN">To eliminate refuse</OPTION>
+			<OPTION LANG="EN">To create gas-forming anaerobic bacteria</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is NOT associated with anaerobic conditions?</TEXT>
+
+			<OPTION LANG="EN">Septic tank</OPTION>
+			<OPTION LANG="EN">Methane production</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Trickling filter</OPTION>
+			<OPTION LANG="EN">None of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is NOT associated with aerobic conditions?</TEXT>
+
+			<OPTION LANG="EN">Trickling filter</OPTION>
+			<OPTION LANG="EN">Aeration unit</OPTION>
+			<OPTION LANG="EN">Stabilization ponds</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Septic tank</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">The ground is pre-soaked prior to running a percolation test the percolation test. 17 hours later the percolation test is conducted. Following is the resulting data:</TEXT>
+
+			<OPTION LANG="EN">The data indicates the site is suitable for an on-site wastewater system.</OPTION>
+			<OPTION LANG="EN">The data indicates the percolation rate is too fast.</OPTION>
+			<OPTION LANG="EN">The data indicates the percolation rate is too slow.</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">The test was incorrectly performed</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the definition of soil depth?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Top of the soil to limiting subsurface condition (bedrock, groundwater, etc.)</OPTION>
+			<OPTION LANG="EN">Surface area of the soil, including area where limiting conditions exist</OPTION>
+			<OPTION LANG="EN">Subsurface area of the soil, including only the first soil horizon</OPTION>
+			<OPTION LANG="EN">Depth at which the effective area of the leach field is placed</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Define soil profile</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">A report of what each soil horizon consists of</OPTION>
+			<OPTION LANG="EN">Soil testing tool</OPTION>
+			<OPTION LANG="EN">What the surface soil consists of</OPTION>
+			<OPTION LANG="EN">A summary of the hydrological features of the soil</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What should be done when a lot is proposed as a site for an on-site wastewater system?</TEXT>
+
+			<OPTION LANG="EN">Percolation testing</OPTION>
+			<OPTION LANG="EN">Soils testing</OPTION>
+			<OPTION LANG="EN">Evaluate for limiting surface and subsurface conditions</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">All of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following type of on-site system would be given highest priority in the event of a failure? </TEXT>
+
+			<OPTION LANG="EN">System sized for 450 gallons per day, residential</OPTION>
+			<OPTION LANG="EN">System sized for 1,000 gallons per day, commercial</OPTION>
+			<OPTION LANG="EN">System sized for 250 gallons per day, commercial</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">System sized for 1500 gallons per day, residential</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What would be a direct effect of the introduction of sewage into a body of water?</TEXT>
+
+			<OPTION LANG="EN">Decreased BOD (biochemical oxygen deman)</OPTION>
+			<OPTION LANG="EN">Increase in water clarity</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Decrease in DO (dissolved oxygen)</OPTION>
+			<OPTION LANG="EN">Increase in DO (dissolved oxygen)</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">A soils survey is highly regarded in land use and municipal planning for which of the following reasons?</TEXT>
+
+			<OPTION LANG="EN">Topography is considered</OPTION>
+			<OPTION LANG="EN">Geography is considered</OPTION>
+			<OPTION LANG="EN">Soil morphology is considered</OPTION>
+			<OPTION LANG="EN">Subsurface Geology is considered</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">All of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">A plumbing vent is used to accomplish which of the following?</TEXT>
+
+			<OPTION LANG="EN">Prevents water from being siphoned out of the trap</OPTION>
+			<OPTION LANG="EN">Equalizes pressure in plumbing system</OPTION>
+			<OPTION LANG="EN">Helps prevent sewer gas from entering the building</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">All of the above</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following MOST affects the ability of chlorine to disinfect?</TEXT>
+
+			<OPTION LANG="EN">BOD</OPTION>
+			<OPTION LANG="EN">Increase in temperature</OPTION>
+			<OPTION LANG="EN">Decreased dissolved oxygen</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Hydrogen ion concentration</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following is NOT an accepted method for controlling mosquito breeding in water features/bodies of water?</TEXT>
+
+			<OPTION LANG="EN">Treatment of water with appropriate larvicide</OPTION>
+			<OPTION LANG="EN">correct management of the pool level and filtration</OPTION>
+			<OPTION LANG="EN">proper maintenance of the shoreline</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">mandatory drainage at least quarterly</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">As water temperature increases, what is generally likely to happen?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">BOD increases, DO decreases</OPTION>
+			<OPTION LANG="EN">BOD increases, DO increases</OPTION>
+			<OPTION LANG="EN">BOD decreases, DO decreases</OPTION>
+			<OPTION LANG="EN">BOD decreases, DO increases </OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Which of the following most enhances the aerobic condition in a pond?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Water depth</OPTION>
+			<OPTION LANG="EN">Water density</OPTION>
+			<OPTION LANG="EN">pH</OPTION>
+			<OPTION LANG="EN">chemical make-up of the water</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What percent of wastewater is water?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">99.8%</OPTION>
+			<OPTION LANG="EN">96.8%</OPTION>
+			<OPTION LANG="EN">90.4%</OPTION>
+			<OPTION LANG="EN">86.5%</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">A sewage system, if working properly, should transport wastewater at what speed?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">2 feet per second</OPTION>
+			<OPTION LANG="EN">3 feet per second</OPTION>
+			<OPTION LANG="EN">4 feet per second</OPTION>
+			<OPTION LANG="EN">5 feet per second</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the name for the solid portion of wastewater?</TEXT>
+
+			<OPTION LANG="EN">Sewage</OPTION>
+			<OPTION LANG="EN">Effluent</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Sludge</OPTION>
+			<OPTION LANG="EN">Manure</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is the gathering of fine particles to form large particles known as?</TEXT>
+
+			<OPTION LANG="EN">Magnetization</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Flocculation</OPTION>
+			<OPTION LANG="EN">Filtration</OPTION>
+			<OPTION LANG="EN">Sedimentation</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Eutrophication is caused by what?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">Phosphates</OPTION>
+			<OPTION LANG="EN">Sulfates</OPTION>
+			<OPTION LANG="EN">Nitrates</OPTION>
+			<OPTION LANG="EN">Hydrogen sulfide</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What function does the grit chamber serve in a wastewater plant?</TEXT>
+
+			<OPTION LANG="EN">Flocculation</OPTION>
+			<OPTION LANG="EN">Sludge digestion</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Removal of sand and gravel</OPTION>
+			<OPTION LANG="EN">Grinding of paper and rags</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What are coliforms?</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">A broad class of bacteria</OPTION>
+			<OPTION LANG="EN">A broad class of viruses</OPTION>
+			<OPTION LANG="EN">A broad class of fungi</OPTION>
+			<OPTION LANG="EN">A broad class of parasites</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">What is a young lake known as:</TEXT>
+
+			<OPTION LANG="EN">Mesotrophic</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Oligotrophic</OPTION>
+			<OPTION LANG="EN">Maturtrophic</OPTION>
+			<OPTION LANG="EN">Microtrophic	</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">When there is a need to divert effluent into different areas of an absorption field, a(n) ___________ is used</TEXT>
+
+			<OPTION LANG="EN">Effluent filter</OPTION>
+			<OPTION LANG="EN">Influent Box</OPTION>
+			<OPTION LANG="EN">Tributary  Box</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Distribution Box</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">At a wastewater plant what is the comminutor used for?</TEXT>
+
+			<OPTION LANG="EN">Flocculation</OPTION>
+			<OPTION LANG="EN">Sludge digestion</OPTION>
+			<OPTION LANG="EN">Removal of sand and gravel</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Grinding of paper and rags</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">pH meters are sometimes installed in sewer systems in order to detect what?</TEXT>
+
+			<OPTION LANG="EN">Heavy metals</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Hazardous materials</OPTION>
+			<OPTION LANG="EN">Medical waste</OPTION>
+			<OPTION LANG="EN">Radioactive waste</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">How does eutrophication affect a lake?</TEXT>
+
+			<OPTION LANG="EN">Decreased bacterial activity, decreased BOD, resulting in aquatic die-off</OPTION>
+			<OPTION LANG="EN" CORRECT="TRUE">Increased bacterial activity, decreased DO, resulting in aquatic die-off</OPTION>
+			<OPTION LANG="EN">Increased bacterial activity, decreased BOD, resulting in aquatic die-off</OPTION>
+			<OPTION LANG="EN">Decreased bacterial activity, decreased DO, resulting in aquatic die-off</OPTION>
+
+		</QUESTION>
+
+		<QUESTION TYPE="single">
+
+			<TEXT LANG="EN">Bar screens are used:</TEXT>
+
+			<OPTION LANG="EN" CORRECT="TRUE">For removal of large debris</OPTION>
+			<OPTION LANG="EN">For removal of small particles</OPTION>
+			<OPTION LANG="EN">For removal of sand and gravel</OPTION>
+			<OPTION LANG="EN">During secondary treatment</OPTION>
+
+		</QUESTION>
+
+	</QUESTIONS>
+
+</TEST>

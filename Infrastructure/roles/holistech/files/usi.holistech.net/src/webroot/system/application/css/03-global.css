@@ -1,0 +1,209 @@
+H1
+{
+	font-size:	20pt;
+}
+
+H2
+{
+	font-size:	14pt;
+	border-bottom:	1px solid #AAA;
+}
+
+TABLE.view TD { margin-right: 10px; }
+
+TABLE.ticTacToe { border-spacing: 0; }
+TABLE.ticTacToe > TBODY > TR > TD, TABLE.ticTacToe > TBODY > TR > TH 
+{ 
+	border-bottom: 1px solid black; 
+	border-right: 1px solid black; 
+	padding: 5px; 
+	vertical-align: middle
+}
+TABLE.ticTacToe > TBODY > TR > TD:last-child, TABLE.ticTacToe > TBODY > TR > TH:last-child { border-right: 0; }
+TABLE.ticTacToe > TBODY > TR:last-child > TD { border-bottom: 0; }
+TABLE.ticTacToe > TBODY > TR:last-child > TH { border-bottom: 0; }
+
+.imgTable { float: right; margin-left: 10px; margin-bottom: 10px; }
+
+TABLE.clicktoplay
+{
+	background-color:	white;
+	border:			1px solid #888;
+}
+
+TABLE.clicktoplay TD
+{
+	color:			#888;
+	text-align:		center;
+	font-size:		18pt;
+	vertical-align:		middle;
+	white-space:		nowrap;
+	padding:		10px;
+}
+
+TABLE.practice-question
+{
+	border-left:	1px solid black;
+	border-top:	1px solid black;
+	width:		100%;
+}
+
+TABLE.practice-question TD
+{
+	border-right:	1px solid black;
+	border-bottom:	1px solid black;
+	padding:	5px;
+	background:	white;
+}
+
+SUP
+{
+	font-size:	smaller;
+	vertical-align:	super;
+}
+
+SUB
+{
+	font-size:	smaller;
+	vertical-align:	sub;
+}
+
+TD.nowrap { white-space: nowrap; }
+
+div.grid
+{
+	/*border:               1px solid #DDD;*/
+	color:          #333;
+	font-size:      6pt;
+
+
+	position:       absolute;
+}
+
+div.gridDiv
+{
+	/*border:               1px solid black;*/
+	position:       absolute;
+	overflow:       auto;
+	margin:         0;
+}
+
+div.gridDiv > * { margin-top: 0; }
+
+SPAN.circlebutton
+{
+	background:		url(images/all.png) no-repeat;
+	width: 			24px;
+	height: 		24px;
+	display:		block;
+	margin-bottom:		6px;
+	cursor:			pointer;
+}
+
+SPAN.circlebutton.up { background-position:	-111px -281px; }
+SPAN.circlebutton.check { background-position:	-111px -305px; }
+SPAN.circlebutton.plus { background-position:	-111px -329px; }
+SPAN.circlebutton.down { background-position:	-135px -281px; }
+SPAN.circlebutton.close { background-position:	-135px -305px; }
+SPAN.circlebutton.minus { background-position:	-135px -329px; }
+
+#tests_edit_manage_questions .sortable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+#tests_edit_manage_questions .sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; height: 18px; overflow: hidden; cursor: move; }
+#tests_edit_manage_questions .sortable li span { position: absolute; margin-left: -1.3em; }
+
+.horizontal_buttons
+{
+	width: 100%;
+}
+
+.horizontal_buttons TD
+{
+	font-size: 10pt;
+	text-align: center;
+	text-decoration: underline;
+	width: 25%;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+DL.tests_edit_description
+{
+	margin-left: 1em;
+	margin-right: 1em;
+}
+DL.tests_edit_description DT 
+{
+	font-weight: bold;
+	margin-top: .8em;
+	margin-bottom: .5em;
+	border-bottom: 1px dotted black;
+}
+
+DL.tests_edit_description DD
+{
+	margin-left: .5em;
+	margin-right: 0.5em;
+	line-height: 1;
+	font-family: serif;
+}
+
+DIV.selector, A.arrows, #nav_bg { display: none; }
+tr.selected { background-color: #DC8F14 !important; }
+
+DIV.script
+{
+	background-color:	#fbbb3d; /* holistech yellow */
+    padding : 1em;
+    border : 3px solid #f48b20; /* holistech orange */
+}
+DIV.script HR
+{
+    border : 1px solid #f48b20; /* holistech orange */
+}
+
+DIV.campusclue.left {
+    float: left;
+}
+
+SPAN.note
+{
+    background-color: yellow;
+    border: 1px solid gold;
+    padding: 1px;
+}
+
+.page P,
+.page UL,
+.page OL
+{
+    margin-bottom: 0.75em;
+}
+
+.page UL UL P,
+.page UL OL P 
+{
+    margin-bottom: 0.5em;
+}
+
+.page UL > LI
+{
+    list-style-type: disc;
+}
+
+.page UL > LI > UL > LI
+{
+    list-style-type: circle;
+}
+
+.page UL > LI > UL > LI > UL > LI
+{
+    list-style-type: square;
+}
+
+.page .cluetip
+{
+    border-bottom: 1px dotted green;
+    color: green;
+    font-weight: bold;
+    cursor: help;
+}

@@ -1,0 +1,9 @@
+TABLE.formtable TH { text-align: right; padding-right: 1em; padding-left: 1em; width: 37%; white-space: nowrap; }
+TABLE.formtable TD { vertical-align: middle; }
+TABLE.formtable { border-spacing: 0; width: 100% }
+TABLE.formtable TR.error1 TD { border: 1px solid #cd0a0a; border-bottom: 0; -moz-border-radius-topleft: 4px; -moz-border-radius-topright: 4px; background: #fcc5c5 ; color: #cd0a0a; padding: 10px; }
+TABLE.formtable TR.error2 TD, TABLE.formtable TR.error2 TH { background: #fcc5c5 ; color: #cd0a0a; }
+TABLE.formtable TR.error2 TD { border-right: 1px solid #cd0a0a; border-bottom: 1px solid #cd0a0a; -moz-border-radius-bottomright: 4px; padding-bottom: 10px; }
+TABLE.formtable TR.error2 TH { border-left: 1px solid #cd0a0a; border-bottom: 1px solid #cd0a0a; -moz-border-radius-bottomleft: 4px; padding-bottom: 10px; }
+TABLE.formtable INPUT, TABLE.formtable SELECT { width: 98%; }
+

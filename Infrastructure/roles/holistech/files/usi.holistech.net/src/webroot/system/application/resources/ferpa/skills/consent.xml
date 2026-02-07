@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Consent</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN>Prior Written Consent</EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+    	&lt;LI&gt;&lt;P STYLE=&quot;font-weight: normal&quot;&gt;Prior Written Consent is authorization
+	by eligible students to &lt;B&gt;allow
+	the institution&lt;/B&gt;
+	to disclose information from education
+	records&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	required
+	components of the consent:&lt;/P&gt;
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;
+	specify
+	which records may be disclosed&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	state
+	the purpose of the disclosure&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	identify
+	the party to whom the disclosure be made&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	include 
+	student signature&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	be dated&lt;/P&gt;
+&lt;/UL&gt;
+    &lt;/UL&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>When 	is Consent Not Required?</EN>
+   </title>
+   <content1>
+    <EN>&lt;P&gt;
+	The
+	following are examples of instances when the institution does not
+	need prior written consent to disclose records:&lt;/P&gt;
+&lt;TABLE&gt;&lt;TR&gt;&lt;TD&gt;
+	&lt;UL&gt;
+		&lt;LI&gt;&lt;P&gt;
+		legitimate
+		educational interest&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		audit
+		or evaluation of compliance with education programs&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		connection
+		with financial aid&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		to
+		organizations conducting studies to improve instruction&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		accrediting
+		organizations&lt;/P&gt;
+&lt;/UL&gt;&lt;/TD&gt;&lt;TD&gt;&lt;UL&gt;
+		&lt;LI&gt;&lt;P&gt;
+		parents
+		of dependent students (As long as it is the school's policy to release information to the parents of dependent students, consent is not required.  However, FERPA leaves this decision up to the institution.)   &lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		judicial
+		order or subpoena&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		health/safety
+		emergency&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		directory
+		info (unless restrictions have been requested)&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		releasing
+		results of a disciplinary hearing to a victim of crime&lt;/P&gt;
+	&lt;/UL&gt;
+&lt;/TD&gt;&lt;/TR&gt;&lt;/TABLE&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>When Consent is Not Required - Legitimate Educational Interest</EN>
+   </title>
+   <content1>
+    <EN>[CAMPUSCLUE]FERPA gives your school permission to define the term
+	&quot;school official,&quot; but requires that it publish this definition
+	in its annual notification.[/CAMPUSCLUE]
+
+&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;
+	Can
+	you imagine if every piece of information about a student were kept
+	secret?  It would be nearly impossible for the college community to
+	function.&lt;/P&gt;
+	&lt;LI&gt;&lt;P STYLE=&quot;font-weight: normal&quot;&gt;Consent
+	is not required in cases in which a [TERM school official]any
+	employee who has responsibilities for the creation, maintenance, and
+	disclosure of information from education records (teachers,
+	administrators, advisors, etc.)[/TERM]
+	needs the records in order to perform his official, educationally-related duties.&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	Access
+	to records must be justifiable.  Curiosity doesn't count!   
+	&lt;/P&gt;
+
+    &lt;/UL&gt;
+[CASESTUDY Detective Mason from campus security calls the university to get the address and class schedule for a student.  Is the university allowed to give it to him? What if Detective Mason says that he has a warrant for the student's arrest?]FERPA regulations consider campus security officials as employees with a “legitimate educational interest” if they are designated as “school officials” by the institution and are operating within the scope of their employment. The warrant would not be necessary in this case. It is advisable for institutions to include campus law enforcement personnel as &quot;school officials&quot; in their annual notification to students.[/CASESTUDY]
+
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

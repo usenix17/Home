@@ -1,0 +1,34 @@
+<report>
+	<sql>
+        SELECT u.realName, u.username, u.email, e.date, e.certification_time, if(e.status='Completed',1,0) as has_certified 
+        FROM enrollments e 
+        JOIN users u ON u.user_id=e.user_id
+		WHERE [course] AND [date_min] AND [date_max] AND [certification_min] AND [certification_max]
+		ORDER BY e.date ASC
+	</sql>
+
+	<parameters>
+		<param type='date' name='date_min'>
+			<label>Registration Start Date (inclusive)</label>
+			<default>true</default>
+			<sql>date &gt;= [value]</sql>
+		</param>
+		<param type='date' name='date_max'>
+			<label>Registration End Date (non-inclusive)</label>
+			<default>true</default>
+			<sql>date &lt; [value]</sql>
+		</param>		
+        <param type='date' name='certification_min'>
+			<label>Certification Start Date (inclusive)</label>
+			<default>true</default>
+			<sql>certification_time &gt;= [value]</sql>
+		</param>
+		<param type='date' name='certification_max'>
+			<label>Certification End Date (non-inclusive)</label>
+			<default>true</default>
+			<sql>certification_time &lt; [value]</sql>
+		</param>
+	</parameters>
+
+	<courses value='current' name='course' field='course'/>
+</report>

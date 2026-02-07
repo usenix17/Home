@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Course Objectives</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	1 – What is FERPA &amp; Who Must Comply?&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What
+	is the purpose of the Act, to whom does it apply, and how is it
+	enforced? &lt;/SPAN&gt;&lt;/P&gt;
+	
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	2 – Student Rights &lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;Who
+	does FERPA protect and to what guaranteed rights are they entitled?&lt;/SPAN&gt;
+	&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	3 – Parents&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What
+	rights do parents have under FERPA?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	4 – Education Records&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;How
+	does FERPA define education records?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	5 – Types of Information &lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;How
+	does FERPA distinguish types of information?  &lt;/SPAN&gt;
+	&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	6 –  Consent&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What
+	is required to release and share student information?&lt;/SPAN&gt;&lt;/P&gt;
+
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;&lt;SPAN&gt;Module
+	7 – FERPA in the College Community&lt;/SPAN&gt;&lt;/B&gt;&lt;BR&gt;&lt;SPAN&gt;What
+	responsibilities are given to your school and how do they affect
+	your job duties?&lt;/SPAN&gt;&lt;/P&gt;
+
+	
+&lt;/UL&gt;
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

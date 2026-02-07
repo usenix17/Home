@@ -1,0 +1,6 @@
+---
+
+- name: "Configure usi.holistech.net"
+  hosts: holistech
+  roles:
+    - role: "holistech"

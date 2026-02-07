@@ -1,0 +1,11 @@
+#!/bin/bash
+
+GROUP='www-data'
+if [ -e /etc/httpd ]; then
+	GROUP='apache';
+fi
+
+echo chgrp -Rvf $GROUP \*/skills \*/tests \*/certificate/file_storage \*/images \*/syllabus.xml
+chgrp -Rvf $GROUP */skills */tests */certificate/file_storage */images */syllabus.xml
+echo chmod -Rvf a=r,u+w,g+w,a+X  \*/skills \*/tests \*/certificate/file_storage \*/images \*/syllabus.xml 
+chmod -Rvf a=r,u+w,g+w,a+X  */skills */tests */certificate/file_storage */images */syllabus.xml

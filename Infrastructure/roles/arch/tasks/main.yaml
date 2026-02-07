@@ -1,0 +1,322 @@
+---
+
+- name: "Configure pacman for Color output"
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: '^#?Color'
+    line: 'Color'
+    backup: yes
+
+- name: "Configure pacman ILoveCandy option"
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: '^#?ILoveCandy'
+    line: 'ILoveCandy'
+    insertafter: '^Color'
+    backup: yes
+
+- name: "Enable multilib repository"
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      [multilib]
+      Include = /etc/pacman.d/mirrorlist
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - multilib"
+    backup: yes
+
+- name: "Install git and base-devel"
+  community.general.pacman:
+    name:
+      - base-devel
+      - git
+    state: latest
+    update_cache: false
+
+- name: "Add cloud user to wheel group"
+  ansible.builtin.user:
+    name: cloud
+    groups: wheel
+    append: yes
+
+- name: "Configure passwordless sudo for wheel group"
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    regexp: '^%wheel ALL=\(ALL:ALL\) ALL'
+    line: '%wheel ALL=(ALL:ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: "Clone the yay git repo"
+  ansible.builtin.git:
+    repo: "https://aur.archlinux.org/yay.git"
+    dest: "/opt/yay"
+  failed_when: false
+  changed_when: false
+  tags: ["never", yay"]
+
+- name: "Change ownership of files inside /opt/yay to cloud user"
+  ansible.builtin.file:
+    path: "/opt/yay"
+    owner: cloud
+    group: cloud
+    recurse: yes
+  tags: ["never", "yay"]
+
+- name: "Build yay from source"
+  ansible.builtin.shell:
+    cmd: "sudo -u cloud makepkg -si --noconfirm"
+    chdir: "/opt/yay"
+  tags: ["never", "yay"]
+
+- name: "Create symlink for yay in /usr/local/bin"
+  ansible.builtin.file:
+    src: "/usr/bin/yay"
+    dest: "/usr/local/bin/yay"
+    state: link
+  tags: ["never", "yay"]
+
+- name: "Install packages via yay"
+  ansible.builtin.shell:
+    cmd: "sudo -u cloud yay -S --noconfirm {{ item }}"
+  become: yes
+  loop:
+    - 389-ds-base
+    - amtterm
+    - ansible
+    - apachedirectorystudio
+    - apprise
+    - ark
+    - base
+    - base-devel
+    - bcc-tools
+    - beep
+    - bfg
+    - bluez-utils
+    - borg
+    - bpftop
+    - bpftrace
+    - btrfs-progs
+    - butane
+    - cdrdao
+    - cdrtools
+    - cheese
+    - chess-electron
+    - chromium-extension-web-store
+    - claude-code
+    - consul
+    - cups
+    - cups-browsed
+    - dbeaver
+    - dhclient
+    - dillo
+    - discord
+    - docker
+    - docker-compose
+    - dolphin
+    - ds9-bin
+    - ducker
+    - dvd+rw-tools
+    - efibootmgr
+    - egl-wayland
+    - element-desktop
+    - eolie
+    - epiphany
+    - esptool
+    - etcher-bin
+    - fingerprint-gui
+    - fio
+    - firedragon-bin
+    - firedragon-extension-plasma-integration
+    - firefox
+    - fish
+    - flatpak
+    - floorp-bin
+    - freetube-bin
+    - geekbench
+    - gemini-cli
+    - gimp
+    - git
+    - github-cli
+    - gnu-netcat
+    - gnuchess
+    - go
+    - google-chrome
+    - grpcurl-bin
+    - grub
+    - guvcview
+    - hdparm
+    - hplip
+    - htop
+    - inkscape
+    - intel-media-driver
+    - intel-ucode
+    - iotop
+    - iwd
+    - jellyfin-media-player
+    - jellyfin-web
+    - jq
+    - kate
+    - kde-applications-meta
+    - kernel-modules-hook
+    - kile
+    - knime-desktop
+    - konsole
+    - kstars
+    - ladybird
+    - lagrange
+    - lazydocker
+    - less
+    - libfido2
+    - libfprint
+    - libindi_3rdparty
+    - librewolf-decentraleyes
+    - librewolf-extension-bitwarden-bin
+    - librewolf-extension-darkreader-bin
+    - librewolf-extension-istilldontcareaboutcookies-bin
+    - librewolf-extension-plasma-integration
+    - librewolf-extension-sponsorblock-bin
+    - librewolf-extension-trackmenot
+    - libva-intel-driver
+    - linux
+    - linux-firmware
+    - linux-headers
+    - linux-zen
+    - meshtastic-python
+    - meshwatch-git
+    - minicom
+    - minivmac
+    - mosquitto
+    - mqtt-explorer
+    - mqttui
+    - mtr
+    - nano
+    - netsurf
+    - network-manager-applet
+    - networkmanager
+    - nfs-utils
+    - nmap
+    - nomad
+    - nvme-cli
+    - nvmetcli
+    - nvtop
+    - openldap
+    - openpyn-nordvpn
+    - openrefine
+    - opensc
+    - osquery
+    - packer
+    - pgcli
+    - phd2
+    - picocom
+    - plasma-meta
+    - plasma-workspace
+    - playonlinux
+    - plocate
+    - proton-vpn-gtk-app
+    - protonmail-bridge
+    - protonvpn-cli-community
+    - python-bjoern
+    - python-docker
+    - python-dotenv
+    - python-flask
+    - python-geopy
+    - python-grpcio
+    - python-grpcio-tools
+    - python-matplotlib
+    - python-oauth
+    - python-openai
+    - python-paho-mqtt
+    - python-pandas
+    - python-pip
+    - python-pipx
+    - python-plotly
+    - python-psycopg2
+    - python-pylint
+    - python-pytest
+    - python-pywinrm
+    - python-requests-oauthlib
+    - python-seaborn
+    - python-validity
+    - qemu-base
+    - qownnotes
+    - reflector
+    - rsyslog
+    - rust
+    - screen
+    - signal-desktop
+    - smartmontools
+    - sqlitebrowser
+    - sqlitestudio
+    - sshfs
+    - sshpass
+    - sssd
+    - starnixremote
+    - starship
+    - steam
+    - strace
+    - sublime-text-4
+    - sysstat
+    - system-config-printer
+    - tailscale
+    - tcpdump
+    - terracognita
+    - terraform
+    - terraformer
+    - texlive-latexextra
+    - tftp-hpa
+    - thunderbird
+    - topcat
+    - traceroute
+    - tree
+    - ua608d
+    - ungoogled-chromium-bin
+    - unzip
+    - vault
+    - vim
+    - virt-manager-git
+    - visual-studio-code-bin
+    - vivaldi
+    - vorta
+    - vulkan-intel
+    - vulkan-radeon
+    - wazuh-agent
+    - wget
+    - whois
+    - wireless_tools
+    - wps-office
+    - xdg-utils
+    - xf86-video-amdgpu
+    - xf86-video-ati
+    - xf86-video-nouveau
+    - xf86-video-vmware
+    - xorg-xinit
+    - yay
+    - yay-bin-debug
+    - yubico-piv-tool
+    - yubikey-manager
+    - yubikey-manager-qt
+    - yubikey-personalization-gui
+    - zen-browser-bin
+    - zram-generator
+    - zramswap
+  tags: ["never", "pacman"]
+
+- name: "Create NFS mount directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /Backup
+    - /kronos
+    - /Comet
+
+- name: "Add NFS mounts to /etc/fstab"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ item }}"
+    backup: yes
+  loop:
+    - "#NFS"
+    - "mimir.starnix.net:/mnt/Backup  /Backup   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"
+    - "mimir.starnix.net:/mnt/Store   /kronos   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"
+    - "mimir.starnix.net:/mnt/Comet   /Comet    nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"

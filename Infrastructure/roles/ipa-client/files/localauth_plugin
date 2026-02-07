@@ -1,0 +1,4 @@
+[plugins]
+ localauth = {
+  module = sssd:/usr/lib/sssd/modules/sssd_krb5_localauth_plugin.so
+ }

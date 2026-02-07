@@ -1,0 +1,56 @@
+all:
+  children:
+    routers:
+      hosts:
+        odin.starnix.net:
+
+    desktops:
+      hosts:
+        selene.starnix.net:
+      vars:
+        ansible_python_interpreter: "/usr/bin/python3"
+
+    servers:
+      children:
+        py3_servers:
+          hosts:
+            bork.starnix.net:
+            3cx.starnix.net:
+            hecate.starnix.net:
+            virt.starnix.net:
+        storage:
+          hosts:
+            mimir.starnix.net:
+          vars:
+            ansible_python_interpreter: "/usr/local/bin/python3"
+
+    macs:
+      hosts:
+        gnome.starnix.net:
+          ansible_ssh_pass: "{{ gnome_pass }}"
+          ansible_become_pass: "{{ gnome_pass }}"
+        finnmac.starnix.net:
+
+    proxmox:
+      hosts:
+        pve1.starnix.net:
+        pve2.starnix.net:
+        pve3.starnix.net:
+        pve4.starnix.net:
+        pve5.starnix.net:
+
+    iron:
+      hosts:
+        bork.starnix.net:
+          server: true
+        hecate.starnix.net:
+          server: true
+
+  vars:
+    ansible_ssh_common_args: "-o ControlMaster=auto -o ControlPersist=60m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET"
+    ansible_user: "cloud"
+    ansible_ssh_pass: "{{ become_pass }}"
+    ansible_become: true
+    ansible_become_method: "sudo"
+    ansible_become_user: "root"
+    ansible_become_pass: "{{ become_pass }}"

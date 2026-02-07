@@ -1,0 +1,85 @@
+# Documentation helps
+#
+# the group_vars/all.yml an ecrypted vault file is loaded
+# to populate the secrets here.
+#
+# Optional example of isolating by vault type
+#
+#all:
+#  children:
+#    vault1:
+#      children:
+#        cloud:
+#          hosts:
+#            cloud1.lathama.net:
+#    vault2:
+#      children:
+#        cloud2:
+#          hosts:
+#            cloud2.lathama.net:
+#    novault:
+#      children:
+#        bootstrap:
+#          hosts:
+#            randomhost.lathama.net:`
+all:
+  children:
+    routers:
+      hosts:
+        odin.starnix.net:
+          ansible_user: root
+    desktops:
+      hosts:
+        adora.starnix.net:
+        zorro.starnix.net:
+        archie.starnix.net:
+      vars:
+        ansible_user: "cloud"
+	ansible_python_interpreter: "/usr/bin/python3"
+    servers:
+      children:
+        py2_servers:
+          hosts:
+            gitlab.starnix.net:
+            images.starnix.net:
+            ipa1.starnix.net:
+            starlord.starnix.net:
+          vars:
+            ansible_python_interpreter: /usr/bin/python2
+        py3_servers:
+          hosts:
+            bork.starnix.net:
+            3cx.starnix.net:
+            rocket.starnix.net:
+            virt.starnix.net:
+        storage:
+          hosts:
+            mimir.starnix.net:
+          vars:
+            ansible_user: root
+            ansible_python_interpreter: /usr/local/bin/python3
+        k8s:
+          children:
+            cluster1:
+              hosts:
+                k8s-control.starnix.net:
+                  k8s_control: true
+                k8s-node1.starnix.net:
+                k8s-node2.starnix.net:
+        vars:
+          ansible_python_interpreter: /usr/local/bin/python3
+    macs:
+      hosts:
+        gnome.starnix.net:
+          ansible_user: "bair"
+          ansible_ssh_pass: "{{ gnome_pass }}"
+          ansible_become_pass: "{{ gnome_pass }}"
+
+    
+  vars:
+    ansible_ssh_common_args: "-o ControlMaster=auto -o ControlPersist=60m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET"
+    ansible_user: "{{ lookup('env','USER') }}"
+    ansible_become: true
+    ansible_become_method: sudo
+    ansible_become_user: root
+    ansible_become_pass: "{{ become_pass }}"

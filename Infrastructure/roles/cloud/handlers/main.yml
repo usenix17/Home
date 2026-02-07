@@ -1,0 +1,41 @@
+---
+
+- name: "systemd reload"
+  systemd:
+    daemon_reload: yes
+
+- name: "enable apache2"
+  systemd:
+    enabled: yes
+    name: apache2
+
+- name: "reload apache2"
+  systemd:
+    state: reloaded
+    name: apache2
+
+- name: "restart apache2"
+  systemd:
+    state: restarted
+    name: apache2
+
+- name: "enable gitea"
+  systemd:
+    enabled: yes
+    name: gitea
+
+- name: "restart gitea"
+  systemd:
+    state: restarted
+    name: gitea
+
+- name: "start gitea"
+  systemd:
+    state: started
+    name: gitea
+
+- name: "restart unattended-upgrades"
+  systemd:
+    state: restarted
+    name: unattended-upgrades
+

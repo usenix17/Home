@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Practice Quiz 5 - Supervision &amp; Safety Requirements</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>TRUE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">It is recommended that two or more authorized adults be present at activities involving children. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">Adults must sleep in the same room as the child they are supervising?</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="3">
+ <text lang="EN">Programs that include children shall have policies in place that address which of the following:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Transportation</option>
+ <option lang="EN" answer="FALSE" suggestion="">Electronic entertainment</option>
+ <option lang="EN" answer="TRUE" suggestion="">Plans for weather emergencies</option>
+ <option lang="EN" answer="TRUE" suggestion="">Appropriate forms</option>
+ <option lang="EN" answer="TRUE" suggestion="">First aid and medical treatment</option>
+ <option lang="EN" answer="FALSE" suggestion="">Access to the Internet</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

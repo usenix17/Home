@@ -1,0 +1,60 @@
+p.instructions
+{
+	line-height: 		1.5;
+	font-size:		14pt;
+}
+
+td.questionNumber
+{
+	font-weight:		bold;
+	padding:		0.25em;
+	color:	 		#663333;
+	font-size:		14pt;
+}
+
+td.question
+{
+	width:			100%;
+	font-weight:		bold;
+	padding:		0.25em;
+	color:	 		#663333;
+	font-size:		14pt;
+}
+
+td.optionNumber
+{
+	width:			50px;
+	font-weight:		bold;
+	padding:		0.25em;
+	font-size:		14pt;
+}
+
+td.option
+{
+	padding:		0.25em;
+	font-size:		14pt;
+}
+
+tr.right
+{
+	background-color:	#E0FFE0;
+	border-color: 		#80FF80;	
+}
+
+tr.wrong
+{
+	background-color:	#FFFF80;
+	border-color:		#FF8080;
+}
+
+TABLE.gradeTable td.response span
+{
+	display:		block;
+	line-height:		1.0;
+	margin-bottom:		14px;
+}
+
+TR.questionDisabled
+{
+	opacity: 0.5;
+}

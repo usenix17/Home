@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Educational Records</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN"> An education record is any record which contains “personally identifiable information” of a student AND is maintained by an educational institution. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="2">
+ <text lang="EN">Which pieces of information would be considered &quot;personally identifiable information?&quot;</text>
+ <option lang="EN" answer="TRUE" suggestion="">student’s name</option>
+ <option lang="EN" answer="TRUE" suggestion="">SSN</option>
+ <option lang="EN" answer="TRUE" suggestion="">student number</option>
+ <option lang="EN" answer="TRUE" suggestion="">date of birth</option>
+ <option lang="EN" answer="TRUE" suggestion="">place of birth</option>
+ <option lang="EN" answer="TRUE" suggestion="">mother’s maiden name</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="3">
+ <text lang="EN">Sole possession records are not considered part of the education record because they are only seen by the maker and other faculty members in the institution.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="4">
+ <text lang="EN">Which of the following are NOT generally considered part of the education record?</text>
+ <option lang="EN" answer="TRUE" suggestion="">law enforcement records</option>
+ <option lang="EN" answer="TRUE" suggestion="">medical/treatment records</option>
+ <option lang="EN" answer="FALSE" suggestion="">grades recorded by the teacher</option>
+ <option lang="EN" answer="TRUE" suggestion="">employment records</option>
+ <option lang="EN" answer="TRUE" suggestion="">alumni records</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

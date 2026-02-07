@@ -1,0 +1,25 @@
+---
+
+ntpserver: "pool.ntp.org"
+
+nameserver: 
+  - "8.8.4.4"
+  - "8.8.8.8"
+  - "9.9.9.9"
+  - "1.1.1.1"
+
+debian_basic_packages:
+  - "apt-transport-https"
+  - "curl"
+  - "dnsutils"
+  - "git"
+  - "ipcalc"
+  - "less"
+  - "mlocate"
+  - "mtr"
+  - "net-tools"
+  - "systemd-cron"
+  - "tcpdump"
+  - "vim"
+  - "wget"
+

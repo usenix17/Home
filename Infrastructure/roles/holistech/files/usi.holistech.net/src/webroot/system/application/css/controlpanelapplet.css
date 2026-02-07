@@ -1,0 +1,17 @@
+.controlPanel
+{
+	background-color: 	#E4D0A7;
+	border: 		1px solid #000000;
+	text-align: 		left;
+	padding:		1em;
+	margin:			0;
+}
+	
+.controlItem
+{
+	background-color: 	#FFFFFF;
+	border: 		1px solid #000000;
+	text-align: 		right;
+	white-space:		nowrap;
+	padding:		3px;
+}

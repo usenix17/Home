@@ -1,0 +1,17 @@
+---
+nomad_version: "1.10.0"
+consul_version: "1.20.5"
+
+nomad_datacenter: "omegastar"
+consul_datacenter: "omegastar"
+
+nomad_retry_join:
+  - "192.168.7.11"
+  - "192.168.7.14"
+  - "192.168.7.17"
+
+consul_retry_join:
+  - "192.168.7.11"
+  - "192.168.7.14"
+  - "192.168.7.17"
+

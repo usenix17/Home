@@ -1,0 +1,16 @@
+---
+
+collections:
+  - name: ansible.netcommon
+  - name: ansible.posix
+  - name: ansible.utils
+  - name: ansible.windows
+  - name: community.crypto
+  - name: community.general
+  - name: community.mysql
+  - name: community.network
+  - name: community.windows
+  - name: freeipa.ansible_freeipa
+  - name: kubernetes.core
+  - name: kewlfft.aur
+  - name: google.cloud

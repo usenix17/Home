@@ -1,0 +1,80 @@
+data_dir = "/opt/nomad/data"
+datacenter = "{{ nomad_datacenter }}"
+log_level = "ERROR"
+bind_addr = "0.0.0.0"
+plugin_dir = "/opt/nomad/plugins"
+
+retry_join = [
+{% for ip in nomad_retry_join %}
+  "{{ ip }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+]
+
+server {
+  enabled          = {{ server | default(false) | lower }}
+  bootstrap_expect = 3
+}
+
+acl {
+  enabled = false
+}
+
+limits {
+  http_max_conns_per_client = 500
+}
+
+consul {
+  address = "127.0.0.1:8500"
+  client_auto_join = true
+}
+
+client {
+  enabled = true
+
+  node_pool = "{{ 'server' if server | default(false) else 'client' }}"
+
+  host_volume "shared" {
+    path      = "/etc"
+    read_only = true
+  }
+
+  host_volume "dev-dri" {
+    path      = "/dev/dri"
+    read_only = false
+  }
+
+  host_volume "tmp" {
+    path      = "/tmp"
+    read_only = false
+  }
+
+  host_volume "scratch" {
+    path      = "/scratch"
+    read_only = false
+  }
+
+  host_volume "localtime" {
+    path      = "/etc/localtime"
+    read_only = true
+  }
+
+  host_volume "docker" {
+    path      = "/var/run/docker.sock"
+    read_only = true
+  }
+
+  options {
+    "driver.raw_exec.enable"    = "1"
+    "driver.docker.enable"      = "1"
+    "docker.privileged.enabled" = "true"
+    "log_file_max_size"         = "50"
+    "log_file_max_files"        = "10"
+  }
+}
+
+advertise {
+  http = "{{ ansible_default_ipv4.address }}"
+  rpc  = "{{ ansible_default_ipv4.address }}"
+  serf = "{{ ansible_default_ipv4.address }}"
+}
+

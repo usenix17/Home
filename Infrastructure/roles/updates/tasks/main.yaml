@@ -1,0 +1,39 @@
+- name: Gather facts
+  ansible.builtin.setup:
+    gather_subset:
+      - os_family
+
+- name: Update Debian-based systems
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Update RPM-based systems
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Update Arch-based systems
+  ansible.builtin.pacman:
+    update_cache: yes
+    upgrade: yes
+  when: ansible_facts['os_family'] == 'Archlinux'
+
+- name: Update FreeBSD systems
+  ansible.builtin.command: pkg upgrade -y
+  when: ansible_facts['os_family'] == 'FreeBSD'
+
+- name: Check if reboot is required
+  ansible.builtin.shell: needs-restarting -r
+  register: reboot_required
+  failed_when: false
+  changed_when: false
+  when: ansible_facts['os_family'] in ['RedHat', 'Debian']
+
+- name: Schedule reboot if necessary
+  ansible.builtin.reboot:
+    msg: "Rebooting system after updates"
+    reboot_timeout: 300
+  when: reboot | default(false) and reboot_required is defined and reboot_required.rc is defined and reboot_required.rc == 1

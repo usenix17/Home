@@ -1,0 +1,236 @@
+DIV.error-round.red
+{
+	width:			980px;
+	height:			500px;
+	position:		absolute;
+	overflow:		hidden;
+	margin-left:		-7px;
+}
+
+DIV.error-round.red > DIV.TL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px -214px;
+	height:			49px;
+	width:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			0px;
+}
+
+DIV.error-round.red > DIV.T
+{
+	background:		url(images/allV.png) repeat-x 0px -161px;
+	height:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.error-round.red > DIV.TR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -214px;
+	height:			49px;
+	width:			62px;
+	position:		absolute;
+	top:			0px;
+	right:			0px;
+}
+
+DIV.error-round.red > DIV.L
+{
+	background:		url(images/allH.png) repeat-y -111px 0px;
+	width:			49px;
+	position:		absolute;
+	top:			49px;
+	left:			0px;
+	bottom:			58px;
+}
+
+DIV.error-round.red > DIV.M
+{
+	background:		#ef7575;
+	position:		absolute;
+	top:			49px;
+	left:			49px;
+	right:			62px;
+	bottom:			58px;
+}
+
+DIV.error-round.red > DIV.R
+{
+	background:		url(images/allH.png) repeat-y -160px 0px;
+	width:			62px;
+	position:		absolute;
+	top:			49px;
+	right:			0px;
+	bottom:			58px;
+}
+
+DIV.error-round.red > DIV.BL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px -263px;
+	height:			58px;
+	width:			49px;
+	position:		absolute;
+	bottom:			0px;
+	left:			0px;
+}
+
+DIV.error-round.red > DIV.B
+{
+	background:		url(images/allV.png) repeat-x 0px -210px;
+	height:			58px;
+	position:		absolute;
+	bottom:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.error-round.red > DIV.BR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -263px;
+	height:			58px;
+	width:			62px;
+	position:		absolute;
+	bottom:			0px;
+	right:			0px;
+}
+
+DIV.error-round.yellow
+{
+	width:			980px;
+	height:			500px;
+	position:		absolute;
+	overflow:		hidden;
+	margin-left:		-7px;
+}
+
+DIV.error-round.yellow > DIV.TL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px -107px;
+	height:			49px;
+	width:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			0px;
+}
+
+DIV.error-round.yellow > DIV.T
+{
+	background:		url(images/allV.png) repeat-x 0px -268px;
+	height:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.error-round.yellow > DIV.TR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -107px;
+	height:			49px;
+	width:			62px;
+	position:		absolute;
+	top:			0px;
+	right:			0px;
+}
+
+DIV.error-round.yellow > DIV.L
+{
+	background:		url(images/allH.png) repeat-y -222px 0px;
+	width:			49px;
+	position:		absolute;
+	top:			49px;
+	left:			0px;
+	bottom:			58px;
+}
+
+DIV.error-round.yellow > DIV.M
+{
+	background:		#efe460;
+	position:		absolute;
+	top:			49px;
+	left:			49px;
+	right:			62px;
+	bottom:			58px;
+}
+
+DIV.error-round.yellow > DIV.R
+{
+	background:		url(images/allH.png) repeat-y -271px 0px;
+	width:			62px;
+	position:		absolute;
+	top:			49px;
+	right:			0px;
+	bottom:			58px;
+}
+
+DIV.error-round.yellow > DIV.BL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px -156px;
+	height:			58px;
+	width:			49px;
+	position:		absolute;
+	bottom:			0px;
+	left:			0px;
+}
+
+DIV.error-round.yellow > DIV.B
+{
+	background:		url(images/allV.png) repeat-x 0px -317px;
+	height:			58px;
+	position:		absolute;
+	bottom:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.error-round.yellow > DIV.BR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -156px;
+	height:			58px;
+	width:			62px;
+	position:		absolute;
+	bottom:			0px;
+	right:			0px;
+}
+
+#error-wrapper
+{
+	font-family:		"Times New Roman",serif;
+	font-size:		14pt;
+	left:			45px;
+	position:		absolute;
+	top:			22px;
+	overflow-x:		hidden;
+	overflow-y:		scroll;
+}
+
+#error UL
+{
+	list-style:		disc outside;
+}
+
+#error LI
+{
+	width:			100%;
+	line-height:		0.85;
+	margin-top:		5px;
+}
+
+#error SPAN.close
+{
+	background:		url('images/all.png') no-repeat scroll -111px 0px transparent;
+	float:			right;
+	height:			14px;
+	width:			15px;
+}

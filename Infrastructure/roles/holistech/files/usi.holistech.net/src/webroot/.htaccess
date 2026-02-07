@@ -1,0 +1,8 @@
+#AuthType Basic
+#AuthName "First Quadrant"
+#AuthUserFile /var/www/training/.htpasswd
+#Require valid-user
+
+RewriteEngine on
+RewriteCond $1 !^(index\.php|images|my|user_guide|css|js|robots\.txt)
+RewriteRule ^(.*)$ index.php/$1 [L]

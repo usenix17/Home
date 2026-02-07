@@ -1,0 +1,455 @@
+#nav
+{
+	width:			180px !important;
+	margin-bottom:		40px;
+	top:			30px;
+	z-index:		4;
+	position:		absolute;
+	padding-left:		10px;
+}
+
+#content_bg
+{
+	/*
+	width:			791px;
+	margin-left:		194px;
+	*/
+	width:			996px;
+	margin-left:		-17px;
+	z-index:		2;
+}
+
+#nav_bg
+{
+	width:			400px;
+	margin-top:		40px;
+	z-index:		1;
+}
+
+#pager
+{
+	left:			18px;
+	position:		absolute;
+}
+
+#navigation
+{
+	list-style:		none;
+	padding:		0;
+	margin:			0;
+	position:		relative;
+	/* Following line necessary to read initial 0 on #navigation top property */
+	top:			0px;
+	width:			180px !important;
+	z-index:		10;
+}
+
+#navigation LI
+{
+	font-size:		11px;
+	color:			#b36d45;
+	width:			180px !important;
+	height:			12px;
+	margin:			11px 0 16px 5px;
+	cursor:			pointer;
+}
+
+#navigation LI DIV.short
+{
+	line-height:	1;
+	position:	relative;
+	top:		-3px;
+}
+
+#navigation HR
+{
+	border:			none;
+	background-color:	#8c0303;
+	height:			1px;
+	width:			140px;
+	margin:			0 0 0 20px;
+}
+
+#selector
+{
+	height:			54px;
+	width:			234px;
+	position:		absolute;
+	margin-top:		-4px;
+	z-index:		3;
+}
+
+#selector > DIV.L
+{
+	background:		url(images/all.png) no-repeat -111px -131px;
+	position:		absolute;
+	left:			1px;
+	width:			8px;
+	height:			54px;
+}
+
+#selector > DIV.M
+{
+	background:		url(images/allV.png) repeat-x 0px -107px;
+	position:		absolute;
+	left:			8px;
+	right:			33px;
+	height:			54px;
+}
+
+#selector > DIV.R
+{
+	background:		url(images/all.png) no-repeat -111px -185px;
+	position:		absolute;
+	right:			0px;
+	width:			33px;
+	height:			54px;
+}
+
+
+
+#navwrapper
+{
+	width:			100%;
+	height:			100%;
+	overflow:		hidden;
+}
+
+#navwrapper .up, #navwrapper .down
+{
+	position:		absolute;
+	z-index:		20;
+	display:		none;
+}
+	
+#navwrapper .up 
+{
+	top: 			-32px;
+	left:			90px;
+	background:		url(images/all.png) no-repeat -111px -239px;
+	width:			24px;
+	height:			21px;
+	cursor:			pointer;
+}
+#navwrapper .down 
+{ 
+	bottom: 		-32px; 
+	left:			90px;
+	background:		url(images/all.png) no-repeat -111px -260px;
+	width:			24px;
+	height:			21px;
+	cursor:			pointer;
+}
+
+DIV.content
+{
+	height:			100%;
+	width:			738px !important;
+	z-index:		5;
+}
+
+DIV.nav
+{
+}
+
+/* main vertical scroll */
+#content {
+	position:relative;
+	overflow:hidden;
+}
+
+/* root element for pages */
+#content .modules {
+	position:absolute;
+	height:20000em;
+	clear: both;
+}
+
+.module
+{
+	float: left;
+	padding: 0px;
+	position: relative;
+}
+
+/* main horizontal scroll */
+.scrollable {
+	position:		absolute;
+	overflow:		hidden;
+	height: 		100%;
+	width: 			650px;
+	left:			56px;
+	top: 			53px;
+}
+
+/* root element for pages */
+.scrollable .pages {
+	position:absolute;
+	width:20000em;
+	clear: both;
+}
+
+.page
+{
+	float: 			left;
+	padding:		0px;
+	width: 			620px;
+	overflow: 		auto;
+	position: 		relative;
+	font-family:		serif;
+	font-size:	12pt;
+	line-height:	1.3;
+	padding-right:		52px;
+
+	color:			#bf5b04;
+
+}
+
+/* prev, next, prevPage and nextPage buttons */
+a.arrows {
+	display:block;
+	width:30px;
+	height:30px;
+	float:left;
+	cursor:pointer;
+	font-size:1px;
+	position: absolute;
+	top: 5px;
+	z-index:		7;
+}
+
+/* right */
+a.right
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-111px -92px;
+	width:			34px;
+	height:			37px;
+	cursor:			pointer;
+	clear			:right; 
+	margin-right: 		0px;
+	right: 			-2px;
+	top:			10px;
+}
+a.left 
+{ 
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px -321px;
+	width:			35px;
+	height:			34px;
+	cursor:			pointer;
+	margin-left: 		0px; 
+	left: 			10px;
+	top:			12px;
+}
+/*a.right
+{
+	background-position: 0 -30px; 
+	clear:right; 
+	margin-right: 0px;
+	right: 5px;
+}
+
+a.right:hover 	{ background-position:-30px -30px; }
+a.right:active 	{ background-position:-60px -30px; } 
+
+
+/* left
+a.left
+{ 
+	margin-left: 0px; 
+	left: 5px;
+}
+
+a.left:hover  	{ background-position:-30px 0; }
+a.left:active  	{ background-position:-60px 0; }*/
+
+
+
+/* disabled navigational button */
+a.disabled {
+	visibility:hidden !important;		
+} 	
+
+
+
+
+
+
+
+
+/* position and dimensions of the navigator */
+div.navi {
+	/*background:pink none repeat scroll 0 0;
+	height:30px;*/
+	margin-left:		65px;
+	margin-top:		5px;
+	top: 			18px;
+	/*text-align:center;*/
+	width:			602px;
+}
+
+#unpaged
+{
+	position:		absolute;
+	width:			100%;
+	margin:			30px;
+	overflow:		auto;
+}
+
+DIV.round
+{
+	width:			974px;
+	height:			500px;
+	position:		absolute;
+	overflow:		hidden;
+	margin-left:		-16px;
+}
+
+DIV.round > DIV.TL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px 0px;
+	height:			49px;
+	width:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			0px;
+}
+
+DIV.round > DIV.T
+{
+	background:		url(images/allV.png) repeat-x;
+	background-position: 	0px 0px;
+	height:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.round > DIV.TR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position:	-49px 0px;
+	height:			49px;
+	width:			62px;
+	position:		absolute;
+	top:			0px;
+	right:			0px;
+}
+
+DIV.round > DIV.L
+{
+	background:		url(images/allH.png) repeat-y 0px 0px;
+	width:			49px;
+	position:		absolute;
+	top:			49px;
+	left:			0px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.M
+{
+	background:		#e7eaf1;
+	position:		absolute;
+	top:			49px;
+	left:			49px;
+	right:			62px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.R
+{
+	background:		url(images/allH.png) repeat-y -49px 0px;
+	width:			62px;
+	position:		absolute;
+	top:			49px;
+	right:			0px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.BL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0 -49px;
+	height:			58px;
+	width:			49px;
+	position:		absolute;
+	bottom:			0px;
+	left:			0px;
+}
+
+DIV.round > DIV.B
+{
+	background:		url(images/allV.png) repeat-x;
+	background-position: 	0px -49px;
+	height:			58px;
+	position:		absolute;
+	bottom:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.round > DIV.BR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -49px;
+	height:			58px;
+	width:			62px;
+	position:		absolute;
+	bottom:			0px;
+	right:			0px;
+}
+
+/* Horizontal Scroll */
+.module .ui-slider-horizontal
+{
+	background:		url(images/allV.png) repeat-x 0px -394px  !important;
+	background-color:	#bdc1c0 !important;
+}
+
+.module .ui-slider-horizontal .ui-slider-range
+{
+	background:		url(images/allV.png) repeat-x 0px -375px !important ;
+	background-color:	#c29b5c !important;
+}
+
+.module .ui-slider-horizontal .ui-slider-handle
+{
+	background:		url(images/all.png) no-repeat -111px -60px !important;
+	border:			0;
+	width:			45px;
+	height:			32px;
+	margin-top:		-6px;
+	margin-left:		-23px;
+}
+
+
+/* Vertical Scroll */
+#scrollbar
+{
+	background:		url("images/allH.png") repeat-y scroll -333px 0px !important;
+	background-color:	#bdc1c0 !important;
+	position: 		absolute;
+	right: 			11px;
+	top: 			70px;
+	z-index:		7;
+}
+
+#scrollbar .ui-slider-range-min
+{
+	background:		url("images/allH.png") repeat scroll -352px 0px !important;
+}
+
+#scrollbar .ui-slider-handle
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-111px -14px;
+	border:			0;
+	height:			45px;
+	width:			32px;
+	margin-bottom:		-25px;
+	margin-left:		-8px;
+}
+

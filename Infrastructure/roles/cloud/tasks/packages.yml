@@ -1,0 +1,10 @@
+---
+
+- name: "Debian Packages to install for Cloud Hosts"
+  apt: 
+    name: '{{ debian_cloud_packages }}'
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags:
+    - packages
+

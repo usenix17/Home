@@ -1,0 +1,4 @@
+---
+
+# example for just the cloud subgroup
+ntpserver: pool.ntp.org

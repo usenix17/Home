@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Resources and References</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>&lt;ul&gt;
+	&lt;li&gt;University of Southern Indiana
+	&lt;ul style=&quot;list-style-type:circle&quot;&gt;
+		&lt;li&gt;&lt;a href=&quot;http://www.usi.edu/&quot;&gt;http://www.usi.edu/&lt;/a&gt;&lt;/li&gt;
+	&lt;/ul&gt;
+	&lt;/li&gt;
+	&lt;li&gt;University of Southern Indiana Child Protection Policy&lt;/li&gt;
+	&lt;li&gt;University of Southern Indiana Human Resources Department
+	&lt;ul style=&quot;list-style-type:circle&quot;&gt;
+		&lt;li&gt;&lt;a href=&quot;http://www.usi.edu/hr/&quot;&gt;http://www.usi.edu/hr/&lt;/a&gt;&lt;/li&gt;
+	&lt;/ul&gt;
+	&lt;/li&gt;
+	&lt;li&gt;Child Protective Services (CPS)
+	&lt;ul style=&quot;list-style-type:circle&quot;&gt;
+		&lt;li&gt;1-800-800-5556&lt;/li&gt;
+		&lt;li&gt;&lt;a href=&quot;http://www.in.gov/dcs/2398.htm&quot;&gt;http://www.in.gov/dcs/2398.htm&lt;/a&gt;&lt;/li&gt;
+	&lt;/ul&gt;
+	&lt;/li&gt;
+	&lt;li&gt;Local law enforcement officials
+	&lt;ul style=&quot;list-style-type:circle&quot;&gt;
+		&lt;li&gt;911&lt;/li&gt;
+		&lt;li&gt;&lt;a href=&quot;http://www.in.gov/isp/&quot;&gt;http://www.in.gov/isp/&lt;/a&gt;&lt;/li&gt;
+	&lt;/ul&gt;
+	&lt;/li&gt;
+	&lt;li&gt;The University Director of Public Safety
+	&lt;ul style=&quot;list-style-type:circle&quot;&gt;
+		&lt;li&gt;(812) 464-1845&lt;/li&gt;
+		&lt;li&gt;&lt;a href=&quot;http://www.usi.edu/security/&quot;&gt;http://www.usi.edu/security/&lt;/a&gt;&lt;/li&gt;
+	&lt;/ul&gt;
+	&lt;/li&gt;
+&lt;/ul&gt;
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

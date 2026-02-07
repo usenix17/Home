@@ -1,0 +1,89 @@
+---
+
+- name: Common
+  hosts: cloud, pvh
+  roles:
+    - role: common
+      tags: common
+
+- name: Security
+  hosts: cloud, pvh
+  roles:
+    - role: security
+      tags: security
+
+- name: Cloud
+  hosts: cloud
+  tags: cloud
+  roles:
+    - role: cloud
+
+- name: Docker Systems
+  hosts: docker
+  roles:
+    - role: docker
+      tags: docker
+
+- name: Upgrades
+  hosts: pvh
+  become: True
+  tags: [never, upgrades]
+  vars:
+    forced_packages: "vim-tiny"
+  tasks:
+    - name: Install Upgrades
+      apt:
+        upgrade: dist
+        update_cache: yes
+        cache_valid_time: 7200
+      when: ansible_distribution == 'Debian'
+
+- hosts: bootstrap
+  gather_facts: no
+  become_method: su
+  become_user: root
+  become: True
+  tags: [never, bootstrap]    
+  pre_tasks:
+    - name: Install Python on a Debian based system
+      raw: apt -y install python
+      ignore_errors: yes
+      changed_when: False
+      failed_when: False
+
+    - name: Install Python on Red Hat based system
+      raw: yum -y install python
+      ignore_errors: yes
+      changed_when: False
+      failed_when: False
+    - setup:
+  tasks:
+    - name: Manage IaC user
+      user:
+        name: iac
+        comment: "Infrastructure as Code"
+        shell: /bin/bash
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+
+    - name: Authorized keys for IaC
+      authorized_key:
+        user: iac
+        key: '{{ item }}'
+        state: present
+      with_items: "{{ iac_authorized_keys }}"
+
+    - name: Validate access
+      local_action: "command ssh iac@{{ ansible_fqdn }} uname"
+      become: False
+      changed_when: False
+
+- name: User Desktop/Laptop Setup
+  hosts: local
+  connection: local
+  gather_facts: false
+  become: True
+  tags: [never, desktop, laptop]
+  roles:
+    - role: local

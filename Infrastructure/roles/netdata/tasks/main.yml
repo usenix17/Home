@@ -1,0 +1,14 @@
+---
+
+- name: "Download Netdata"
+  ansible.builtin.command:
+    cmd: "wget -O ~/netdata-kickstart.sh https://my-netdata.io/kickstart.sh"
+  tags: ["netdata"]
+ 
+- name: "Install and configure Netdata"
+  ansible.builtin.command:  
+    cmd: "sh ~/netdata-kickstart.sh --disable-telemetry --claim-token YlQqcAhosqfqbMskIA7wO_-TdK-oEHUc8p9b_SDqmq2DFvwqqmuvUd3nfHMIEhUSALJ_57itZ9i6SqFPHlAOkXqe9OHtdUxcUQU26WX5uwFuTnnsxwW98pQAuUgLVUgwXP8nAyM --claim-rooms 18366892-5547-4551-a28b-b64cbc77d4f8 --claim-url https://app.netdata.cloud"
+  register: command_result
+  failed_when: "'FAILED' in command_result.stderr"
+  tags: ["netdata"]
+

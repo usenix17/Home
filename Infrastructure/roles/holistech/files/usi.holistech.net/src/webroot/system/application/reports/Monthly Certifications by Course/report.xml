@@ -1,0 +1,24 @@
+<report>
+	<sql>
+		SELECT e.course, date_format(e.certification_time,"%M %Y") as date, count(e.enrollment_id) as count
+		FROM enrollments e
+		WHERE e.certification_time IS NOT NULL AND [course] AND [date_min] AND [date_max]
+		GROUP BY year(e.certification_time), month(e.certification_time), e.course
+		ORDER BY year(e.certification_time) DESC, month(e.certification_time) DESC, e.course
+	</sql>
+
+	<parameters>
+		<param type='date' name='date_min'>
+			<label>Start Date (inclusive)</label>
+			<default>true</default>
+			<sql>certification_time &gt;= [value]</sql>
+		</param>
+		<param type='date' name='date_max'>
+			<label>End Date (non-inclusive)</label>
+			<default>true</default>
+			<sql>certification_time &lt; [value]</sql>
+		</param>
+	</parameters>
+
+	<courses value='enrolled' name='course' field='course'/>
+</report>

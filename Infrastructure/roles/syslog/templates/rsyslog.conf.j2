@@ -1,0 +1,14 @@
+# rsyslog configuration file
+
+# Load the imuxsock module for listening to /dev/log
+module(load="imuxsock")
+
+# Load the imklog module for kernel logging
+module(load="imklog")
+
+# Include all config files in /etc/rsyslog.d/
+include(file="/etc/rsyslog.d/*.conf")
+
+# Forward all logs to a remote server
+*.* @{{ log_server_host }}:{{ log_server_port }};RSYSLOG_SyslogProtocol23Format
+

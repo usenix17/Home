@@ -1,0 +1,18 @@
+---
+
+- name: "Configure pdagent yum repo"
+  ansible.builtin.copy:
+    src: "pdagent.repo"
+    dest: "/etc/yum.repos.d/pdagent.repo"
+    owner: root
+    group: root
+    mode: "0400"
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: "Configure pdagent apt repo"
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.pagerduty.com/pdagent deb/"
+    filename: pdagent
+  when: ansible_facts['os_family'] == "Debian"
+
+

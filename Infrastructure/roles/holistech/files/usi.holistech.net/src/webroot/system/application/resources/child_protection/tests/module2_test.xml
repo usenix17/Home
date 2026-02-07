@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Practice Quiz 2 - Conduct</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>TRUE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="multiple" randomize="FALSE" number="1">
+ <text lang="EN">Which of the following are considered either child abuse or inappropriate conduct when participating in child-related activities:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Shaking a child to get his attention</option>
+ <option lang="EN" answer="TRUE" suggestion="">Being under the influence of drugs or alcohol </option>
+ <option lang="EN" answer="TRUE" suggestion="">Ignoring a child who you suspect is under the influence of drugs or alcohol</option>
+ <option lang="EN" answer="TRUE" suggestion="">Engaging in sexually inappropriate conduct of any kind toward or in the presence of a child</option>
+ <option lang="EN" answer="TRUE" suggestion="">Using curse words or words discriminatory in nature</option>
+ <option lang="EN" answer="TRUE" suggestion="">Neglecting the duty of care for a child under the adult’s supervision</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

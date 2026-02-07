@@ -1,0 +1,51 @@
+---
+
+- name: "Ensure /root/.ssh directory exists"
+  ansible.builtin.file:
+    path: "/root/.ssh"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0700"
+
+- name: "Remove known_hosts file to avoid key conflicts"
+  ansible.builtin.file:
+    path: "/root/.ssh/authorized_keys"
+    state: "absent"
+
+- name: "Copy Vault SSH CA public key to trusted CA path"
+  ansible.builtin.copy:
+    src: "vault_ssh_ca.pub"
+    dest: "/etc/ssh/trusted-CA.pem"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Restart sshd"
+
+- name: "Ensure TrustedUserCAKeys is set in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?TrustedUserCAKeys"
+    line: "TrustedUserCAKeys /etc/ssh/trusted-CA.pem"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"
+
+- name: "Ensure PubkeyAuthentication is enabled in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"
+
+- name: "Ensure PermitRootLogin is explicitly enabled in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin yes"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"
+

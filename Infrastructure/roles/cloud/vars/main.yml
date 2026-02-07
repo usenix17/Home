@@ -1,0 +1,5 @@
+---
+
+debian_cloud_packages:
+  - apache2
+  - unattended-upgrades

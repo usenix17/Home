@@ -1,0 +1,18 @@
+---
+
+# First steps with the auto-reboot setup. Next step is to configure the reboot via inventory
+# The reason a system may not want auto-reboot is in the case of full disk encryption
+
+- name: "unattended-upgrades"
+  replace:
+    path: "/etc/apt/apt.conf.d/50unattended-upgrades"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: '^//      "o=Debian,a=stable";', replace: '        "origin=Debian";' }
+    - { regexp: '^//Unattended-Upgrade::Automatic-Reboot "false";', replace: 'Unattended-Upgrade::Automatic-Reboot "true";' }
+    - { regexp: '^//Unattended-Upgrade::Automatic-Reboot-WithUsers', replace: 'Unattended-Upgrade::Automatic-Reboot-WithUsers' }
+  notify: "restart unattended-upgrades"
+  tags:
+    - packages
+  when: ansible_os_family == "Debian"

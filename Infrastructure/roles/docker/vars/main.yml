@@ -1,0 +1,7 @@
+---
+
+docker_packages:
+  - "apt-transport-https"
+  - "docker-ce"
+  - "docker-ce-cli"
+  - "docker-compose"

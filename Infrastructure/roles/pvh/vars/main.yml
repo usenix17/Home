@@ -1,0 +1,4 @@
+---
+debian_pvh_packages:
+  - "unattended-upgrades"
+

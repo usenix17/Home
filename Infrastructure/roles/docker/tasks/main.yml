@@ -1,0 +1,108 @@
+---
+
+- name: "Docker repository added"
+  lineinfile:
+    path: "/etc/apt/sources.list.d/docker.list"
+    line: "deb https://download.docker.com/linux/debian/ {{ ansible_distribution_release }} stable"
+    create: yes
+    state: present
+    group: root
+    mode: 0644
+    owner: root
+  when: ansible_os_family == "Debian"
+
+- name: "Docker Key trusted"
+  apt_key:
+    url: "https://download.docker.com/linux/debian/gpg"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: "Basic Packages to install"
+  apt:
+    update_cache: yes
+    name: '{{ docker_packages }}'
+    state: latest
+  when: ansible_os_family == "Debian"
+
+- name: "Docker Volume lathama"
+  docker_volume:
+    name: "lathama"
+
+- name: "Pull Debian"
+  docker_image:
+    name: debian
+    source: pull
+
+- name: "Run a DNS Resolver"
+  docker_container:
+    name: "dnsresolver"
+    image: "lathama/bind9:dnsresolver"
+    state: started
+    published_ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+  when: dockerruntrue
+
+- name: "Git checkout dockerfiles"
+  git:
+    repo: 'https://lathama.net/git/lathama/Dockerfiles.git'
+    dest: "/tmp/Dockerfiles"
+
+- name: "Build DNS Resolver"
+  docker_image:
+    build:
+      path: "/tmp/Dockerfiles/bind/"
+      nocache: yes
+      target: "resolv"
+      pull: yes
+    name: "lathama/bind9:latest"
+    repository: "lathama/bind9:latest"
+    source: build
+
+- name: "Build DNS Resolver"
+  docker_image:
+    build:
+      path: "/tmp/Dockerfiles/bind/"
+      nocache: yes
+      target: "resolv"
+      pull: no # we have already pulled from above
+    name: "lathama/bind9:dnsresolver"
+    repository: "lathama/bind9:dnsresolver"
+    source: build
+
+- name: "Build DNS Auth"
+  docker_image:
+    build:
+      path: "/tmp/Dockerfiles/bind/"
+      nocache: yes
+      target: "auth"
+      pull: no # we have already pulled from above
+    name: "lathama/bind9:dnsauth"
+    repository: "lathama/bind9:dnsauth"
+    source: build
+
+# Now to push the images. Someday this can be done all at once
+
+- name: "Log into DockerHub"
+  docker_login:
+    username: "{{ dockerhub_user }}"
+    password: "{{ dockerhub_pass }}"
+
+- name: "Push to Dockerhub DNS Latest"
+  docker_image:
+    name: "lathama/bind9:latest"
+    push: yes
+    source: local
+
+- name: "Push to Dockerhub DNS Resolver"
+  docker_image:
+    name: "lathama/bind9:dnsresolver"
+    push: yes
+    source: local
+
+- name: "Push to Dockerhub DNS Auth"
+  docker_image:
+    name: "lathama/bind9:dnsauth"
+    push: yes
+    source: local
+

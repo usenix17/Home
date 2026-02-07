@@ -1,0 +1,7 @@
+---
+
+- name: "Basic Debian Packages to install"
+  apt: 
+    name: '{{ debian_basic_packages }}'
+    state: latest
+  when: ansible_os_family == "Debian"

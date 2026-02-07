@@ -1,0 +1,129 @@
+---
+
+- name: "Install base system dependencies"
+  ansible.builtin.dnf:
+    name:
+      - bash-completion
+      - bzip2
+      - epel-release
+      - fail2ban
+      - httpd
+      - lsof
+      - mariadb
+      - mariadb-server
+      - php
+      - php-cli
+      - php-gd
+      - php-mbstring
+      - php-mysqlnd
+      - php-xml.x86_64
+      - policycoreutils-python-utils
+      - rsync
+
+- name: "Copy over httpd configs"
+  ansible.builtin.copy:
+    src: "httpd/conf.d"
+    dest: "/etc/httpd/"
+    directory_mode: True
+
+- name: "Create vhost directory"
+  ansible.builtin.file:
+    path: "/var/www/vhosts/"
+    state: directory
+
+- name: "Install vhost"
+  ansible.builtin.copy:
+    src: "usi.holistech.net/src/webroot/"
+    dest: "/var/www/vhosts/usi.holistech.net/"
+    directory_mode: True
+
+- name: "Copy over MySQL configs"
+  ansible.builtin.copy:
+    src: "mysql_setup.sql"
+    dest: "/tmp/mysql_setup.sql"
+
+- name: "Copy over fail2ban config"
+  ansible.builtin.copy:
+    src: "fail2ban/jail.local"
+    dest: "/etc/fail2ban/jail.local"
+
+- name: "Configure PHP to add short_open_tag = On"
+  ansible.builtin.lineinfile:
+    path: "/etc/php.ini"
+    regexp: "^short_open_tag"
+    line: "short_open_tag = On"
+
+- name: "Configure PHP to add date.timezone = UTC"
+  ansible.builtin.lineinfile:
+    path: "/etc/php.ini"
+    regexp: "^date.timezone"
+    line: "date.timezone = UTC"
+
+- name: "Start services"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - httpd
+    - mariadb
+    - fail2ban
+
+- name: "Configure sshd"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+  notify:
+    - "Restart sshd"
+
+- name: "Set MySQL Password"
+  community.mysql.mysql_user:
+    name: "root"
+    password: "{{ MYSQL_PW }}"
+    login_name: "root"
+    login_password: ""
+    login_host: "localhost"  
+
+- name: "Initialize database"
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: "/tmp/mysql_setup.sql"
+
+- name: "Create Shell for USI user"
+  ansible.builtin.copy:
+    src: "usi_roster_drop/usi_roster_drop.sh"
+    dest: "/opt/usi_roster_drop.sh"
+    mode: 0655
+
+- name: "Create USI user"
+  ansible.builtin.user:
+    name: "usi_roster_drop"
+    shell: "/opt/usi_roster_drop.sh"
+
+- name: "Create USI user ssh directory"
+  ansible.builtin.file:
+    path: "/home/usi_roster_drop/.ssh"
+    state: directory
+    mode: 0700
+    owner: "usi_roster_drop"
+    group: "usi_roster_drop"
+
+- name: "Add authorized keys for USI user"
+  ansible.builtin.copy:
+    src: "usi_roster_drop/.ssh/authorized_keys"
+    dest: "/home/usi_roster_drop/.ssh/authorized_keys"
+    mode: 600
+    owner: "usi_roster_drop"
+    group: "usi_roster_drop"
+
+- name: "Copy over FERPA roster"
+  ansible.builtin.copy:
+    src: "usi_roster_drop/{{ item }}"
+    dest: "home/usi_roster_drop/{{ item }}"
+    owner: "usi_roster_drop"
+    group: "usi_roster_drop"
+  loop:
+    - ferpa_roster.csv
+    - roster_permissions.csv

@@ -1,0 +1,17 @@
+\documentclass[12pt,landscape]{article}
+						% Declare an article with 12pt font
+						% 	(and different left and right margins = twoside)
+\usepackage[dvips]{graphicx}			% Add \includegraphics capability
+\usepackage[letterpaper]{anysize}		% Macro to specify exact margins
+
+\marginsize{1in}{1in}{0.25in}{0.25in}		% Set the margins to 1in
+\parindent 0.5in				% Make new paragraphs not indent.
+\usepackage{multirow}				% Allow multirow command in tabulars
+\usepackage{array}				% Allow m{width} in tabular
+\usepackage{fix-cm}
+
+
+
+
+\begin{document}
+

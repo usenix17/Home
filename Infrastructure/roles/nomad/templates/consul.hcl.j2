@@ -1,0 +1,44 @@
+datacenter = "{{ consul_datacenter }}"
+data_dir   = "/opt/consul"
+log_level  = "INFO"
+node_name  = "{{ ansible_hostname }}"
+
+bind_addr      = "0.0.0.0"
+advertise_addr = "{{ ansible_default_ipv4.address }}"
+client_addr    = "0.0.0.0"
+
+retry_join = [
+{% for ip in consul_retry_join %}
+  "{{ ip }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+]
+
+ui_config {
+  enabled = true
+}
+
+server = {{ server | default(false) | lower }}
+bootstrap_expect = 3
+
+ports {
+  http     = 8500
+  dns      = 8600
+  serf_lan = 8301
+  serf_wan = 8302
+  server   = 8300
+}
+
+connect {
+  enabled = true
+}
+
+acl {
+  enabled = false
+  default_policy = "allow"
+  enable_token_persistence = true
+}
+
+telemetry {
+  prometheus_retention_time = "1m"
+  disable_hostname = true
+}

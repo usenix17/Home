@@ -1,0 +1,14 @@
+---
+
+- import_tasks: users.yml
+- import_tasks: packages.yml
+- import_tasks: time.yml
+
+- name: "Faster reboots"
+  replace:
+    path: "/etc/default/grub"
+    regexp: "GRUB_TIMEOUT=5"
+    replace: "GRUB_TIMEOUT={{grub_timeout}}"
+    backup: no
+  notify: "update grub"
+

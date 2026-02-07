@@ -1,0 +1,3 @@
+<SCRIPT>
+getMenu('<?=$id?>');
+</SCRIPT>

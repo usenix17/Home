@@ -1,0 +1,468 @@
+#nav
+{
+	width:			180px !important;
+	margin-bottom:		40px;
+	top:			30px;
+	z-index:		4;
+	position:		absolute;
+	padding-left:		10px;
+}
+
+#content_bg
+{
+	/*
+	width:			791px;
+	margin-left:		194px;
+	*/
+	width:			985px;
+	margin-left:		-13px;
+	z-index:		2;
+}
+
+#nav_bg
+{
+	width:			400px;
+	margin-top:		40px;
+	z-index:		1;
+}
+
+#pager
+{
+	left:			18px;
+	position:		absolute;
+}
+
+#navigation
+{
+	list-style:		none;
+	padding:		0;
+	margin:			0;
+	position:		relative;
+	/* Following line necessary to read initial 0 on #navigation top property */
+	top:			0px;
+	width:			180px !important;
+	z-index:		10;
+}
+
+#navigation LI
+{
+	font-size:		11px;
+	color:			#95bcc8;
+	width:			180px !important;
+	height:			12px;
+	margin:			11px 0 16px 5px;
+	cursor:			pointer;
+}
+
+#navigation LI DIV.short
+{
+	line-height:	1;
+	position:	relative;
+	top:		-3px;
+}
+
+#navigation LI.selected
+{
+	color:			#5668a3;
+}
+
+
+
+#navigation HR
+{
+	border:			none;
+	background-color:	#95bcc8;
+	height:			1px;
+	width:			140px;
+	margin:			0 0 0 20px;
+}
+
+#selector
+{
+	height:			54px;
+	width:			234px;
+	position:		absolute;
+	margin-top:		-4px;
+	z-index:		3;
+}
+
+#selector > DIV.L
+{
+	background:		url(images/all.png) no-repeat -111px -131px;
+	position:		absolute;
+	left:			0px;
+	width:			8px;
+	height:			54px;
+}
+
+#selector > DIV.M
+{
+	background:		url(images/allV.png) repeat-x 0px -107px;
+	position:		absolute;
+	left:			8px;
+	right:			33px;
+	height:			54px;
+}
+
+#selector > DIV.R
+{
+	background:		url(images/all.png) no-repeat -111px -185px;
+	position:		absolute;
+	right:			0px;
+	width:			33px;
+	height:			54px;
+}
+
+
+
+#navwrapper
+{
+	width:			100%;
+	height:			100%;
+	overflow:		hidden;
+}
+
+#navwrapper .up, #navwrapper .down
+{
+	position:		absolute;
+	z-index:		20;
+	display:		none;
+}
+	
+#navwrapper .up 
+{
+	top: 			-32px;
+	left:			90px;
+	background:		url(images/all.png) no-repeat -111px -239px;
+	width:			24px;
+	height:			21px;
+	cursor:			pointer;
+}
+#navwrapper .down 
+{ 
+	bottom: 		-32px; 
+	left:			90px;
+	background:		url(images/all.png) no-repeat -111px -260px;
+	width:			24px;
+	height:			21px;
+	cursor:			pointer;
+}
+
+DIV.content
+{
+	height:			100%;
+	width:			738px !important;
+	z-index:		5;
+}
+
+DIV.nav
+{
+}
+
+/* main vertical scroll */
+#content {
+	position:relative;
+	overflow:hidden;
+}
+
+/* root element for pages */
+#content .modules {
+	position:absolute;
+	height:20000em;
+	clear: both;
+}
+
+.module
+{
+	float: left;
+	padding: 0px;
+	position: relative;
+}
+
+/* main horizontal scroll */
+.scrollable {
+	position:		absolute;
+	overflow:		hidden;
+	height: 		100%;
+	width: 			650px;
+	left:			56px;
+	top: 			53px;
+}
+
+/* root element for pages */
+.scrollable .pages {
+	position:absolute;
+	width:20000em;
+	clear: both;
+}
+
+.page
+{
+	float: 			left;
+	padding:		0px;
+	width: 			620px;
+	overflow: 		auto;
+	position: 		relative;
+	font-family:		serif;
+	color:			#3f4f8f;
+	font-size:	12pt;
+	line-height:	1.3;
+	padding-right:		52px;
+
+}
+
+#scrollbar
+{
+	position: absolute;
+	right: 13px;
+	top: 55px;
+	z-index:		7;
+}
+
+
+/* prev, next, prevPage and nextPage buttons */
+a.arrows {
+	display:block;
+	width:30px;
+	height:30px;
+	float:left;
+	cursor:pointer;
+	font-size:1px;
+	position: absolute;
+	top: 5px;
+	z-index:		7;
+}
+
+/* right */
+a.right
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-111px -113px;
+	width:			16px;
+	height:			18px;
+	cursor:			pointer;
+	clear			:right; 
+	margin-right: 		0px;
+	right: 			10px;
+	top:			20px;
+}
+a.left 
+{ 
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-111px -95px;
+	width:			16px;
+	height:			18px;
+	cursor:			pointer;
+	margin-left: 		0px; 
+	left: 			10px;
+	top:			20px;
+}
+/*a.right
+{
+	background-position: 0 -30px; 
+	clear:right; 
+	margin-right: 0px;
+	right: 5px;
+}
+
+a.right:hover 	{ background-position:-30px -30px; }
+a.right:active 	{ background-position:-60px -30px; } 
+
+
+/* left
+a.left
+{ 
+	margin-left: 0px; 
+	left: 5px;
+}
+
+a.left:hover  	{ background-position:-30px 0; }
+a.left:active  	{ background-position:-60px 0; }*/
+
+
+
+/* disabled navigational button */
+a.disabled {
+	visibility:hidden !important;		
+} 	
+
+
+
+
+
+
+
+
+/* position and dimensions of the navigator */
+div.navi {
+	/*background:pink none repeat scroll 0 0;
+	height:30px;*/
+	margin-left:		50px;
+	margin-top:		5px;
+	top: 			16px;
+	/*text-align:center;*/
+	width:			646px;
+}
+
+#unpaged
+{
+	position:		absolute;
+	width:			100%;
+	margin:			30px;
+	overflow:		auto;
+}
+
+DIV.round
+{
+	width:			967px;
+	height:			500px;
+	position:		absolute;
+	overflow:		hidden;
+	margin-left:		-14px;
+}
+
+DIV.round > DIV.TL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0px 0px;
+	height:			49px;
+	width:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			0px;
+}
+
+DIV.round > DIV.T
+{
+	background:		url(images/allV.png) repeat-x;
+	background-position: 	0px 0px;
+	height:			49px;
+	position:		absolute;
+	top:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.round > DIV.TR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position:	-49px 0px;
+	height:			49px;
+	width:			62px;
+	position:		absolute;
+	top:			0px;
+	right:			0px;
+}
+
+DIV.round > DIV.L
+{
+	background:		url(images/allH.png) repeat-y 0px 0px;
+	width:			49px;
+	position:		absolute;
+	top:			49px;
+	left:			0px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.M
+{
+	background:		#eff2fb;
+	position:		absolute;
+	top:			49px;
+	left:			49px;
+	right:			62px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.R
+{
+	background:		url(images/allH.png) repeat-y -49px 0px;
+	width:			62px;
+	position:		absolute;
+	top:			49px;
+	right:			0px;
+	bottom:			58px;
+}
+
+DIV.round > DIV.BL
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	0 -49px;
+	height:			58px;
+	width:			49px;
+	position:		absolute;
+	bottom:			0px;
+	left:			0px;
+}
+
+DIV.round > DIV.B
+{
+	background:		url(images/allV.png) repeat-x;
+	background-position: 	0px -49px;
+	height:			58px;
+	position:		absolute;
+	bottom:			0px;
+	left:			49px;
+	right:			62px;
+}
+
+DIV.round > DIV.BR
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-49px -49px;
+	height:			58px;
+	width:			62px;
+	position:		absolute;
+	bottom:			0px;
+	right:			0px;
+}
+
+/* Horizontal Scroll */
+.module .ui-slider-horizontal
+{
+	background:		url(images/allV.png) repeat-x 0px -394px  !important;
+}
+
+.module .ui-slider-horizontal .ui-slider-range
+{
+	background:		url(images/allV.png) repeat-x 0px -375px !important ;
+}
+
+.module .ui-slider-horizontal .ui-slider-handle
+{
+	background:		url(images/all.png) no-repeat -111px -14px !important;
+	border:			0;
+	width:			37px;
+	height:			37px;
+	margin-top:		-7px;
+	margin-left:		-23px;
+}
+
+
+/* Vertical Scroll */
+#scrollbar
+{
+	background:		url("images/allH.png") repeat-y scroll -333px 0px !important;
+	position: 		absolute;
+	right: 			13px;
+	top: 			60px;
+	z-index:		7;
+}
+
+#scrollbar .ui-slider-range-min
+{
+	background:		url("images/allH.png") repeat scroll -352px 0px !important;
+}
+
+#scrollbar .ui-slider-handle
+{
+	background:		url(images/all.png) no-repeat;
+	background-position: 	-111px -14px;
+	border:			0;
+	height:			37px;
+	width:			37px;
+	margin-bottom:		-25px;
+	margin-left:		-7px;
+}
+
+

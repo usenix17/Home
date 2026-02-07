@@ -1,0 +1,109 @@
+"Mon, 17 May 2010 12:11:35 -0600","Control controller"
+"Mon, 17 May 2010 12:11:35 -0600","show_tabs top"
+"Mon, 17 May 2010 12:11:35 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:11:35 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:12:54 -0600","Control controller"
+"Mon, 17 May 2010 12:12:54 -0600","show_tabs top"
+"Mon, 17 May 2010 12:12:54 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:12:54 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:13:11 -0600","Control controller"
+"Mon, 17 May 2010 12:13:12 -0600","show_tabs top"
+"Mon, 17 May 2010 12:13:12 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:13:12 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:13:24 -0600","Control controller"
+"Mon, 17 May 2010 12:13:24 -0600","show_tabs top"
+"Mon, 17 May 2010 12:13:24 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:13:24 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:13:35 -0600","Control controller"
+"Mon, 17 May 2010 12:13:36 -0600","show_tabs top"
+"Mon, 17 May 2010 12:13:36 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:13:36 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/windmill//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:13:50 -0600","Control controller"
+"Mon, 17 May 2010 12:13:50 -0600","show_tabs top"
+"Mon, 17 May 2010 12:13:50 -0600","show_tabs bottom"
+"Mon, 17 May 2010 12:13:50 -0600","<P><IMG ONCLICK=""pager.unpaged_hide()"" SRC=""images/Left.png""> <A HREF=""#"" ONCLICK=""pager.unpaged_hide()"">Return to Training</A></P>
+<DIV ID='control_tabs' WIDTH=""100%"" HEIGHT=""100%"" >
+	<UL>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_user"">Settings</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course_list"">Course List</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_syllabus"">Course Syllabus</A></LI>
+					<LI><A HREF=""http://192.168.241.128/newaz/enes//control_course"">Course Settings</A></LI>
+			</UL>
+</DIV>
+
+<SCRIPT>
+	$J(""#control_tabs"").tabs({ selected: 1 });
+</SCRIPT>
+"
+"Mon, 17 May 2010 12:14:34 -0600","Control controller"
+"Mon, 17 May 2010 12:14:49 -0600","Control controller"
+"Mon, 17 May 2010 12:15:29 -0600","Control controller"
+"Mon, 17 May 2010 12:21:51 -0600","Control controller"
+"Mon, 17 May 2010 12:22:14 -0600","Control controller"
+"Mon, 17 May 2010 12:22:29 -0600","Control controller"
+"Mon, 17 May 2010 12:22:50 -0600","Control controller"

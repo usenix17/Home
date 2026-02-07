@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>FERPA in the College Community</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN>Understand Your School's Policies</EN>
+   </title>
+   <content1>
+    <EN>[CAMPUSCLUE]If you're taking this
+	course, chances are you have access to student records.  Applying
+	FERPA knowledge is not just the job of specific records departments,
+	it's your job as well.[/CAMPUSCLUE]
+&lt;UL&gt;
+  	&lt;LI&gt;&lt;P&gt;FERPA is a statute on privacy.  It is not intended to define
+	higher education policy or hinder pedagogy or educational business. 
+	While the act contains certain requirements, it leaves much to the
+	institutions.&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;It's not enough to understand the general guidelines outlined
+	in FERPA; it's important to know your school's policies and
+	definitions.&lt;/P&gt;
+    &lt;/UL&gt;
+
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Responsibilities of 	the Institution</EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;Maintain practices to ensure privacy of
+	students' records   
+	&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Define terms that affect local practice
+	and FERPA compliance&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Publish an annual notification
+	informing students of these definitions and their privacy rights
+	under FERPA&lt;/P&gt;
+
+    &lt;/UL&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Responsibilities of the Institution - Annual Notification</EN>
+   </title>
+   <content1>
+    <EN>&lt;P&gt;Institutions must publish the following
+	information annually:&lt;/P&gt;
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;The four primary guarantees given to
+	students under FERPA as well as the procedure for exercising those
+	rights:&lt;/P&gt;
+&lt;OL&gt;
+	&lt;LI&gt;&lt;P&gt;Right to Inspect and Review&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Right to Seek to Amend&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Right over Disclosure 
+	&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Right to File a Complaint 
+	&lt;/P&gt;
+&lt;/OL&gt;
+
+    	&lt;LI&gt;&lt;P&gt;Definitions such as: 
+	&lt;/P&gt;
+	&lt;UL&gt;&lt;LI&gt;&lt;P&gt;School official&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;Legitimate educational interest&lt;/P&gt;
+	&lt;/UL&gt;
+        &lt;LI&gt;&lt;P&gt;Disclosure of policies and practices of
+	sharing and utilizing student information including what the school
+	classifies as &quot;directory information.&quot;&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;The notification must 
+	&lt;/P&gt;
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;be [TERM easily	accessible]reasonably available to the student population.  In a
+	catalog or student handbook, for example.[/TERM]&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;[TERM Effectively notify]make reasonable accommodations to inform[/TERM] students
+	who are disabled&lt;/P&gt;
+    &lt;/UL&gt;</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

@@ -1,0 +1,9 @@
+---
+
+- name: "Debian based remove NTP conflict"
+  apt: 
+    name: ntp
+    state: absent
+    purge: true
+  notify: "restart timesyncd"
+  when: ansible_os_family == "Debian"

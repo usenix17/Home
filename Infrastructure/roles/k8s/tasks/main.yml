@@ -1,0 +1,107 @@
+---
+
+- name: "Add kernel modules"
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present
+  loop:
+    - "overlay"
+    - "br_netfilter"
+
+
+- name: "Configure sysctl"
+  ansible.posix.sysctl:
+    name: "{{ item }}" 
+    value: "1"
+    state: present
+    reload: true
+  loop:
+    - "net.bridge.bridge-nf-call-iptables"
+    - "net.ipv4.ip_forward"
+    - "net.bridge.bridge-nf-call-ip6tables"
+
+- name: "Install apt key for k8s repo and containerd"
+  ansible.builtin.apt_key:
+    url: "{{ item }}"
+    state: present
+  loop: 
+    - "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    - "https://download.docker.com/linux/debian/gpg"
+
+- name: "Add k8s and containerd repo"
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    - "deb https://download.docker.com/linux/debian/ {{ ansible_distribution_release }} stable"
+ 
+- name: "Unhold k8s packages"
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: install
+  loop:
+    - "kubelet"
+    - "kubeadm"
+    - "kubectl"
+  tags: ["never", "update"]
+   
+- name: "Install dependencies"
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  loop:
+    - "containerd"
+    - "apt-transport-https"
+    - "curl"
+    - "kubelet"
+    - "kubeadm"
+    - "kubectl"
+
+- name: "Configure containerd"
+  ansible.builtin.copy:
+    src: "config.toml"
+    dest: "/etc/containerd/config.toml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: "restart containerd"
+    
+- name: "Hold k8s packages"
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - "kubelet"
+    - "kubeadm"
+    - "kubectl"
+
+- name: "Initialize the cluster"
+  ansible.builtin.shell:
+    cmd: "kubeadm init --pod-network-cidr 10.69.0.0/16"
+  when: k8s_control|default(false)
+  register: "k8s_init"
+  delay: 20
+  tags: ["never", "init"]
+
+- name: "Configure kubectl on control node"
+  ansible.builtin.shell:
+    cmd: "cp /etc/kubernetes/admin.conf ~/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+  when: k8s_control|default(false)
+  tags: ["never", "init"]
+
+- name: "Configure CNI - Calico"
+  ansible.builtin.shell:
+    cmd: "kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml"
+  when: k8s_control|default(false)
+  tags: ["never", "init"]
+
+- name: "kubeadm join command"
+  set_fact:
+    k8sjoin= "{{ k8s_init.stdout | regex_findall('kubeadm join') }}"
+  when: k8s_control|default(false)
+  tags: ["never", "init"]
+
+

@@ -1,0 +1,19 @@
+---
+
+- name: "GITEA Config"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: git
+    group: git
+    mode: 0644
+  with_items:
+    - { src: "app.ini", dest: "/home/git/gitea/custom/conf/app.ini" }
+  notify: "restart gitea"
+  tags:
+    - gitea
+
+- name: "enable gitea"
+  systemd:
+    enabled: yes
+    name: "gitea"

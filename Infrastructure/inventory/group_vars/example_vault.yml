@@ -1,0 +1,24 @@
+---
+cloud_root_pass: !CorrectHorseBatteryStaple
+pvh_root_pass: CorrectHorseBatteryStaple
+app1password: qwertyuiop
+vendor_api_token: TF1DaAFxfeJ9zcVdE
+
+system_users:
+  - {
+      username: iac,
+      comment: "IaC User",
+      userstate: present,
+      sshstate: present,
+      shell: "/bin/bash",
+      sshkey: "ssh-rsa AAAAB3NzaC1yc2<snip>"
+      }
+  - {
+      username: absent,
+      comment: "Test User",
+      userstate: absent,
+      sshstate: absent,
+      shell: "/bin/false",
+      sshkey: "ssh-rsa AAAAB3NzaC1yc2<snip>"
+      }
+

@@ -1,0 +1,33 @@
+includedir /var/lib/sss/pubconf/krb5.include.d/
+
+includedir /etc/krb5.conf.d/
+[libdefaults]
+  default_realm = STARNIX.NET
+  dns_lookup_realm = false
+  rdns = false
+  dns_canonicalize_hostname = false
+  dns_lookup_kdc = true
+  ticket_lifetime = 24h
+  forwardable = true
+  udp_preference_limit = 0
+  default_ccache_name = KEYRING:persistent:%{uid}
+
+
+[realms]
+  STARNIX.NET = {
+    kdc = ipa1.starnix.net:88
+    master_kdc = ipa1.starnix.net:88
+    admin_server = ipa1.starnix.net:749
+    kpasswd_server = ipa1.starnix.net:464
+    default_domain = starnix.net
+    pkinit_anchors = FILE:/var/lib/ipa-client/pki/kdc-ca-bundle.pem
+    pkinit_pool = FILE:/var/lib/ipa-client/pki/ca-bundle.pem
+
+  }
+
+
+[domain_realm]
+  .starnix.net = STARNIX.NET
+  starnix.net = STARNIX.NET
+  {{ ansible_host }} = STARNIX.NET
+

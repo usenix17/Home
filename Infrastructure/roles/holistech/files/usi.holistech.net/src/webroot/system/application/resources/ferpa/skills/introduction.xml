@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Course Introduction</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>[CAMPUSCLUE]These clues help lead you to compliance by making the learning
+	material relevant to the college setting.[/CAMPUSCLUE]
+
+&lt;P&gt;In
+this online course, you will learn the fundamental principles of
+
+FERPA (The Family Educational Rights &amp; Privacy Act) and how they
+apply to the college setting.   Throughout the course,
+you'll find special features to help guide you to compliance. 
+&lt;/P&gt;
+&lt;BR&gt;
+&lt;P&gt;[TERM Key Terms (hover over me)] Simply hover over these highlighted words to display the
+	meaning of the term.[/TERM]&lt;/P&gt;
+&lt;br&gt;
+
+[CASESTUDY This feature provides examples of situations that relate to FERPA guidelines in the college setting. Click &quot;Show Answer&quot; to reveal the outcome of the study.]Instead of just learning the principles of the act, case studies make the material relevant to real-life situations.[/CASESTUDY]
+
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>&lt;H2&gt;Compliance Quizzes&lt;/H2&gt;
+&lt;P&gt;These short quizzes are placed at the end of each
+	learning module to test your understanding of the concepts
+	presented.  You cannot move to the next module until you have
+	passed the quiz.&lt;/P&gt;
+
+&lt;H2&gt;Your Certificate&lt;/H2&gt;
+&lt;IMG SRC='images/microsoft_clipart_certificate.png' STYLE='float:left; margin-right: 1em;'&gt;
+&lt;P&gt;After
+completing the final exam, you will receive a certificate. 
+If you would like to know more about FERPA, see the &quot;Resources and References&quot; section of the course syllabus.  The Office of the Registrar can
+answer questions concerning how your school complies to FERPA
+guidelines.&lt;/P&gt;
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

@@ -1,0 +1,118 @@
+---
+
+- name: "Install nsscache packages"
+  ansible.builtin.apt:
+    name:
+      - nsscache
+      - libnss-cache
+    state: present
+
+- name: "Configure nsscache"
+  ansible.builtin.copy:
+    src: "nsscache.conf"
+    dest: "/etc/nsscache.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: "Configure nsswitch for cache lookups"
+  ansible.builtin.copy:
+    src: "nsswitch.conf"
+    dest: "/etc/nsswitch.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: "Create nsscache timestamp directory"
+  ansible.builtin.file:
+    path: "/var/lib/nsscache"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: "Add PAM account rule for nsscache users in sshd"
+  ansible.builtin.lineinfile:
+    path: "/etc/pam.d/sshd"
+    insertbefore: "@include common-account"
+    line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
+    state: "present"
+
+- name: "Add PAM account rule for nsscache users in sudo"
+  ansible.builtin.lineinfile:
+    path: "/etc/pam.d/sudo"
+    insertbefore: "@include common-account"
+    line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
+    state: "present"
+
+- name: "Enable pam_mkhomedir for SSH sessions"
+  ansible.builtin.lineinfile:
+    path: "/etc/pam.d/sshd"
+    line: "session required pam_mkhomedir.so skel=/etc/skel umask=0022"
+    state: "present"
+
+- name: "Create nsscache cron job"
+  ansible.builtin.cron:
+    name: "nsscache update"
+    minute: "*/10"
+    job: "/usr/bin/nsscache update"
+    user: "root"
+    cron_file: "nsscache"
+
+- name: "Check if nsscache cache files exist"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "/etc/passwd.cache"
+    - "/etc/group.cache"
+  register: cache_files
+
+- name: "Run initial nsscache sync"
+  ansible.builtin.command: "/usr/bin/nsscache update"
+  when: cache_files.results | selectattr('stat.exists', 'false') | list | length > 0
+  changed_when: true
+
+- name: "Write SSH CA public key"
+  ansible.builtin.copy:
+    content: "{{ ssh_ca }}"
+    dest: "/etc/ssh/trusted-CA.pem"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "Restart sshd"
+
+- name: "Ensure TrustedUserCAKeys is set in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?TrustedUserCAKeys"
+    line: "TrustedUserCAKeys /etc/ssh/trusted-CA.pem"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"
+
+- name: "Ensure PubkeyAuthentication is enabled in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"
+
+- name: "Configure passwordless sudo for admin_sudoers group"
+  ansible.builtin.copy:
+    content: "%admin_sudoers ALL=(ALL) NOPASSWD: ALL\n"
+    dest: "/etc/sudoers.d/admin_sudoers"
+    owner: "root"
+    group: "root"
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: "Ensure PermitRootLogin is set to prohibit-password in sshd_config"
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin prohibit-password"
+    state: "present"
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: "Restart sshd"

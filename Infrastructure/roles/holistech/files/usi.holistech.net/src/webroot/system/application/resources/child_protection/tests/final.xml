@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Final Exam</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="multiple" randomize="FALSE" number="1">
+ <text lang="EN">Which of the following are examples of University sponsored programs that may involve children on University-owned or leased property?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Child care</option>
+ <option lang="EN" answer="TRUE" suggestion="">Sport camps</option>
+ <option lang="EN" answer="TRUE" suggestion="">Academic enrichment activities</option>
+ <option lang="EN" answer="TRUE" suggestion="">Community outreach activities</option>
+ <option lang="EN" answer="FALSE" suggestion="">Regular classes for enrolled students</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">The term &quot;University Sponsored Program&quot; as described in the Child Protection Policy is defined as</text>
+ <option lang="EN" answer="FALSE" suggestion="">Single performances or events open to the general public that are not targeted toward children (such as varsity athletic competitions, plays, concerts)</option>
+ <option lang="EN" answer="FALSE" suggestion="">Regularly scheduled classes or activities designed primarily for enrolled students who are age 17 and above.</option>
+ <option lang="EN" answer="TRUE" suggestion="">Ongoing or planned events that are designed by the University to include children such as camps, lessons, workshops, clubs, teams, projects, practices, tours, or open-houses. </option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="3">
+ <text lang="EN">The participation of children requires an increased level of care and an expectation that individuals will conduct themselves appropriately. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="4">
+ <text lang="EN">A minor/child is defined as a person under the age of 18 who is emancipated from his or her parents. </text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="5">
+ <text lang="EN">The purpose of USI’s Child Protection Policy is to protect the safety and well-being of children who are on University-owned or leased property (both on and off campus) and/or who participate in University sponsored child-related programs. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="6">
+ <text lang="EN">USI’s Child Protection Policy addresses which of the following:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Behavioral conduct</option>
+ <option lang="EN" answer="TRUE" suggestion="">Reporting violations</option>
+ <option lang="EN" answer="TRUE" suggestion="">The roles and responsibilities of specific members within the university community </option>
+ <option lang="EN" answer="FALSE" suggestion="">How to attain child care licensure </option>
+ <option lang="EN" answer="TRUE" suggestion="">Retaliation and sanctions</option>
+ <option lang="EN" answer="FALSE" suggestion="">Peer supervision regulations among minors</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="7">
+ <text lang="EN">USI’s Child Protection Policy applies to ALL members of the university community regardless of the funding source. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="8">
+ <text lang="EN">Which is considered inappropriate conduct or child abuse: </text>
+ <option lang="EN" answer="FALSE" suggestion="">Shaking a child to get his attention</option>
+ <option lang="EN" answer="FALSE" suggestion="">Being under the influence of drugs or alcohol in the presence of children</option>
+ <option lang="EN" answer="FALSE" suggestion="">Engaging in sexually inappropriate conduct of any kind toward or in the presence of a child</option>
+ <option lang="EN" answer="FALSE" suggestion="">Neglecting the duty of care for a child under the adult’s supervision</option>
+ <option lang="EN" answer="TRUE" suggestion="">All of the above</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="9">
+ <text lang="EN">Child abuse is defined as: </text>
+ <option lang="EN" answer="FALSE" suggestion="">Serious physical, emotional, or verbal mistreatment of a child, and/or engaging in sexual activity with a child. </option>
+ <option lang="EN" answer="FALSE" suggestion="">Physical acts which cause serious physical injury to a child</option>
+ <option lang="EN" answer="FALSE" suggestion="">Acts likely to result in the emotional trauma of a child</option>
+ <option lang="EN" answer="FALSE" suggestion="">Verbal threats of physical violence</option>
+ <option lang="EN" answer="FALSE" suggestion="">Any behavior which results in touching of the sexual or other intimate parts of a child for the purpose of sexual gratification of the child and/or adult, including touching by the child and/or adult with or without clothing.</option>
+ <option lang="EN" answer="TRUE" suggestion="">All of the above</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="10">
+ <text lang="EN">An “authorized adult” is defined as: University employees who are at least eighteen years of age and who are assigned to teach or otherwise perform work in a program as part of their official job duties, or a representative of a group that has obtained permission to use campus facilities from a University department or employee authorized to grant such permission. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="11">
+ <text lang="EN">The term “inappropriate conduct” is defined as “actions or omissions which do not rise to the level of child abuse, but are otherwise prohibited under USI’s Child Protection Policy.”  </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="12">
+ <text lang="EN">Being under the influence of drugs or alcohol while supervising / participating in programs involving children is an example of “inappropriate conduct” and is prohibited under the Child Protection Policy. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="13">
+ <text lang="EN">University sponsored programs that include ongoing or planned events that are designed to include children must ensure that all University employees, students and volunteers who will work with children have been subject to background and sex offender registry checks. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="14">
+ <text lang="EN">As a member of the university community, it is your duty to report any suspected child abuse or neglect to which of the following entities: </text>
+ <option lang="EN" answer="TRUE" suggestion="">Child Protective Services (CPS)</option>
+ <option lang="EN" answer="FALSE" suggestion="">The child's parent or guardian </option>
+ <option lang="EN" answer="TRUE" suggestion="">Local law enforcement officials</option>
+ <option lang="EN" answer="TRUE" suggestion="">The University Director of Public Safety</option>
+ <option lang="EN" answer="FALSE" suggestion="">Other adult supervisors on duty</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="15">
+ <text lang="EN">Visitors to the university who have contact with children do not have to abide by this policy. </text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="16">
+ <text lang="EN">It is recommended that two “authorized adult” supervisors be present at activities involving children.  In the event this is not possible, which of the following is the minimum requirement?</text>
+ <option lang="EN" answer="FALSE" suggestion="">At least one authorized adult supervisor must be present.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Two or more unauthorized adults supervisors must be present.</option>
+ <option lang="EN" answer="TRUE" suggestion="">One authorized adult and another adult is required.</option>
+ <option lang="EN" answer="FALSE" suggestion="">One authorized adult and two other adults are required.  </option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="17">
+ <text lang="EN">Adults must sleep in the same room as the child they are supervising. </text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="18">
+ <text lang="EN">All members of the university community, regardless of job duty or title, must do which of the following: </text>
+ <option lang="EN" answer="TRUE" suggestion="">Engage in appropriate conduct when working with children. </option>
+ <option lang="EN" answer="TRUE" suggestion="">Report suspected child abuse to the proper authorities.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Maintain state licenses and keep them prominently displayed.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Develop departmental procedures regarding the reporting of inappropriate conduct.</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="19">
+ <text lang="EN">Organizations unrelated to the University using University owned or leased property must also follow this policy.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="20">
+ <text lang="EN">Any violations of University policies (including the Child Protection Policy) by an individual will be dealt with in accordance with applicable University policies and procedures, which may include, but are not limited to which of the following:</text>
+ <option lang="EN" answer="FALSE" suggestion="">Denied permission to continue operation at the University</option>
+ <option lang="EN" answer="FALSE" suggestion="">Immediate suspension pending an investigation or disciplinary actions up to and including termination from the program or University</option>
+ <option lang="EN" answer="FALSE" suggestion="">Other legal actions</option>
+ <option lang="EN" answer="TRUE" suggestion="">All of the above</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="21">
+ <text lang="EN">Retaliation against anyone acting in good faith who has reported inappropriate conduct in accordance with this policy is considered a violation and must be reported to Human Resources. </text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="22">
+ <text lang="EN">Programs that are occasional and need a large number of volunteers may elect to adopt measures and safeguards instead of background checks.  Which of the following is a condition of this exception? </text>
+ <option lang="EN" answer="TRUE" suggestion="">The measures adopted must include requirements that the volunteers be working in public places, not alone with children, and be supervised by a background-checked person. </option>
+ <option lang="EN" answer="TRUE" suggestion="">Programs must compile the names and addresses of the volunteers prior to the event and check the names against the sex offender registry. </option>
+ <option lang="EN" answer="FALSE" suggestion="">Programs must give each applicant a polygraph test.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Programs must provide video surveillance that can monitor the volunteers at all times.</option>
+ <option lang="EN" answer="TRUE" suggestion="">Volunteers must present photo identification to be checked at the event.</option>
+ <option lang="EN" answer="TRUE" suggestion="">Programs must have the approval of the University Child Protection Committee. </option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

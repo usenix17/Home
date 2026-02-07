@@ -1,0 +1,11 @@
+---
+
+- name: "restart timesyncd"
+  systemd:
+    state: restarted
+    name: "systemd-timesyncd.service"
+  when: ansible_os_family == "Debian"
+
+- name: "update grub"
+  command: update-grub
+

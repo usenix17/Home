@@ -1,0 +1,14 @@
+---
+
+debian_purge_packages:
+  - "screen"
+  - "tmux"
+
+redhat_purge_packages:
+  - "screen"
+  - "tmux"
+
+banned_services:
+  - "screen"
+  - "tmux"
+

@@ -1,0 +1,147 @@
+---
+
+- name: "Get kerberos ticket"
+  ansible.builtin.expect:
+    command: kinit admin
+    responses:
+      'Password for admin@STARNIX.NET:': "{{ become_pass }}\n"
+  delegate_to: localhost
+
+- name: Ensure host is present
+  ansible.builtin.shell: |
+    curl -k -X POST \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json" \
+      -u "admin:{{ become_pass }}" \
+      -d '{"method":"host_add","params":[["{{ inventory_hostname }}"],{}]}' \
+      https://ipa1.starnix.net/ipa/session/json
+  register: ipa_result
+  failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
+  delegate_to: localhost
+
+- name: "Get current kerberos keytab"
+  ansible.builtin.shell: "ipa-getkeytab -s ipa1.starnix.net -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
+  delegate_to: localhost
+
+- name: "Update permissions"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    mode: "0644"
+    owner: root
+    group: wheel 
+  delegate_to: localhost
+
+- name: "Copy keytab from localhost"
+  ansible.builtin.copy:
+    src: "/dev/shm/{{ inventory_hostname }}.keytab"
+    dest: "/etc/krb5.keytab"
+    mode: "0600"
+    owner: root
+    group: root
+
+- name: "Copy kdc ca certs"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/var/lib/ipa-client/pki/"
+    mode: "0644"
+    owner: root
+    group: root
+  loop:
+    - "ca-bundle.pem"
+    - "kdc-ca-bundle.pem"
+
+- name: "Create sssd kerberos directory sttucture"
+  ansible.builtin.file:
+    path: "/var/lib/sss/pubconf/krb5.include.d/"
+    state: directory
+    mode: "0755"
+
+- name: "Copy additional kerberos configs"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/var/lib/sss/pubconf/krb5.include.d/"
+    mode: "0644"
+    owner: root
+    group: root
+  loop:
+    - domain_realm_starnix_net
+    - krb5_libdefaults
+    - localauth_plugin
+
+- name: "Create kerberos directory structure"
+  ansible.builtin.file:
+    path: "/etc/krb5.conf.d/"
+    state: directory
+    mode: "0755"
+
+- name: "Copy server cert"
+  ansible.builtin.copy:
+    src: "freeipa"
+    dest: "/etc/krb5.conf.d/"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Create ipa directory for server cert"
+  ansible.builtin.file:
+    path: "/etc/ipa"
+    state: directory
+    mode: "0755"
+
+- name: "Copy server cert"
+  ansible.builtin.copy:
+    src: "ca.crt"
+    dest: "/etc/ipa/ca.crt"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Configure nsswitch"
+  ansible.builtin.copy:
+    src: "nsswitch.conf"
+    dest: "/etc/nsswitch.conf"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Configure OpenLDAP"
+  ansible.builtin.copy:
+    src: "ldap.conf"
+    dest: "/etc/openldap/ldap.conf"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Configure kerberos"
+  ansible.builtin.template:
+    src: "krb5.conf.j2"
+    dest: "/etc/krb5.conf"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Configure sssd"
+  ansible.builtin.template:
+    src: "sssd.conf.j2"
+    dest: "/etc/sssd/sssd.conf"
+    mode: "600"
+    owner: root
+    group: root
+  notify: restart-sssd
+
+- name: "Configure ssh"
+  ansible.builtin.copy:
+    src: "sshd_config"
+    dest: "/etc/ssh/sshd_config"
+    mode: "644"
+    owner: root
+    group: root
+  notify: restart-ssh
+
+- name: "Configure PAM"
+  ansible.builtin.copy:
+    src: "system-auth"
+    dest: "/etc/pam.d"
+    mode: "0644"
+    owner: root
+    group: root

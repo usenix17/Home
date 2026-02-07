@@ -1,0 +1,44 @@
+---
+
+- name: "Config files for Apache HTTPD"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: "{{ playbook_dir }}/roles/cloud/files/certbot.conf", dest: "/etc/apache2/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/cloudy.lathama.net.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/curatedurls.com.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/gringomalvado.com.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/lathama.com.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/lathama.net.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/lathama.org.conf", dest: "/etc/apache2/sites-available/" }
+    - { src: "{{ playbook_dir }}/roles/cloud/files/lathama.us.conf", dest: "/etc/apache2/sites-available/" }
+  notify:
+    - restart apache2
+  when: ansible_os_family == "Debian"
+
+- name: "Include Certbot configuration"
+  lineinfile:
+    path: "/etc/apache2/apache2.conf"
+    line: "Include certbot.conf"
+  notify: "restart apache2"
+  when: ansible_os_family == "Debian"
+
+- name: "Remove Apache distro defaults"
+  file:
+    path: "/etc/apache2/sites-available/000-default.conf"
+    state: absent
+  notify: "restart apache2"
+  when: ansible_os_family == "Debian"
+
+- name: "Enable Apache SSL Module"
+  apache2_module:
+    state: present
+    name: "ssl"
+  notify: "restart apache2"
+  when: ansible_os_family == "Debian"
+
+

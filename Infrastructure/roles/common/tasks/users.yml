@@ -1,0 +1,38 @@
+---
+
+- name: "Manage Users"
+  user:
+    append: yes
+    comment: "{{ item.comment | default('user') }}"
+    create_home: "{{ item.createhome | default('yes') }}"
+    force: yes
+    generate_ssh_key: "{{ item.gensshkey | default('yes') }}"
+    groups: "{{ item.groups  | default(item.username) }}"
+    home: "{{ item.home | default('/home/' + item.username ) }}"
+    name: "{{ item.username }}"
+    password: "{{ item.password }}"
+    remove: "{{ item.remove | default('no') }}"
+    shell: "{{ item.shell | default('/bin/sh') }}"
+    ssh_key_bits: 4096
+    ssh_key_comment: "{{ item.sshkeycomment }}"
+    ssh_key_file: ".ssh/id_rsa"
+    state: "{{ item.userstate | default('present') }}"
+  loop: "{{ system_users|flatten(levels=1) }}"
+  loop_control:
+    label: "{{ item.username }}"
+  tags:
+    - users
+
+- name: "Confirm Authorized Keys"
+  authorized_key:
+    user: "{{ item.username }}"
+    key: "{{ item.sshkey }}"
+    comment: "{{ item.comment | default('na') }}"
+    state: "{{ item.sshstate }}"
+  loop: "{{ system_users|flatten(levels=1) }}"
+  when: ( item.sshstate == 'present' )
+  loop_control:
+    label: "{{ item.username }}"
+  tags:
+    - users
+

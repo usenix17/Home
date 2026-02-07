@@ -1,0 +1,34 @@
+---
+
+debian_local_packages:
+  - apt-transport-https
+  - vim
+  - build-essential
+  - git
+  - curl
+  - dnsutils
+  - ipcalc
+  - less
+  - meld
+  - mlocate
+  - mtr
+  - net-tools
+  - systemd-cron
+  - tcpdump
+  - wget
+
+redhat_local_packages:
+  - vim
+  - build-essential
+  - git
+  - curl
+  - dnsutils
+  - ipcalc
+  - less
+  - meld
+  - mlocate
+  - mtr
+  - net-tools
+  - systemd-cron
+  - tcpdump
+  - wget

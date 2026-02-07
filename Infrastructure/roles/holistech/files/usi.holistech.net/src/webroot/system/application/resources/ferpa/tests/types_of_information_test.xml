@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Types of Information</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">Information is classified as &quot;personally identifiable information&quot; and &quot;directory information.&quot;</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">Schools are not allowed to decide what they want to classify as &quot;directory information.&quot;</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="3">
+ <text lang="EN">Which information must NEVER be considered &quot;directory information?&quot;</text>
+ <option lang="EN" answer="FALSE" suggestion="">Email address</option>
+ <option lang="EN" answer="FALSE" suggestion="">Place of birth</option>
+ <option lang="EN" answer="FALSE" suggestion="">Weight</option>
+ <option lang="EN" answer="TRUE" suggestion="">Social Security Number</option>
+ <option lang="EN" answer="FALSE" suggestion="">Name</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="4">
+ <text lang="EN">Non-directory information consists of everything not included in directory information.  For example, transcripts and grades.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

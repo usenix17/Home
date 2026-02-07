@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Types of Information</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN>Classifying 	Types of Information</EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;As
+	you learned in the previous Module, education records are records
+	that contain [TERM personally identifiable information]the
+	kind of information or data from which the identity of a specific
+	person can be determined.[/TERM].
+	 
+	&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	FERPA
+	classifies this information into two categories:&lt;/P&gt;
+&lt;OL&gt;
+	&lt;LI&gt;&lt;P&gt;
+	&lt;B&gt;Directory
+	Information&lt;/B&gt;&lt;/P&gt;
+&lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;
+	Information that is
+	generally not
+	considered harmful or an invasion of privacy if disclosed&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	 usually intended to help the campus community
+	thrive
+	&lt;/P&gt;
+
+    &lt;/UL&gt;
+	&lt;LI&gt;&lt;P&gt;&lt;B&gt;
+	Non-Directory
+	Information&lt;/B&gt;&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;&lt;P&gt;
+	Consists
+	of everything else that is contained in student records including:&lt;/P&gt;
+	&lt;UL&gt;
+		&lt;LI&gt;&lt;P&gt;
+		grades&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		transcripts&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		declarations&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		correspondence&lt;/P&gt;
+		&lt;LI&gt;&lt;P&gt;
+		reports&lt;/P&gt;
+	&lt;/UL&gt;&lt;/LI&gt;
+&lt;/UL&gt;
+&lt;/OL&gt;
+
+    &lt;/UL&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Each School Decides</EN>
+   </title>
+   <content1>
+    <EN>&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;
+	FERPA
+	leaves the final decision to each educational institution as to what
+	information will be made publicly available.&lt;/P&gt;
+   	&lt;LI&gt;&lt;P&gt;
+	FERPA
+	provides a list of items that MAY be included in [TERM directory information]Publicly available information 
+	not generally  considered harmful or an invasion of privacy.[/TERM].  &lt;/P&gt;&lt;/LI&gt;
+ 	&lt;LI&gt;&lt;P&gt;
+	What
+	the institution decides to classify as directory information must be
+	published in its [TERM annual notification]a
+	required notification published on an annual basis by the
+	institution that notifies students of their FERPA rights, how to
+	exercise those rights, and what information it classifies as
+	“directory information” which can be shared.  You will learn
+	more about the annual notification in Module 7[/TERM].   
+	&lt;/P&gt;
+&lt;LI&gt;&lt;P&gt;The following MAY NOT be included in directory information: 
+	&lt;/P&gt;
+        &lt;UL&gt;
+            &lt;LI&gt;&lt;P&gt;
+            social security number
+            &lt;/P&gt;
+        &lt;/UL&gt;
+
+    &lt;/UL&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>Directory Information - What MAY Be Included</EN>
+   </title>
+   <content1>
+    <EN>&lt;P&gt;
+	The following are examples of information that may be classified as &quot;directory information&quot; and can
+	therefore be shared:&lt;/P&gt;
+&lt;TABLE&gt;&lt;TR&gt;&lt;TD&gt;
+	&lt;UL&gt;
+					&lt;LI&gt;&lt;P&gt;
+					name&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					address,
+					telephone listing&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					electronic
+					mail address&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					photograph&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					date/place
+					of birth&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					major
+					field of study&lt;/P&gt;
+&lt;/UL&gt;&lt;/TD&gt;&lt;TD&gt;&lt;UL&gt;
+					&lt;LI&gt;&lt;P&gt;
+					grade
+					level&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					enrollment
+					status&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					[TERM dates of attendance]refers to a general period of time the student has been attending the institution.  Does not mean daily
+					attendance records.[/TERM]&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					degrees,
+					honors, and awards&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					most
+					recent educational institution attended&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					participation
+					in recognized activities and sports&lt;/P&gt;
+					&lt;LI&gt;&lt;P&gt;
+					weight
+					and height of members of athletic teams&lt;/P&gt;
+	&lt;/UL&gt;
+&lt;/TD&gt;&lt;/TR&gt;&lt;/TABLE&gt;</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>[CASESTUDY Ted Faculty is tired of students asking about their grades after every examination, so he decides to post student grades on the wall outside his office. Is this allowed under FERPA?]In general this is not a good practice, especially since many institutions now have electronic methods for students to privately view their scores. If Ted insists on this practice he is permitted to do so.  However, the grades must be posted in such a manner that they are known only to the individual student and the instructor (establishing a secret code, for example). Grades should not be posted in the same order as a class roster or in alphabetical order.[/CASESTUDY]
+  </EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

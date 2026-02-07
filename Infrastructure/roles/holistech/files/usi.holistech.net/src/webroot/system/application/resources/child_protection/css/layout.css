@@ -1,0 +1,103 @@
+DIV.banner
+{
+    background-attachment: scroll;
+    
+    background-clip: border-box;
+	background-color:	white;
+    /*background-image: url("images/EN/private.png");*/
+    background-origin: padding-box;
+    background-position: 0 -25px;
+    background-repeat: no-repeat;
+    background-size: 287px 166px;
+    font-size: 24px;
+    height: 105px;
+    margin: 0;
+    text-align: center;
+    width: 960px !important;
+    font-family: serif;
+}
+
+DIV.utility1
+{
+    background-color:   #a70c1e; /* USI Red */
+	color:			white;
+}
+
+DIV.utility2
+{
+	background-color: #004275; /* USI Blue */
+	color:			    white;
+    padding-top:        8px;
+    height:             32px
+}
+
+
+DIV.banner IMG.qi
+{
+    position: absolute;
+    right: 15px;
+    top: 5px;
+    width: 160px;
+}
+
+DIV.utility2, DIV.utility2 a:link, DIV.utility2 a:visited {
+	color:			    white;
+    font-size: 16px;
+}
+
+    
+DIV.campusclue
+{
+	background-color:	#d1e370; 
+    padding : 1em;
+    border : 3px solid #7a8d17;  /* holistech green */
+    width : 15em;
+    margin: 0 1em 0.5em 1em;
+}
+DIV.campusclue.right {
+    float: right;
+}
+
+DIV.casestudy
+{
+	background-color:	#9ec9fa; /* folders blue */
+    padding : 1em;
+    width: 60%;
+    border : 3px solid midnightblue;
+}
+DIV.casestudy HR
+{
+    border: 0px;
+    border-bottom: 2px solid midnightblue;
+    margin-bottom: 0.5em;
+}
+DIV.casestudy H2,
+DIV.campusclue H2
+{
+text-align: center;
+}
+.module .ui-slider-horizontal .ui-slider-handle
+{
+	background:		url(images/Thumb.png) no-repeat 0 0 !important;
+}
+#scrollbar .ui-slider-handle
+{
+	background:		url(images/Thumb.png) no-repeat;
+}
+#navigation HR {
+    background-color:   #a70c1e; /* USI Red */
+}
+.content LI,
+.content UL,
+.content OL {
+    margin-top: .75em;
+}
+.content UL.close LI,
+.content OL.close LI {
+    margin-top: 0em;
+}
+.content .close UL,
+.content .close OL {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}

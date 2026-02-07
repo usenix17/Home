@@ -1,0 +1,51 @@
+\thispagestyle{empty}
+
+\begin{center}
+
+	\includegraphics[width=\textwidth]{COA.eps}\\
+	
+	\vspace{-0.5in}
+
+	\fontsize{24pt}{48pt}\selectfont
+	awarded to\\
+
+	\vspace{0.5in}
+
+	\fontsize{48pt}{48pt}\selectfont
+	_NAME_\\
+
+	\vspace{-0.5in}
+	
+	\rule{\textwidth}{1pt}
+
+	\vspace{0.25in}
+
+	\fontsize{14pt}{28pt}\selectfont
+
+	For successfully completing the Customer Service Online Training Program\\
+
+	\vspace{0.25in}
+
+	\fontsize{18pt}{28pt}\selectfont
+
+	{\it _DATE_}
+
+	\vspace{0.5in}
+
+	\fontsize{10pt}{12pt}\selectfont
+
+	\begin{tabular*}{9in}{p{3.25in}cp{3.25in}}
+
+		\includegraphics[width=3in,bb=0 20 252 72]{Grace_Crop.eps}
+			& \includegraphics[width=1in,bb=-14 125 210 360]{NAU_PrimV.eps}	
+			& \includegraphics[width=3in,bb=-10 20 252 72]{Chopin_Crop.eps}\\
+
+		\rule{3.25in}{1pt}					& \rule{2in}{0pt}						& \rule{3.25in}{1pt}\\
+
+		Grace Marks, M.P.H., Program Director		&								& Marc Chopin, Interim Dean\\
+		Arizona Hospitality Research and Resource Center	&							& The W.A. Franke College of Business\\
+		Northern Arizona University			&								& Northern Arizona University\\
+
+	\end{tabular*}
+
+\end{center}

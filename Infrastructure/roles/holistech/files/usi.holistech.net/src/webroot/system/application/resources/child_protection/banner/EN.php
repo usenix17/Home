@@ -1,0 +1,1 @@
+<IMG STYLE="float: left; height: 4.7em; position: absolute; left:8.2em;" SRC="images/EN/canstockphoto3814075.jpg"><P STYLE="margin: 18px auto auto 5em; line-height: 1.1; "><SPAN STYLE="font-size: 40px">USI Child Protection Policy</SPAN><BR><SPAN>Training Course</SPAN></P>

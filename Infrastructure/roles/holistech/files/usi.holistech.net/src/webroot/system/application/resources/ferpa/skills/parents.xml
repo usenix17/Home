@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Parents</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN>Transfer 	of Rights</EN>
+   </title>
+   <content1>
+    <EN>&lt;IMG SRC=&quot;images/EN/dreamstime_graduation_parent.png&quot; STYLE=&quot;width: 15em; float: right; margin: 0 0 1em 2em&quot;&gt;
+    &lt;UL&gt;
+    	&lt;LI&gt;&lt;P&gt;Although
+	parents often play a supportive role in students' lives, once a
+	student is considered an [TERM eligible student]a student who has reached 18 years of age OR is attending a
+	postsecondary institution[/TERM], rights
+	under FERPA transfer to the student. 
+	
+	&lt;/P&gt;
+	&lt;LI&gt;&lt;P&gt;
+	Regardless
+	of who pays tuition costs, parents DO NOT have rights to students'
+	education records in the college setting.&lt;/P&gt;
+
+    &lt;/UL&gt;
+
+</EN>
+   </content1>
+  </page>
+  <page>
+   <title>
+    <EN>FERPA 	Exceptions Regarding Parents</EN>
+   </title>
+   <content1>
+    <EN>&lt;P&gt;
+	Although the law states that rights under FERPA are transferred from parents to eligible students, there are exceptions which allow an institution to share educational records with parents.  FERPA
+	allows institutions the option to provide parents with information within the student's education record in the following cases: 
+	&lt;/P&gt;
+
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;
+	&lt;B&gt;parents
+	of dependent children&lt;/B&gt; for income tax purposes&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;&lt;P&gt;
+Age does not matter.  If the student is legally considered a dependent for income tax purposes, the university or learning institution, MAY (according to FERPA) allow these parents access to part or all of the dependent student's education record.&lt;/P&gt;
+&lt;LI&gt;&lt;P&gt;
+Providing parents of dependent students access to students' education records is left to the discretion of the school.  Therefore, FERPA does not make it a mandatory action.  The institution can decide what information, if any, it discloses in this case.&lt;/P&gt;&lt;/LI&gt;
+
+&lt;/UL&gt;&lt;/LI&gt;
+&lt;LI&gt;
+&lt;UL&gt;
+&lt;B&gt;health
+and safety emergencies&lt;/B&gt; if the information is necessary to protect the
+	health and safety of the student or others&lt;/P&gt;&lt;/LI&gt;
+&lt;LI&gt;
+&lt;UL&gt;
+&lt;B&gt;notification of drug and alcohol violations&lt;/B&gt; as long as the student:&lt;/P&gt;&lt;/LI&gt;
+&lt;UL&gt;
+	&lt;LI&gt;&lt;P&gt;
+	was
+	found guilty AND&lt;/P&gt;&lt;/LI&gt;
+	&lt;LI&gt;&lt;P&gt;
+	is under
+	21&lt;/P&gt;&lt;/LI&gt;
+&lt;/UL&gt;
+&lt;/UL&gt;  </EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

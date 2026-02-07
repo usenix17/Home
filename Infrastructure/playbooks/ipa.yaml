@@ -1,0 +1,7 @@
+---
+
+- name: "Configure FreeIPA Clients"
+  hosts: "all"
+  roles:
+    - role: "ipa-client"
+

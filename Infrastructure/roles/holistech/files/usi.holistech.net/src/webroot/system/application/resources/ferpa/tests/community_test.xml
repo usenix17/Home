@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">FERPA in the College Community</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">FERPA is intended to define higher education teaching policy and educational business.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="2">
+ <text lang="EN">According to FERPA, which is a requirement of educational institutions? </text>
+ <option lang="EN" answer="FALSE" suggestion="">Publish the cost of tuition</option>
+ <option lang="EN" answer="TRUE" suggestion="">Notify students of their rights</option>
+ <option lang="EN" answer="TRUE" suggestion="">Maintain practices to ensure the privacy of student records</option>
+ <option lang="EN" answer="FALSE" suggestion="">Search employment records of staff to ensure student privacy</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="3">
+ <text lang="EN">What is required in the institution's annual notification?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Students' rights under FERPA</option>
+ <option lang="EN" answer="FALSE" suggestion="">Cost of tuition</option>
+ <option lang="EN" answer="FALSE" suggestion="">Current federal loan rates</option>
+ <option lang="EN" answer="TRUE" suggestion="">What information it will disclose as &quot;directory information&quot;</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

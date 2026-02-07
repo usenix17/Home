@@ -1,0 +1,316 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Final Exam</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">What does FERPA stand for?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Federal Educational Rights and Privacy Act</option>
+ <option lang="EN" answer="TRUE" suggestion="">Family Educational Rights &amp; Privacy Act</option>
+ <option lang="EN" answer="FALSE" suggestion="">Family Educational Restrictions &amp; Privacy Act</option>
+ <option lang="EN" answer="FALSE" suggestion="">Federal Educational Restrictions &amp; Privacy Amendment</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="2">
+ <text lang="EN">In order to conduct daily business, schools must record, maintain, and share a great deal of information about students.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="3">
+ <text lang="EN">FERPA is a federal act intended to:  </text>
+ <option lang="EN" answer="FALSE" suggestion="">Protect the rights of instructors</option>
+ <option lang="EN" answer="FALSE" suggestion="">Dictate teaching policy across educational institutions</option>
+ <option lang="EN" answer="TRUE" suggestion="">Define the rights of students regarding their education records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Provide requirements and guidelines for educational institutions regarding students' education records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Protect the privacy and accuracy of student records</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="4">
+ <text lang="EN">Which answer is NOT true when considering who must comply with the regulations set forth in FERPA?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Any institution receiving federal funding</option>
+ <option lang="EN" answer="TRUE" suggestion="">Only departments within the educational institution that are specifically in charge of maintaining student records</option>
+ <option lang="EN" answer="FALSE" suggestion="">Everyone on campus who has access to student information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Faculty</option>
+ <option lang="EN" answer="FALSE" suggestion="">Teaching Assistants</option>
+ <option lang="EN" answer="FALSE" suggestion="">Advisors</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="5">
+ <text lang="EN">Non-compliance in ANY department on campus can mean a loss of federal funding for the ENTIRE institution.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="6">
+ <text lang="EN">Which office is in charge of enforcing FERPA?</text>
+ <option lang="EN" answer="FALSE" suggestion="">US Department of Defense</option>
+ <option lang="EN" answer="TRUE" suggestion="">Family Policy Compliance Office (FPCO)</option>
+ <option lang="EN" answer="FALSE" suggestion="">Federal Policy Commission</option>
+ <option lang="EN" answer="FALSE" suggestion="">Department of Higher Education</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="7">
+ <text lang="EN">If a FERPA violation occurs, your school is allowed a reasonable amount of time to correct the situation and return to compliance.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="8">
+ <text lang="EN">FERPA describes an &quot;eligible student&quot; as</text>
+ <option lang="EN" answer="FALSE" suggestion="">A student who is at least 18 AND is attending a postsecondary school</option>
+ <option lang="EN" answer="TRUE" suggestion="">A student who is at least 18 OR is attending a postsecondary school</option>
+ <option lang="EN" answer="FALSE" suggestion="">A student who is at least 16</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="9">
+ <text lang="EN">Under FERPA, your institution can determine when rights begin for new and incoming students, however FERPA states that &quot;student status&quot; cannot begin any later than the first day of classes.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="10">
+ <text lang="EN">What are the guaranteed rights of students regarding their education records?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Right to file a complaint</option>
+ <option lang="EN" answer="FALSE" suggestion="">Right to amend grades</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right to inspect and review records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right over disclosure of records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Right to seek to amend records</option>
+ <option lang="EN" answer="FALSE" suggestion="">Right to inspect ANY piece of information related to their records</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="11">
+ <text lang="EN">Education institutions are required under FERPA to inform students of their rights, but they are not obligated to inform students about the procedure for exercising those rights.  </text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="12">
+ <text lang="EN">Requests for inspection of student records must be granted within how many days of the request? </text>
+ <option lang="EN" answer="FALSE" suggestion="">90 days</option>
+ <option lang="EN" answer="FALSE" suggestion="">30 days</option>
+ <option lang="EN" answer="FALSE" suggestion="">7 days</option>
+ <option lang="EN" answer="TRUE" suggestion="">45 days</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="13">
+ <text lang="EN">A person can access any student's record as long as he or she is employed by the education institution.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="14">
+ <text lang="EN">Which of the following is information that may be part of a student's record, but is NOT ACCESSIBLE to the student?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Information about other students</option>
+ <option lang="EN" answer="FALSE" suggestion="">Financial records of parents</option>
+ <option lang="EN" answer="FALSE" suggestion="">Confidential letters of recommendation</option>
+ <option lang="EN" answer="TRUE" suggestion="">All of the above</option>
+ <option lang="EN" answer="FALSE" suggestion="">None of the above - students have the right to view ALL of their records</option>
+ <option lang="EN" answer="FALSE" suggestion="">A &amp; B only</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="15">
+ <text lang="EN">Under FERPA, institutions are NOT PERMITTED to:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Require students to pay search and retrieval fees</option>
+ <option lang="EN" answer="FALSE" suggestion="">Decide what information they can release as &quot;directory information&quot; </option>
+ <option lang="EN" answer="TRUE" suggestion="">Withhold the viewing of transcripts until an outstanding financial obligation is paid</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="16">
+ <text lang="EN">Under FERPA, students have the right to seek amendment to records they believe to be misleading or inaccurate.  Which of the following apply to this right:</text>
+ <option lang="EN" answer="TRUE" suggestion="">Students must be given the opportunity for a formal hearing</option>
+ <option lang="EN" answer="TRUE" suggestion="">Students must be advised of the appeal process</option>
+ <option lang="EN" answer="TRUE" suggestion="">Hearings must be held within a reasonable amount of time</option>
+ <option lang="EN" answer="TRUE" suggestion="">Hearings must be conducted by someone who doesn't have direct interest in the outcome</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="17">
+ <text lang="EN">Which is true about information submitted anonymously as part of a student's record?</text>
+ <option lang="EN" answer="FALSE" suggestion="">All information provided to the institution must be considered part of a student's record</option>
+ <option lang="EN" answer="TRUE" suggestion="">Institutions should never keep anonymous records that make it impossible to trace the source of the information and therefore amend a student's record</option>
+ <option lang="EN" answer="FALSE" suggestion="">Anonymous records automatically become law enforcement records</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="18">
+ <text lang="EN">Students have the right to amend ALL parts of their education record, including those records that were transferred to the institution (not created by the institution).</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="19">
+ <text lang="EN">FERPA does not dictate guidelines for handling amendments to grades. Your school should establish its own policy to deal with grade disputes.</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="20">
+ <text lang="EN">Which of the following terms is best defined as &quot;the kind of information or data from which the identity of a specific person can be determined?&quot;</text>
+ <option lang="EN" answer="FALSE" suggestion="">Directory information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Non-directory information</option>
+ <option lang="EN" answer="TRUE" suggestion="">Personally identifiable information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Non-disclosable information</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="21">
+ <text lang="EN">Which of the following terms is best defined as &quot;information contained in an education record that would not generally be considered harmful or an invasion of privacy if disclosed?&quot;</text>
+ <option lang="EN" answer="TRUE" suggestion="">Directory information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Non-directory information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Personally identifiable information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Non-disclosable information</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="22">
+ <text lang="EN">Students have the right over the disclosure of personally identifiable information, but cannot request that ALL information regarding their status as a student be withheld.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="23">
+ <text lang="EN">It is nearing the end of the semester and Professor Botkin posts a class photo on a bulletin board outside his office door.  His particular school has listed photographs as &quot;directory information&quot; and can therefore be shared throughout the campus community.  Does Professor Botkin need to worry about violating student rights in this case?</text>
+ <option lang="EN" answer="FALSE" suggestion="">No, the school has designated photos of students as directory information, so students' rights are not being violated.</option>
+ <option lang="EN" answer="FALSE" suggestion="">No, posting information about students in an educational setting (such as outside a professor's doorway) is acceptable under FERPA.</option>
+ <option lang="EN" answer="TRUE" suggestion="">Yes, a student in the photograph may have requested a &quot;FERPA Restriction&quot; (that ALL of his or her information be withheld) and this would include a photograph or any other directory information.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Yes, FERPA specifically restricts the public sharing of group photographs.</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="24">
+ <text lang="EN">Parents who pay for their child's postsecondary tuition are always entitled to view his or her education records.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="25">
+ <text lang="EN">Parents of postsecondary students who are under the age of 18 are always entitled to view their child's education records.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="26">
+ <text lang="EN">Under FERPA, educational institutions are allowed to grant parents access to student records according to which of the following circumstances?</text>
+ <option lang="EN" answer="TRUE" suggestion="">The student is a considered a dependent for income tax purposes</option>
+ <option lang="EN" answer="FALSE" suggestion="">The student is being supported by his or her parents financially</option>
+ <option lang="EN" answer="TRUE" suggestion="">Health and safety emergencies</option>
+ <option lang="EN" answer="TRUE" suggestion="">Notification of drug and alcohol violations in cases where the student was found guilty and is under the age of 21</option>
+ <option lang="EN" answer="FALSE" suggestion="">The parent is part of the school's alumni </option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="27">
+ <text lang="EN">Which of the following terms is best defined as &quot;any record which contains personally identifiable information of a student AND is maintained by an educational institution or by a party acting for the institution?&quot;</text>
+ <option lang="EN" answer="FALSE" suggestion="">Direcorty information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Non-directory information</option>
+ <option lang="EN" answer="FALSE" suggestion="">Privacy records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Education records</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="28">
+ <text lang="EN">Which of the following pieces of information would NOT be considered personally identifiable information?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Student name</option>
+ <option lang="EN" answer="FALSE" suggestion="">Social security number</option>
+ <option lang="EN" answer="TRUE" suggestion="">A letter grade</option>
+ <option lang="EN" answer="FALSE" suggestion="">Date of birth</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="29">
+ <text lang="EN">Which of the following are NOT considered education records and are therefore NOT subject to the privacy protections of FERPA?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Sole Possession Records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Medical Records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Unrecorded Grades</option>
+ <option lang="EN" answer="FALSE" suggestion="">Transcripts</option>
+ <option lang="EN" answer="TRUE" suggestion="">Law Enforcement Records</option>
+ <option lang="EN" answer="TRUE" suggestion="">Employment Records (unless the employee is required to be a student)</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="30">
+ <text lang="EN">Sole possession records are private notes about students intended to help jog the memory of the maker of the records and can be shared with other education officials.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="31">
+ <text lang="EN">Alumni records (records created AFTER the student has graduated) are NOT considered &quot;education records.&quot;</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="32">
+ <text lang="EN">To save time, Professor Green asks his students to switch papers and grade each other's work.  After the class is finished, he reads each student's name aloud and publically asks for the grade.  Is this considered a FERPA violation?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Yes, grades are considered part of a student's education record and are therefore protected under FERPA.</option>
+ <option lang="EN" answer="FALSE" suggestion="">Yes, grades on peer-graded assignments before they are collected and officially recorded by the instructor are considered part of the student's education record.</option>
+ <option lang="EN" answer="TRUE" suggestion="">No, grades only become part of a student's education record once they have been recorded and maintained by the instructor.  At the time of the public vocalization, the grades were not considered education records, so there is no violation. </option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="33">
+ <text lang="EN">With a few exceptions, FERPA allows each school to determine what information it will publically share as &quot;directory information.&quot;</text>
+ <option lang="EN" answer="TRUE" suggestion="">True</option>
+ <option lang="EN" answer="FALSE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="34">
+ <text lang="EN">Which of the following information can NEVER be released as directory information?</text>
+ <option lang="EN" answer="TRUE" suggestion="">Social security number</option>
+ <option lang="EN" answer="FALSE" suggestion="">Date of birth</option>
+ <option lang="EN" answer="FALSE" suggestion="">Enrollment status</option>
+ <option lang="EN" answer="FALSE" suggestion="">Telephone number</option>
+ <option lang="EN" answer="FALSE" suggestion="">Email address</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="35">
+ <text lang="EN">Which of the following is an example of an instance when the institution does NOT need prior written consent to disclose records?</text>
+ <option lang="EN" answer="TRUE" suggestion="">In cases of legitimate educational interest</option>
+ <option lang="EN" answer="TRUE" suggestion="">Health or safety emergency</option>
+ <option lang="EN" answer="TRUE" suggestion="">Directory information</option>
+ <option lang="EN" answer="TRUE" suggestion="">Releasing results of a disciplinary hearing to a victim of crime</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="36">
+ <text lang="EN">Which of the following terms can be defined as &quot;an employee who has responsibilities for the creation, maintenance, and disclosure of information from education records?&quot;</text>
+ <option lang="EN" answer="TRUE" suggestion="">School official</option>
+ <option lang="EN" answer="FALSE" suggestion="">Advisor</option>
+ <option lang="EN" answer="FALSE" suggestion="">Administrator</option>
+ <option lang="EN" answer="FALSE" suggestion="">Instructor</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="37">
+ <text lang="EN">It is not important to know your school's policies and definitions regarding the sharing of student information as long as you are fully aware of the guidelines outlined in FERPA.</text>
+ <option lang="EN" answer="FALSE" suggestion="">True</option>
+ <option lang="EN" answer="TRUE" suggestion="">False</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="single" randomize="FALSE" number="38">
+ <text lang="EN">Which of the following is NOT considered a responsibility of the learning institution?</text>
+ <option lang="EN" answer="FALSE" suggestion="">Maintain practices to ensure privacy of students' records</option>
+ <option lang="EN" answer="FALSE" suggestion="">Define terms that affect local privacy practices and FERPA compliance</option>
+ <option lang="EN" answer="TRUE" suggestion="">Check in with the Family Policy Compliance Office on an annual basis</option>
+ <option lang="EN" answer="FALSE" suggestion="">Publish an annual notification informing students of their privacy rights under FERPA</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="39">
+ <text lang="EN">According to FERPA, which of the following must be included in the institution's annual notification?</text>
+ <option lang="EN" answer="TRUE" suggestion="">The four primary guarantees/rights given to students under FERPA</option>
+ <option lang="EN" answer="TRUE" suggestion="">The procedure for exercising students' rights</option>
+ <option lang="EN" answer="TRUE" suggestion="">Definitions of &quot;school official&quot; and &quot;legitimate educational interest&quot;</option>
+ <option lang="EN" answer="FALSE" suggestion="">Guidelines for student success</option>
+ <option lang="EN" answer="TRUE" suggestion="">Policies and practices of sharing and utilizing students' information, including what the school classifies as &quot;directory information&quot;</option>
+ <option lang="EN" answer="FALSE" suggestion="">Disclosure of policies regarding teaching methods and the assignment of grades </option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

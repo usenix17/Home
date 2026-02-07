@@ -1,0 +1,7 @@
+---
+
+- name: "Legacy user"
+  hosts: centos5
+  gather_facts: no
+  roles:
+    - linux_aaa

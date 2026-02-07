@@ -1,0 +1,13 @@
+SPAN.browser_icon
+{
+	width: 64px;
+	height: 64px;
+	background: url('../../images/browser_icons.png') no-repeat;
+	display: block;
+}
+SPAN.browser_icon.safari { background-position: 0px 0px }
+SPAN.browser_icon.opera { background-position: -65px 0px }
+SPAN.browser_icon.ie { background-position: -129px 0px }
+SPAN.browser_icon.firefox { background-position: -193px 0px }
+SPAN.browser_icon.chrome { background-position: -256px 0px }
+

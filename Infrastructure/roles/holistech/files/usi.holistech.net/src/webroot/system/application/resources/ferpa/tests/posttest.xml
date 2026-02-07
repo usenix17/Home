@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Posttest</title>
+ <instructions lang="EN">Please answer this pre-test to the best of your ability.  All of the questions are multiple choice.  Please select the most correct answer.  You will only be able to take this pre-test once.</instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>1</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>TRUE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>TRUE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>TRUE</customMinScore>
+ <questions>
+</questions>
+</test>
+

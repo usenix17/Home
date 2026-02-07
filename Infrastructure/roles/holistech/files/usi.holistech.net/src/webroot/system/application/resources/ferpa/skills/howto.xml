@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>How to Use This Online Course</EN>
+ </title>
+ <pages>
+  <page>
+   <title>
+    <EN></EN>
+   </title>
+   <content1>
+    <EN>&lt;H2&gt;Course Syllabus&lt;/H2&gt;
+
+&lt;P&gt;To the left is the course syllabus.  You will need to complete each module in order to move to the next.  After you have passed the &quot;Compliance Quiz&quot; following each module, you may revisit previous course material.&lt;/P&gt;
+
+&lt;H2&gt;Navigation&lt;/H2&gt;
+
+&lt;P&gt;The progress bar at the top of each page will show you how far along you are in the current module.  Use the left and right arrow buttons to go to the previous and next pages.  You may need to scroll down to see additional content on certain pages.&lt;/P&gt;
+
+&lt;P&gt;You can log out of the course in the upper right-hand corner.  Your place will be saved for the next time you log in.&lt;/P&gt;
+
+&lt;P&gt;Please click the right arrow to go to the next page.&lt;/P&gt;
+</EN>
+   </content1>
+  </page>
+ </pages>
+</skill>

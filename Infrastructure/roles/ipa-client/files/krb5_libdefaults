@@ -1,0 +1,2 @@
+[libdefaults]
+ canonicalize = true

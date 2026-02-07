@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<test>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title lang="EN">Parents</title>
+ <instructions lang="EN"></instructions>
+ <graded lang="EN"></graded>
+ <passed lang="EN"></passed>
+ <failed lang="EN"></failed>
+ <correct lang="EN"></correct>
+ <tryAgain lang="EN"></tryAgain>
+ <email></email>
+ <numQuestions>0</numQuestions>
+ <minScore>0</minScore>
+ <maxAttempts>0</maxAttempts>
+ <nextButton></nextButton>
+ <showHints>0</showHints>
+ <randomize>FALSE</randomize>
+ <survey>FALSE</survey>
+ <suppressResults>FALSE</suppressResults>
+ <suppressScore>FALSE</suppressScore>
+ <customMinScore>FALSE</customMinScore>
+ <questions><question type="single" randomize="FALSE" number="1">
+ <text lang="EN">In which case does FERPA allow postsecondary institutions the option to provide parents with personally identifiable information?</text>
+ <option lang="EN" answer="FALSE" suggestion="">If the student is under the age of 18</option>
+ <option lang="EN" answer="FALSE" suggestion="">If the parents are responsible for paying the student's tuition</option>
+ <option lang="EN" answer="TRUE" suggestion="">If the student is a dependent for income tax purposes</option>
+ <option lang="EN" answer="FALSE" suggestion="">If the parent suspects the student is abusing drugs or alcohol</option>
+ <hint lang="EN"></hint>
+</question>
+<question type="multiple" randomize="FALSE" number="2">
+ <text lang="EN">Rights under FERPA are transferred from the parent to the student in which of the following cases?</text>
+ <option lang="EN" answer="TRUE" suggestion="">When the student reaches the age of 18</option>
+ <option lang="EN" answer="TRUE" suggestion="">When the student is attending a postsecondary institution</option>
+ <option lang="EN" answer="FALSE" suggestion="">When the student requests his rights</option>
+ <option lang="EN" answer="FALSE" suggestion="">After the student has found employment</option>
+ <hint lang="EN"></hint>
+</question>
+</questions>
+</test>

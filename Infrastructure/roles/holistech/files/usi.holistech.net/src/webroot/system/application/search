@@ -1,0 +1,2 @@
+#!/bin/sh
+grep -ir --color=auto "$1" */*.php */*/*.php */*.js

@@ -1,0 +1,8 @@
+---
+
+- name: "Configure Arch"
+  hosts: "desktops"
+  roles:
+    - role: "arch"
+    - role: "netdata"
+

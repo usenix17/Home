@@ -1,0 +1,20 @@
+---
+
+- hosts: windows
+  gather_facts: no
+  tasks:
+    - name: Spooler service
+      win_service:
+        name: spooler
+        state: started
+    - name: Ensure user larry is present
+      win_user:
+        name: larry
+        password: "{{ ms_windows_pass }}"
+        state: present
+        groups:
+          - Users
+    - name: Ensure user sally is absent
+      win_user:
+        name: sally
+        state: absent

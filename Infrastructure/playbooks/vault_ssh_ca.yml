@@ -1,0 +1,6 @@
+---
+- name: "Configure SSHD to trust Vault SSH CA and allow root login"
+  hosts: "all"
+  become: true
+  roles:
+    - role: "vault_ssh_ca"

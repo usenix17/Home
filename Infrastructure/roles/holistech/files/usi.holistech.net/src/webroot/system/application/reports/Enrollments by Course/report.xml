@@ -1,0 +1,23 @@
+<report>
+	<sql>
+		SELECT course,date,count(enrollment_id) as count
+		FROM enrollments e
+		WHERE [course] AND [date_min] AND [date_max]
+		GROUP BY course, year(date), month(date)
+	</sql>
+
+	<parameters>
+		<param type='date' name='date_min'>
+			<label>Start Date (inclusive)</label>
+			<default>true</default>
+            <sql>date &gt;= [value]</sql>
+		</param>
+		<param type='date' name='date_max'>
+			<label>End Date (non-inclusive)</label>
+			<default>true</default>
+            <sql>date &lt; [value]</sql>
+		</param>
+	</parameters>
+
+	<courses value='enrolled' name='course' field='course'/>
+</report>

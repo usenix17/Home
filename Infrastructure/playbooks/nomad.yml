@@ -1,0 +1,5 @@
+- name: "Configure Nomad / Consul cluster"
+  hosts: "iron"
+  roles:
+    - role: "nomad"
+

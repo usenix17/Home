@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+ <languages>
+  <lang>EN</lang>
+ </languages>
+ <title>
+  <EN>Course Review</EN>
+ </title>
+ <pages>
+  <page>
+   <title></title>
+   <content1>
+    <EN></EN>
+   </content1>
+  </page>
+ </pages>
+</skill>
