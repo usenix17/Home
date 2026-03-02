@@ -17,6 +17,11 @@ all:
             bork.starnix.net:
             3cx.starnix.net:
             hecate.starnix.net:
+            print.starnix.net:
+            sky.starnix.net:
+              ansible_user: "astro"
+              ansible_ssh_pass: "{{ sky_pass }}"
+              ansible_become_pass: "{{ sky_pass }}"
             virt.starnix.net:
         storage:
           hosts:
