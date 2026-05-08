@@ -1,5 +1,4 @@
 [domain/starnix.net]
-
 id_provider = ipa
 ipa_server = _srv_, ipa1.starnix.net
 ipa_domain = starnix.net
@@ -12,10 +11,15 @@ ldap_tls_cacert = /etc/ipa/ca.crt
 dyndns_update = True
 dyndns_iface = {{ ansible_default_ipv4.interface }}
 krb5_store_password_if_offline = True
+krb5_validate = False
+ipa_hbac_refresh = 86400
+entry_cache_timeout = 86400
+lookup_family_order = ipv4_first
+
 [sssd]
 services = nss, pam, ssh, sudo
-
 domains = starnix.net
+
 [nss]
 homedir_substring = /home
 
@@ -32,4 +36,7 @@ homedir_substring = /home
 [ifp]
 
 [session_recording]
+
+[kcm]
+socket_path = /run/.heim_org.h5l.kcm-socket
 

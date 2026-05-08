@@ -1,0 +1,33 @@
+[sssd]
+services = nss, pam, ssh, sudo
+domains = starnix.net
+
+[nss]
+homedir_substring = /home
+
+[pam]
+
+[sudo]
+
+[ssh]
+
+[domain/starnix.net]
+debug_level = 7
+id_provider = ldap
+auth_provider = krb5
+chpass_provider = krb5
+access_provider = permit
+
+ldap_uri = ldap://ipa1.starnix.net
+ldap_search_base = cn=compat,dc=starnix,dc=net
+ldap_schema = rfc2307
+ldap_tls_cacert = /usr/local/etc/ipa/ca.crt
+ldap_tls_reqcert = demand
+
+krb5_realm = STARNIX.NET
+krb5_server = ipa1.starnix.net
+krb5_kpasswd = ipa1.starnix.net
+krb5_store_password_if_offline = True
+
+cache_credentials = True
+override_shell = /usr/local/bin/bash

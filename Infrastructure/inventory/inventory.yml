@@ -36,6 +36,13 @@ all:
           ansible_become_pass: "{{ gnome_pass }}"
         finnmac.starnix.net:
 
+    freebsd:
+      hosts:
+        freebsd15.starnix.net:
+      vars:
+        ansible_python_interpreter: "/usr/local/bin/python3"
+        ansible_shell_executable: "/bin/sh"
+
     proxmox:
       hosts:
         pve1.starnix.net:

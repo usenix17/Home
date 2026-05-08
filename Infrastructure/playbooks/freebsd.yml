@@ -1,0 +1,37 @@
+---
+
+- name: "Bootstrap FreeBSD"
+  hosts: "freebsd"
+  gather_facts: false
+  vars:
+    ansible_become_method: su
+    ansible_become_user: root
+  tasks:
+    - name: "Bootstrap Python3"
+      ansible.builtin.raw: pkg install -y python3
+      become: true
+      changed_when: false
+
+    - name: "Gather facts"
+      ansible.builtin.setup:
+
+    - name: "Install sudo"
+      community.general.pkgng:
+        name: sudo
+        state: present
+      become: true
+
+    - name: "Configure sudo for {{ ansible_user }}"
+      ansible.builtin.copy:
+        content: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL\n"
+        dest: "/usr/local/etc/sudoers.d/{{ ansible_user }}"
+        mode: "0440"
+        owner: root
+        group: wheel
+        validate: "/usr/local/sbin/visudo -cf %s"
+      become: true
+
+- name: "Configure FreeBSD"
+  hosts: "freebsd"
+  roles:
+    - role: "freebsd"

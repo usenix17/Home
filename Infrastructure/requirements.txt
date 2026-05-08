@@ -4,3 +4,4 @@ six
 jinja2
 PyYAML
 cryptography
+pexpect

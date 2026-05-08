@@ -1,0 +1,14 @@
+# /etc/pam.d/sshd - FreeIPA/SSSD authentication
+
+auth      sufficient    /usr/local/lib/pam_sss.so     forward_pass
+auth      sufficient    /usr/lib/pam_krb5.so          no_warn use_first_pass
+auth      required      pam_unix.so                   no_warn try_first_pass
+
+account   required      /usr/local/lib/pam_sss.so     ignore_unknown_user ignore_authinfo_unavail
+account   required      pam_unix.so
+
+session   required      pam_permit.so
+session   optional      pam_mkhomedir.so              skel=/usr/share/skel mode=0700
+
+password  sufficient    /usr/local/lib/pam_sss.so     use_authtok
+password  required      pam_unix.so                   no_warn try_first_pass

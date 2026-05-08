@@ -1,11 +1,21 @@
 ---
 
-- name: "Install nsscache packages"
+- name: "Assert ssh_ca is defined"
+  ansible.builtin.assert:
+    that: ssh_ca is defined and ssh_ca | length > 0
+    fail_msg: "ssh_ca must be set in group_vars or host_vars before running this role"
+
+# --- Package installation ---
+
+- name: "Install nsscache packages (Debian)"
   ansible.builtin.apt:
     name:
       - nsscache
       - libnss-cache
     state: present
+  when: ansible_os_family == 'Debian'
+
+# --- nsscache configuration ---
 
 - name: "Configure nsscache"
   ansible.builtin.copy:
@@ -15,6 +25,8 @@
     group: "root"
     mode: "0644"
 
+# --- nsswitch ---
+
 - name: "Configure nsswitch for cache lookups"
   ansible.builtin.copy:
     src: "nsswitch.conf"
@@ -22,6 +34,8 @@
     owner: "root"
     group: "root"
     mode: "0644"
+
+# --- Timestamp directory ---
 
 - name: "Create nsscache timestamp directory"
   ansible.builtin.file:
@@ -31,25 +45,33 @@
     group: "root"
     mode: "0755"
 
+# --- PAM ---
+
 - name: "Add PAM account rule for nsscache users in sshd"
   ansible.builtin.lineinfile:
     path: "/etc/pam.d/sshd"
     insertbefore: "@include common-account"
+    regexp: '^account\s+sufficient\s+pam_succeed_if\.so uid >= 1000000'
     line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
     state: "present"
+  notify: "Restart sshd"
 
 - name: "Add PAM account rule for nsscache users in sudo"
   ansible.builtin.lineinfile:
     path: "/etc/pam.d/sudo"
     insertbefore: "@include common-account"
+    regexp: '^account\s+sufficient\s+pam_succeed_if\.so uid >= 1000000'
     line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
     state: "present"
 
 - name: "Enable pam_mkhomedir for SSH sessions"
   ansible.builtin.lineinfile:
     path: "/etc/pam.d/sshd"
+    regexp: '^session\s+required\s+pam_mkhomedir\.so'
     line: "session required pam_mkhomedir.so skel=/etc/skel umask=0022"
     state: "present"
+
+# --- Cron job ---
 
 - name: "Create nsscache cron job"
   ansible.builtin.cron:
@@ -58,6 +80,8 @@
     job: "/usr/bin/nsscache update"
     user: "root"
     cron_file: "nsscache"
+
+# --- Initial sync ---
 
 - name: "Check if nsscache cache files exist"
   ansible.builtin.stat:
@@ -69,8 +93,10 @@
 
 - name: "Run initial nsscache sync"
   ansible.builtin.command: "/usr/bin/nsscache update"
-  when: cache_files.results | selectattr('stat.exists', 'false') | list | length > 0
+  when: cache_files.results | rejectattr('stat.exists') | list | length > 0
   changed_when: true
+
+# --- SSH CA ---
 
 - name: "Write SSH CA public key"
   ansible.builtin.copy:
@@ -99,6 +125,8 @@
     validate: "/usr/sbin/sshd -T -f %s"
   notify: "Restart sshd"
 
+# --- Sudo ---
+
 - name: "Configure passwordless sudo for admin_sudoers group"
   ansible.builtin.copy:
     content: "%admin_sudoers ALL=(ALL) NOPASSWD: ALL\n"
@@ -107,6 +135,8 @@
     group: "root"
     mode: "0440"
     validate: "/usr/sbin/visudo -cf %s"
+
+# --- SSH hardening ---
 
 - name: "Ensure PermitRootLogin is set to prohibit-password in sshd_config"
   ansible.builtin.lineinfile:

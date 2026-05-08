@@ -1,0 +1,256 @@
+---
+
+# --- IPA enrollment (runs on the control node) ---
+
+- name: "Get kerberos ticket"
+  ansible.builtin.expect:
+    command: kinit admin
+    responses:
+      'Password for admin@STARNIX.NET:': "{{ become_pass }}\n"
+  delegate_to: localhost
+
+- name: "Ensure host is present in IPA"
+  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}"
+  register: ipa_result
+  failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
+  changed_when: ipa_result.rc == 0
+  delegate_to: localhost
+
+- name: "Get kerberos keytab"
+  ansible.builtin.shell: "ipa-getkeytab -s ipa1.starnix.net -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
+  delegate_to: localhost
+
+- name: "Set keytab permissions on localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    mode: "0600"
+    owner: root
+    group: root
+  delegate_to: localhost
+
+- name: "Copy keytab to host"
+  ansible.builtin.copy:
+    src: "/dev/shm/{{ inventory_hostname }}.keytab"
+    dest: "/etc/krb5.keytab"
+    mode: "0600"
+    owner: root
+    group: wheel
+
+- name: "Clean up keytab from localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    state: absent
+  delegate_to: localhost
+
+# --- Package installation ---
+
+- name: "Create pkg repos config directory"
+  ansible.builtin.file:
+    path: /usr/local/etc/pkg/repos
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+
+- name: "Switch pkg repository to latest"
+  ansible.builtin.copy:
+    dest: /usr/local/etc/pkg/repos/FreeBSD.conf
+    content: |
+      FreeBSD: {
+        url: "pkg+http://pkg.FreeBSD.org/${ABI}/latest",
+        mirror_type: "srv",
+        signature_type: "fingerprints",
+        fingerprints: "/usr/share/keys/pkg",
+        enabled: yes
+      }
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Update pkg cache"
+  ansible.builtin.command: pkg update -f
+  changed_when: false
+
+- name: "Install FreeIPA client packages"
+  community.general.pkgng:
+    name:
+      - sssd2
+      - dbus
+      - bash
+      - pam_mkhomedir
+      - openldap26-client
+      - ca_root_nss
+    state: present
+
+# --- Directory structure ---
+
+- name: "Create required directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+  loop:
+    - /usr/local/etc/ipa
+    - /usr/local/etc/sssd
+    - /usr/local/etc/krb5.conf.d
+
+# --- CA certificate ---
+
+- name: "Fetch IPA CA certificate"
+  ansible.builtin.get_url:
+    url: http://ipa1.starnix.net/ipa/config/ca.crt
+    dest: /usr/local/etc/ipa/ca.crt
+    mode: "0644"
+    owner: root
+    group: wheel
+  notify: rehash-certs
+
+- name: "Install IPA CA cert into system trust store"
+  ansible.builtin.copy:
+    src: /usr/local/etc/ipa/ca.crt
+    dest: /usr/local/share/certs/starnix-ipa-ca.crt
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+  notify: rehash-certs
+
+# --- Kerberos ---
+
+- name: "Copy freeipa kerberos config"
+  ansible.builtin.copy:
+    src: freeipa
+    dest: /usr/local/etc/krb5.conf.d/freeipa
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Copy localauth plugin config"
+  ansible.builtin.copy:
+    src: localauth_plugin
+    dest: /usr/local/etc/krb5.conf.d/localauth_plugin
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Configure kerberos"
+  ansible.builtin.template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+    mode: "0644"
+    owner: root
+    group: wheel
+
+# --- SSSD ---
+
+- name: "Configure SSSD"
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /usr/local/etc/sssd/sssd.conf
+    mode: "0600"
+    owner: root
+    group: wheel
+  notify: restart-sssd
+
+# --- NSS and LDAP ---
+
+- name: "Configure nsswitch"
+  ansible.builtin.copy:
+    src: nsswitch.conf
+    dest: /etc/nsswitch.conf
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Configure OpenLDAP"
+  ansible.builtin.copy:
+    src: ldap.conf
+    dest: /usr/local/etc/openldap/ldap.conf
+    mode: "0644"
+    owner: root
+    group: wheel
+
+# --- PAM ---
+
+- name: "Configure PAM for sshd"
+  ansible.builtin.copy:
+    src: pam_sshd
+    dest: /etc/pam.d/sshd
+    mode: "0644"
+    owner: root
+    group: wheel
+
+# --- SSH ---
+
+- name: "Write SSH CA public key"
+  ansible.builtin.copy:
+    content: "{{ ssh_ca }}"
+    dest: "/etc/ssh/trusted-CA.pem"
+    owner: "root"
+    group: "wheel"
+    mode: "0644"
+  notify: restart-sshd
+
+- name: "Ensure TrustedUserCAKeys is set in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?TrustedUserCAKeys"
+    line: "TrustedUserCAKeys /etc/ssh/trusted-CA.pem"
+    state: present
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: restart-sshd
+
+- name: "Ensure PubkeyAuthentication is enabled in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: present
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: restart-sshd
+
+- name: "Ensure PermitRootLogin is prohibit-password in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin prohibit-password"
+    state: present
+    validate: "/usr/sbin/sshd -T -f %s"
+  notify: restart-sshd
+
+# --- Services ---
+
+- name: "Enable dbus in rc.conf"
+  community.general.sysrc:
+    name: dbus_enable
+    value: "YES"
+
+- name: "Start dbus"
+  ansible.builtin.service:
+    name: dbus
+    state: started
+    enabled: true
+
+- name: "Enable sssd in rc.conf"
+  community.general.sysrc:
+    name: sssd_enable
+    value: "YES"
+
+- name: "Start sssd"
+  ansible.builtin.service:
+    name: sssd
+    state: started
+    enabled: true
+
+# --- Sudo ---
+
+- name: "Configure passwordless sudo for wheel group"
+  ansible.builtin.copy:
+    content: "%wheel ALL=(ALL) NOPASSWD: ALL\n"
+    dest: "/usr/local/etc/sudoers.d/wheel"
+    owner: "root"
+    group: "wheel"
+    mode: "0440"
+    validate: "/usr/local/sbin/visudo -cf %s"

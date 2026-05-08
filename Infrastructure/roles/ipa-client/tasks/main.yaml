@@ -7,28 +7,23 @@
       'Password for admin@STARNIX.NET:': "{{ become_pass }}\n"
   delegate_to: localhost
 
-- name: Ensure host is present
-  ansible.builtin.shell: |
-    curl -k -X POST \
-      -H "Content-Type: application/json" \
-      -H "Accept: application/json" \
-      -u "admin:{{ become_pass }}" \
-      -d '{"method":"host_add","params":[["{{ inventory_hostname }}"],{}]}' \
-      https://ipa1.starnix.net/ipa/session/json
+- name: "Ensure host is present"
+  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}"
   register: ipa_result
   failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
+  changed_when: ipa_result.rc == 0
   delegate_to: localhost
 
 - name: "Get current kerberos keytab"
   ansible.builtin.shell: "ipa-getkeytab -s ipa1.starnix.net -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
   delegate_to: localhost
 
-- name: "Update permissions"
+- name: "Update permissions on keytab"
   ansible.builtin.file:
     path: "/dev/shm/{{ inventory_hostname }}.keytab"
-    mode: "0644"
+    mode: "0600"
     owner: root
-    group: wheel 
+    group: root
   delegate_to: localhost
 
 - name: "Copy keytab from localhost"
@@ -36,6 +31,20 @@
     src: "/dev/shm/{{ inventory_hostname }}.keytab"
     dest: "/etc/krb5.keytab"
     mode: "0600"
+    owner: root
+    group: root
+
+- name: "Clean up keytab from localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    state: absent
+  delegate_to: localhost
+
+- name: "Create /var/lib/ipa-client/pki/ directory"
+  ansible.builtin.file:
+    path: "/var/lib/ipa-client/pki"
+    state: directory
+    mode: "0755"
     owner: root
     group: root
 
@@ -50,7 +59,7 @@
     - "ca-bundle.pem"
     - "kdc-ca-bundle.pem"
 
-- name: "Create sssd kerberos directory sttucture"
+- name: "Create sssd kerberos directory structure"
   ansible.builtin.file:
     path: "/var/lib/sss/pubconf/krb5.include.d/"
     state: directory
@@ -74,7 +83,7 @@
     state: directory
     mode: "0755"
 
-- name: "Copy server cert"
+- name: "Copy freeipa kerberos config"
   ansible.builtin.copy:
     src: "freeipa"
     dest: "/etc/krb5.conf.d/"
@@ -82,17 +91,17 @@
     owner: root
     group: root
 
-- name: "Create ipa directory for server cert"
+- name: "Create /etc/ipa directory"
   ansible.builtin.file:
     path: "/etc/ipa"
     state: directory
     mode: "0755"
 
-- name: "Copy server cert"
-  ansible.builtin.copy:
-    src: "ca.crt"
-    dest: "/etc/ipa/ca.crt"
-    mode: "0644"
+- name: "Create /etc/sssd directory"
+  ansible.builtin.file:
+    path: "/etc/sssd"
+    state: directory
+    mode: "0755"
     owner: root
     group: root
 
@@ -124,7 +133,7 @@
   ansible.builtin.template:
     src: "sssd.conf.j2"
     dest: "/etc/sssd/sssd.conf"
-    mode: "600"
+    mode: "0600"
     owner: root
     group: root
   notify: restart-sssd
@@ -133,7 +142,7 @@
   ansible.builtin.copy:
     src: "sshd_config"
     dest: "/etc/ssh/sshd_config"
-    mode: "644"
+    mode: "0644"
     owner: root
     group: root
   notify: restart-ssh
@@ -141,7 +150,50 @@
 - name: "Configure PAM"
   ansible.builtin.copy:
     src: "system-auth"
-    dest: "/etc/pam.d"
+    dest: "/etc/pam.d/system-auth"
     mode: "0644"
     owner: root
     group: root
+  notify: restart-sssd
+
+- name: "Fetch IPA CA certificate from IPA server"
+  ansible.builtin.get_url:
+    url: http://ipa1.starnix.net/ipa/config/ca.crt
+    dest: /etc/ssl/certs/starnix-ipa-ca.crt
+    mode: "0644"
+    owner: root
+    group: root
+  notify: update-ca-trust
+
+- name: "Install IPA CA cert into system trust store"
+  ansible.builtin.copy:
+    src: /etc/ssl/certs/starnix-ipa-ca.crt
+    dest: /etc/ca-certificates/trust-source/anchors/starnix-ipa-ca.crt
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: root
+  notify: update-ca-trust
+
+- name: "Copy IPA CA cert to /etc/ipa/ca.crt"
+  ansible.builtin.copy:
+    src: /etc/ssl/certs/starnix-ipa-ca.crt
+    dest: /etc/ipa/ca.crt
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: "Configure WPA2-Enterprise WiFi connection for Osa_nomap"
+  community.general.nmcli:
+    conn_name: Osa_nomap
+    type: wifi
+    ssid: Osa_nomap
+    wifi_sec:
+      key-mgmt: wpa-eap
+      eap: peap
+      phase2-auth: mschapv2
+      ca-cert: /etc/ssl/certs/starnix-ipa-ca.crt
+      domain-suffix-match: ipa1.starnix.net
+      identity: "{{ ansible_user }}"
+    state: present

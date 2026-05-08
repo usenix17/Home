@@ -1,0 +1,22 @@
+---
+
+- name: update-ca-trust
+  ansible.builtin.command: update-ca-trust
+  changed_when: false
+
+- name: rebuild-initramfs
+  ansible.builtin.command: mkinitcpio -P
+  changed_when: false
+
+- name: rebuild-grub
+  ansible.builtin.command: grub-mkconfig -o /boot/grub/grub.cfg
+  changed_when: false
+
+- name: restart-sssd
+  ansible.builtin.systemd:
+    name: sssd
+    state: restarted
+
+- name: daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true

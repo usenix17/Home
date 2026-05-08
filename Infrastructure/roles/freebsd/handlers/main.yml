@@ -3,14 +3,14 @@
 - name: restart-sssd
   ansible.builtin.service:
     name: sssd
-    enabled: true
     state: restarted
+    enabled: true
 
-- name: restart-ssh
+- name: restart-sshd
   ansible.builtin.service:
     name: sshd
     state: restarted
 
-- name: update-ca-trust
-  ansible.builtin.command: update-ca-trust
+- name: rehash-certs
+  ansible.builtin.command: certctl rehash
   changed_when: false

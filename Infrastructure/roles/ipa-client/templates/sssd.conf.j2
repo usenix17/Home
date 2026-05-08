@@ -3,7 +3,7 @@
 id_provider = ipa
 ipa_server = _srv_, ipa1.starnix.net
 ipa_domain = starnix.net
-ipa_hostname = {{ ansible_host }}
+ipa_hostname = {{ inventory_hostname }}
 auth_provider = ipa
 chpass_provider = ipa
 access_provider = ipa

@@ -1,0 +1,7 @@
+---
+
+# SSH CA public key used for TrustedUserCAKeys.
+# Must be set in group_vars or host_vars — no default is intentional.
+# Example:
+#   ssh_ca: "ecdsa-sha2-nistp256 AAAA... vault-ssh-ca"
+# ssh_ca: ""

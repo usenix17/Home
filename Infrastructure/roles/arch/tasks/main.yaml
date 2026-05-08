@@ -5,7 +5,6 @@
     path: /etc/pacman.conf
     regexp: '^#?Color'
     line: 'Color'
-    backup: yes
 
 - name: "Configure pacman ILoveCandy option"
   ansible.builtin.lineinfile:
@@ -13,7 +12,6 @@
     regexp: '^#?ILoveCandy'
     line: 'ILoveCandy'
     insertafter: '^Color'
-    backup: yes
 
 - name: "Enable multilib repository"
   ansible.builtin.blockinfile:
@@ -22,7 +20,6 @@
       [multilib]
       Include = /etc/pacman.d/mirrorlist
     marker: "# {mark} ANSIBLE MANAGED BLOCK - multilib"
-    backup: yes
 
 - name: "Install git and base-devel"
   community.general.pacman:
@@ -32,9 +29,9 @@
     state: latest
     update_cache: false
 
-- name: "Add cloud user to wheel group"
+- name: "Add {{ arch_aur_user }} to wheel group"
   ansible.builtin.user:
-    name: cloud
+    name: "{{ arch_aur_user }}"
     groups: wheel
     append: yes
 
@@ -51,20 +48,28 @@
     dest: "/opt/yay"
   failed_when: false
   changed_when: false
-  tags: ["never", yay"]
+  tags: ["never", "yay"]
 
-- name: "Change ownership of files inside /opt/yay to cloud user"
+- name: "Change ownership of /opt/yay to {{ arch_aur_user }}"
   ansible.builtin.file:
     path: "/opt/yay"
-    owner: cloud
-    group: cloud
+    owner: "{{ arch_aur_user }}"
+    group: "{{ arch_aur_user }}"
     recurse: yes
+  tags: ["never", "yay"]
+
+- name: "Check if yay is already installed"
+  ansible.builtin.command: which yay
+  register: yay_check
+  changed_when: false
+  failed_when: false
   tags: ["never", "yay"]
 
 - name: "Build yay from source"
   ansible.builtin.shell:
-    cmd: "sudo -u cloud makepkg -si --noconfirm"
+    cmd: "sudo -u {{ arch_aur_user }} makepkg -si --noconfirm"
     chdir: "/opt/yay"
+  when: yay_check.rc != 0
   tags: ["never", "yay"]
 
 - name: "Create symlink for yay in /usr/local/bin"
@@ -76,228 +81,228 @@
 
 - name: "Install packages via yay"
   ansible.builtin.shell:
-    cmd: "sudo -u cloud yay -S --noconfirm {{ item }}"
+    cmd: "sudo -u {{ arch_aur_user }} yay -S --noconfirm {{ arch_packages | join(' ') }}"
   become: yes
-  loop:
-    - 389-ds-base
-    - amtterm
-    - ansible
-    - apachedirectorystudio
-    - apprise
-    - ark
-    - base
-    - base-devel
-    - bcc-tools
-    - beep
-    - bfg
-    - bluez-utils
-    - borg
-    - bpftop
-    - bpftrace
-    - btrfs-progs
-    - butane
-    - cdrdao
-    - cdrtools
-    - cheese
-    - chess-electron
-    - chromium-extension-web-store
-    - claude-code
-    - consul
-    - cups
-    - cups-browsed
-    - dbeaver
-    - dhclient
-    - dillo
-    - discord
-    - docker
-    - docker-compose
-    - dolphin
-    - ds9-bin
-    - ducker
-    - dvd+rw-tools
-    - efibootmgr
-    - egl-wayland
-    - element-desktop
-    - eolie
-    - epiphany
-    - esptool
-    - etcher-bin
-    - fingerprint-gui
-    - fio
-    - firedragon-bin
-    - firedragon-extension-plasma-integration
-    - firefox
-    - fish
-    - flatpak
-    - floorp-bin
-    - freetube-bin
-    - geekbench
-    - gemini-cli
-    - gimp
-    - git
-    - github-cli
-    - gnu-netcat
-    - gnuchess
-    - go
-    - google-chrome
-    - grpcurl-bin
-    - grub
-    - guvcview
-    - hdparm
-    - hplip
-    - htop
-    - inkscape
-    - intel-media-driver
-    - intel-ucode
-    - iotop
-    - iwd
-    - jellyfin-media-player
-    - jellyfin-web
-    - jq
-    - kate
-    - kde-applications-meta
-    - kernel-modules-hook
-    - kile
-    - knime-desktop
-    - konsole
-    - kstars
-    - ladybird
-    - lagrange
-    - lazydocker
-    - less
-    - libfido2
-    - libfprint
-    - libindi_3rdparty
-    - librewolf-decentraleyes
-    - librewolf-extension-bitwarden-bin
-    - librewolf-extension-darkreader-bin
-    - librewolf-extension-istilldontcareaboutcookies-bin
-    - librewolf-extension-plasma-integration
-    - librewolf-extension-sponsorblock-bin
-    - librewolf-extension-trackmenot
-    - libva-intel-driver
-    - linux
-    - linux-firmware
-    - linux-headers
-    - linux-zen
-    - meshtastic-python
-    - meshwatch-git
-    - minicom
-    - minivmac
-    - mosquitto
-    - mqtt-explorer
-    - mqttui
-    - mtr
-    - nano
-    - netsurf
-    - network-manager-applet
-    - networkmanager
-    - nfs-utils
-    - nmap
-    - nomad
-    - nvme-cli
-    - nvmetcli
-    - nvtop
-    - openldap
-    - openpyn-nordvpn
-    - openrefine
-    - opensc
-    - osquery
-    - packer
-    - pgcli
-    - phd2
-    - picocom
-    - plasma-meta
-    - plasma-workspace
-    - playonlinux
-    - plocate
-    - proton-vpn-gtk-app
-    - protonmail-bridge
-    - protonvpn-cli-community
-    - python-bjoern
-    - python-docker
-    - python-dotenv
-    - python-flask
-    - python-geopy
-    - python-grpcio
-    - python-grpcio-tools
-    - python-matplotlib
-    - python-oauth
-    - python-openai
-    - python-paho-mqtt
-    - python-pandas
-    - python-pip
-    - python-pipx
-    - python-plotly
-    - python-psycopg2
-    - python-pylint
-    - python-pytest
-    - python-pywinrm
-    - python-requests-oauthlib
-    - python-seaborn
-    - python-validity
-    - qemu-base
-    - qownnotes
-    - reflector
-    - rsyslog
-    - rust
-    - screen
-    - signal-desktop
-    - smartmontools
-    - sqlitebrowser
-    - sqlitestudio
-    - sshfs
-    - sshpass
-    - sssd
-    - starnixremote
-    - starship
-    - steam
-    - strace
-    - sublime-text-4
-    - sysstat
-    - system-config-printer
-    - tailscale
-    - tcpdump
-    - terracognita
-    - terraform
-    - terraformer
-    - texlive-latexextra
-    - tftp-hpa
-    - thunderbird
-    - topcat
-    - traceroute
-    - tree
-    - ua608d
-    - ungoogled-chromium-bin
-    - unzip
-    - vault
-    - vim
-    - virt-manager-git
-    - visual-studio-code-bin
-    - vivaldi
-    - vorta
-    - vulkan-intel
-    - vulkan-radeon
-    - wazuh-agent
-    - wget
-    - whois
-    - wireless_tools
-    - wps-office
-    - xdg-utils
-    - xf86-video-amdgpu
-    - xf86-video-ati
-    - xf86-video-nouveau
-    - xf86-video-vmware
-    - xorg-xinit
-    - yay
-    - yay-bin-debug
-    - yubico-piv-tool
-    - yubikey-manager
-    - yubikey-manager-qt
-    - yubikey-personalization-gui
-    - zen-browser-bin
-    - zram-generator
-    - zramswap
+  changed_when: false
+  vars:
+    arch_packages:
+      - 389-ds-base
+      - amtterm
+      - ansible
+      - apachedirectorystudio
+      - apprise
+      - ark
+      - bcc-tools
+      - beep
+      - bfg
+      - bluez-utils
+      - borg
+      - bpftop
+      - bpftrace
+      - btrfs-progs
+      - butane
+      - cdrdao
+      - cdrtools
+      - cheese
+      - chess-electron
+      - chromium-extension-web-store
+      - claude-code
+      - consul
+      - cups
+      - cups-browsed
+      - dbeaver
+      - dhclient
+      - dillo
+      - discord
+      - docker
+      - docker-compose
+      - dolphin
+      - ds9-bin
+      - ducker
+      - dvd+rw-tools
+      - efibootmgr
+      - egl-wayland
+      - element-desktop
+      - eolie
+      - epiphany
+      - esptool
+      - etcher-bin
+      - fingerprint-gui
+      - fio
+      - firedragon-bin
+      - firedragon-extension-plasma-integration
+      - firefox
+      - fish
+      - flatpak
+      - floorp-bin
+      - freetube-bin
+      - geekbench
+      - gemini-cli
+      - gimp
+      - github-cli
+      - gnu-netcat
+      - gnuchess
+      - go
+      - google-chrome
+      - grpcurl-bin
+      - grub
+      - guvcview
+      - hdparm
+      - hplip
+      - htop
+      - inkscape
+      - intel-media-driver
+      - intel-ucode
+      - iotop
+      - iwd
+      - jellyfin-media-player
+      - jellyfin-web
+      - jq
+      - kate
+      - kde-applications-meta
+      - kwallet-pam
+      - kernel-modules-hook
+      - kile
+      - knime-desktop
+      - konsole
+      - kstars
+      - ladybird
+      - lagrange
+      - lazydocker
+      - less
+      - libfido2
+      - libfprint
+      - libindi_3rdparty
+      - librewolf-decentraleyes
+      - librewolf-extension-bitwarden-bin
+      - librewolf-extension-darkreader-bin
+      - librewolf-extension-istilldontcareaboutcookies-bin
+      - librewolf-extension-plasma-integration
+      - librewolf-extension-sponsorblock-bin
+      - librewolf-extension-trackmenot
+      - libva-intel-driver
+      - linux
+      - linux-firmware
+      - linux-headers
+      - linux-zen
+      - meshtastic-python
+      - meshwatch-git
+      - minicom
+      - minivmac
+      - mosquitto
+      - mqtt-explorer
+      - mqttui
+      - mtr
+      - nano
+      - netsurf
+      - network-manager-applet
+      - networkmanager
+      - nfs-utils
+      - nmap
+      - nomad
+      - nvme-cli
+      - nvmetcli
+      - nvtop
+      - openldap
+      - openpyn-nordvpn
+      - openrefine
+      - opensc
+      - osquery
+      - packer
+      - pgcli
+      - phd2
+      - picocom
+      - plasma-meta
+      - plasma-workspace
+      - playonlinux
+      - plocate
+      - proton-vpn-gtk-app
+      - protonmail-bridge
+      - protonvpn-cli-community
+      - python-bjoern
+      - python-docker
+      - python-dotenv
+      - python-flask
+      - python-geopy
+      - python-grpcio
+      - python-grpcio-tools
+      - python-matplotlib
+      - python-oauth
+      - python-openai
+      - python-paho-mqtt
+      - python-pandas
+      - python-pip
+      - python-pipx
+      - python-plotly
+      - python-psycopg2
+      - python-pylint
+      - python-pytest
+      - python-pywinrm
+      - python-requests-oauthlib
+      - python-seaborn
+      - python-validity
+      - qemu-base
+      - qownnotes
+      - reflector
+      - rsyslog
+      - rust
+      - screen
+      - signal-desktop
+      - socat
+      - smartmontools
+      - sqlitebrowser
+      - sqlitestudio
+      - sshfs
+      - sshpass
+      - starnixremote
+      - starship
+      - steam
+      - strace
+      - sublime-text-4
+      - sysstat
+      - system-config-printer
+      - tailscale
+      - tcpdump
+      - terracognita
+      - terraform
+      - terraformer
+      - texlive-latexextra
+      - tftp-hpa
+      - thunderbird
+      - topcat
+      - traceroute
+      - tree
+      - ua608d
+      - ungoogled-chromium-bin
+      - unzip
+      - vault
+      - vim
+      - virt-manager-git
+      - visual-studio-code-bin
+      - vivaldi
+      - vorta
+      - vulkan-intel
+      - vulkan-radeon
+      - wazuh-agent
+      - wget
+      - whois
+      - wireless_tools
+      - wps-office
+      - xdg-utils
+      - xf86-video-amdgpu
+      - xf86-video-ati
+      - xf86-video-nouveau
+      - xf86-video-vmware
+      - xorg-xinit
+      - yay
+      - yay-bin-debug
+      - yubico-piv-tool
+      - yubikey-manager
+      - yubikey-manager-qt
+      - yubikey-personalization-gui
+      - zen-browser-bin
+      - zram-generator
+      - zramswap
   tags: ["never", "pacman"]
 
 - name: "Create NFS mount directories"
@@ -311,12 +316,165 @@
     - /Comet
 
 - name: "Add NFS mounts to /etc/fstab"
-  ansible.builtin.lineinfile:
+  ansible.builtin.blockinfile:
     path: /etc/fstab
-    line: "{{ item }}"
-    backup: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - NFS"
+    block: |
+      mimir.starnix.net:/mnt/Backup  /Backup   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0
+      mimir.starnix.net:/mnt/Store   /kronos   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0
+      mimir.starnix.net:/mnt/Comet   /Comet    nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0
+
+- name: "Fetch IPA CA certificate into system trust store"
+  ansible.builtin.get_url:
+    url: http://ipa1.starnix.net/ipa/config/ca.crt
+    dest: /etc/ca-certificates/trust-source/anchors/starnix-ipa-ca.crt
+    mode: "0644"
+    owner: root
+    group: root
+  notify: update-ca-trust
+
+- name: "Deploy sssd.conf"
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: sssd
+    mode: "0600"
+  notify: restart-sssd
+
+- name: "Create sssd.service drop-in directory"
+  ansible.builtin.file:
+    path: /etc/systemd/system/sssd.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Deploy sssd.service drop-in to start sssd-kcm eagerly"
+  ansible.builtin.template:
+    src: sssd-kcm-eager.conf.j2
+    dest: /etc/systemd/system/sssd.service.d/kcm.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: daemon-reload
+
+- name: "Deploy krb5.conf"
+  ansible.builtin.template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Fix krb5 keytab permissions so sssd can read it"
+  ansible.builtin.file:
+    path: /etc/krb5.keytab
+    owner: root
+    group: sssd
+    mode: "0640"
+
+- name: "Deploy NVIDIA S0ix power management modprobe config"
+  ansible.builtin.template:
+    src: nvidia-power.conf.j2
+    dest: /etc/modprobe.d/nvidia-power.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: rebuild-initramfs
+
+- name: "Enable NVIDIA suspend/resume/hibernate systemd services"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
   loop:
-    - "#NFS"
-    - "mimir.starnix.net:/mnt/Backup  /Backup   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"
-    - "mimir.starnix.net:/mnt/Store   /kronos   nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"
-    - "mimir.starnix.net:/mnt/Comet   /Comet    nfs     nfsvers=4,soft,rsize=262144,wsize=262144,intr,noatime,lock,user,users,_netdev,noauto,x-systemd.automount,exec 0 0"
+    - nvidia-suspend.service
+    - nvidia-resume.service
+    - nvidia-hibernate.service
+
+- name: "Add resume hook to mkinitcpio after encrypt"
+  ansible.builtin.lineinfile:
+    path: /etc/mkinitcpio.conf
+    regexp: '^HOOKS=\(.*encrypt filesystems.*\)'
+    line: 'HOOKS=(base udev autodetect kms microcode modconf keyboard keymap consolefont block encrypt resume filesystems fsck)'
+  notify: rebuild-initramfs
+
+- name: "Get swapfile physical offset for hibernate resume"
+  ansible.builtin.shell:
+    cmd: "filefrag -v /swapfile | awk 'NR==4 {gsub(/\\.\\..*/,\"\",$4); print $4}'"
+  register: arch_swapfile_offset
+  changed_when: false
+
+- name: "Get root filesystem UUID for hibernate resume"
+  ansible.builtin.shell:
+    cmd: "findmnt -no UUID /"
+  register: arch_root_uuid
+  changed_when: false
+
+- name: "Check if GRUB already has correct hibernate resume parameters"
+  ansible.builtin.command:
+    cmd: "grep -qF 'resume=UUID={{ arch_root_uuid.stdout }} resume_offset={{ arch_swapfile_offset.stdout }}' /etc/default/grub"
+  register: arch_grub_has_resume
+  changed_when: false
+  failed_when: false
+
+- name: "Add i915.enable_dc=0 to GRUB cmdline to fix Meteor Lake PHY resume"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!i915\.enable_dc)[^"])*)(")'
+    replace: '\1 i915.enable_dc=0\2'
+  notify: rebuild-grub
+
+- name: "Strip stale resume parameters from GRUB cmdline"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '\s+resume=\S+|\s+resume_offset=\S+'
+    replace: ''
+  when: arch_grub_has_resume.rc != 0
+
+- name: "Add hibernate resume parameters to GRUB cmdline"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*)"$'
+    replace: '\1 resume=UUID={{ arch_root_uuid.stdout }} resume_offset={{ arch_swapfile_offset.stdout }}"'
+  when: arch_grub_has_resume.rc != 0
+  notify: rebuild-grub
+
+- name: "Deploy SDDM PAM config with KWallet auto-unlock"
+  ansible.builtin.template:
+    src: sddm-pam.j2
+    dest: /etc/pam.d/sddm
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Create SDDM systemd drop-in directory"
+  ansible.builtin.file:
+    path: /etc/systemd/system/sddm.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Deploy SDDM drop-in to start after SSSD"
+  ansible.builtin.template:
+    src: sddm-sssd.conf.j2
+    dest: /etc/systemd/system/sddm.service.d/sssd.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: daemon-reload
+
+- name: "Disable SDDM last-user display to avoid overflow UID at boot"
+  ansible.builtin.template:
+    src: sddm-lastuser.conf.j2
+    dest: /etc/sddm.conf.d/sssd-lastuser.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Enable SSSD KCM socket for persistent Kerberos credential storage"
+  ansible.builtin.systemd:
+    name: sssd-kcm.socket
+    enabled: true
+    state: started
