@@ -425,6 +425,13 @@
     replace: '\1 i915.enable_dc=0\2'
   notify: rebuild-grub
 
+- name: "Add intel_idle.max_cstate=8 to GRUB cmdline to prevent PC10 from gating PHY refclk"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!intel_idle\.max_cstate)[^"])*)(")'
+    replace: '\1 intel_idle.max_cstate=8\2'
+  notify: rebuild-grub
+
 - name: "Strip stale resume parameters from GRUB cmdline"
   ansible.builtin.replace:
     path: /etc/default/grub
