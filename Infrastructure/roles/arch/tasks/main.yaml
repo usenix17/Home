@@ -425,11 +425,18 @@
     replace: '\1 i915.enable_dc=0\2'
   notify: rebuild-grub
 
-- name: "Add intel_idle.max_cstate=8 to GRUB cmdline to prevent PC10 from gating PHY refclk"
+- name: "Add intel_idle.max_cstate=6 to GRUB cmdline to prevent deep package C-states gating display PHY"
   ansible.builtin.replace:
     path: /etc/default/grub
     regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!intel_idle\.max_cstate)[^"])*)(")'
-    replace: '\1 intel_idle.max_cstate=8\2'
+    replace: '\1 intel_idle.max_cstate=6\2'
+  notify: rebuild-grub
+
+- name: "Add acpi_sleep=nonvs to GRUB cmdline to skip ACPI NVS save/restore on s2idle"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!acpi_sleep)[^"])*)(")'
+    replace: '\1 acpi_sleep=nonvs\2'
   notify: rebuild-grub
 
 - name: "Strip stale resume parameters from GRUB cmdline"
@@ -479,6 +486,17 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: "Configure journald to sync to disk every 1 second for better PM event capture"
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/fastsync.conf
+    content: |
+      [Journal]
+      SyncIntervalSec=1
+    owner: root
+    group: root
+    mode: "0644"
+  notify: daemon-reload
 
 - name: "Enable SSSD KCM socket for persistent Kerberos credential storage"
   ansible.builtin.systemd:
