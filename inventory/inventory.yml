@@ -38,6 +38,7 @@ all:
 
     freebsd:
       hosts:
+        beastyboi.starnix.net:
         freebsd15.starnix.net:
       vars:
         ansible_python_interpreter: "/usr/local/bin/python3"
