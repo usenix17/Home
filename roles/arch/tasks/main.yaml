@@ -418,13 +418,6 @@
   changed_when: false
   failed_when: false
 
-- name: "Add i915.enable_dc=0 to GRUB cmdline to fix Meteor Lake PHY resume"
-  ansible.builtin.replace:
-    path: /etc/default/grub
-    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!i915\.enable_dc)[^"])*)(")'
-    replace: '\1 i915.enable_dc=0\2'
-  notify: rebuild-grub
-
 - name: "Add i915.enable_psr=0 to GRUB cmdline to prevent PSR from gating C10 PHY refclk during sleep"
   ansible.builtin.replace:
     path: /etc/default/grub
@@ -504,6 +497,55 @@
     group: root
     mode: "0644"
   notify: daemon-reload
+
+- name: "Create logind drop-in directory"
+  ansible.builtin.file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Configure lid close to suspend-then-hibernate via logind"
+  ansible.builtin.copy:
+    dest: /etc/systemd/logind.conf.d/lid.conf
+    content: |
+      [Login]
+      HandleLidSwitch=suspend-then-hibernate
+      HandleLidSwitchExternalPower=suspend-then-hibernate
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Create systemd sleep drop-in directory"
+  ansible.builtin.file:
+    path: /etc/systemd/sleep.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Set hibernate delay to 2 hours for suspend-then-hibernate"
+  ansible.builtin.copy:
+    dest: /etc/systemd/sleep.conf.d/hibernate-delay.conf
+    content: |
+      [Sleep]
+      HibernateDelaySec=7200
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Add AC suspend-on-idle to KDE power management to cap ALPM exposure"
+  ansible.builtin.blockinfile:
+    path: "/home/{{ arch_aur_user }}/.config/powermanagementprofilesrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - AC suspend"
+    insertafter: '^\[AC\]\[HandleButtonEvents\]'
+    block: |
+      [AC][SuspendSession]
+      idleTime=1200000
+      suspendType=1
+  become: yes
+  become_user: "{{ arch_aur_user }}"
 
 - name: "Enable SSSD KCM socket for persistent Kerberos credential storage"
   ansible.builtin.systemd:
