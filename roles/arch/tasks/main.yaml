@@ -418,6 +418,13 @@
   changed_when: false
   failed_when: false
 
+- name: "Add i915.enable_dc=0 to GRUB cmdline to prevent i915 from requesting DC6 (gates C10 PHY immediately)"
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?:(?!i915\.enable_dc)[^"])*)(")'
+    replace: '\1 i915.enable_dc=0\2'
+  notify: rebuild-grub
+
 - name: "Add i915.enable_psr=0 to GRUB cmdline to prevent PSR from gating C10 PHY refclk during sleep"
   ansible.builtin.replace:
     path: /etc/default/grub
@@ -535,7 +542,16 @@
     group: root
     mode: "0644"
 
-- name: "Add AC suspend-on-idle to KDE power management to cap ALPM exposure"
+- name: "Disable KDE DPMS screen-off to prevent i915 C10 PHY entering unrecoverable ALPM port-suspend"
+  ansible.builtin.replace:
+    path: "/home/{{ arch_aur_user }}/.config/powermanagementprofilesrc"
+    regexp: '^(idleTime=)\d+$'
+    replace: '\g<1>0'
+    after: '^\[(?:AC|Battery|LowBattery)\]\[DPMSControl\]'
+  become: yes
+  become_user: "{{ arch_aur_user }}"
+
+- name: "Add AC suspend-on-idle to KDE power management (replaces DPMS for power saving)"
   ansible.builtin.blockinfile:
     path: "/home/{{ arch_aur_user }}/.config/powermanagementprofilesrc"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - AC suspend"
