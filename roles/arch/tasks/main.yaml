@@ -505,6 +505,29 @@
     mode: "0644"
   notify: daemon-reload
 
+- name: "Disable iwlwifi power save to prevent Intel BE200 disconnects"
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/iwlwifi.conf
+    content: |
+      options iwlwifi power_save=0
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Configure NetworkManager to disable WiFi power save and scan MAC randomization"
+  ansible.builtin.copy:
+    dest: /etc/NetworkManager/conf.d/wifi-stable.conf
+    content: |
+      [connection]
+      wifi.powersave = 2
+
+      [device]
+      wifi.scan-rand-mac-address=no
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload-networkmanager
+
 - name: "Create logind drop-in directory"
   ansible.builtin.file:
     path: /etc/systemd/logind.conf.d

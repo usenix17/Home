@@ -20,3 +20,8 @@
 - name: daemon-reload
   ansible.builtin.systemd:
     daemon_reload: true
+
+- name: reload-networkmanager
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: reloaded
