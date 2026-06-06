@@ -536,36 +536,57 @@
     group: root
     mode: "0755"
 
-- name: "Configure lid close to suspend-then-hibernate via logind"
+- name: "Configure lid close to hibernate directly via logind"
   ansible.builtin.copy:
     dest: /etc/systemd/logind.conf.d/lid.conf
     content: |
       [Login]
-      HandleLidSwitch=suspend-then-hibernate
-      HandleLidSwitchExternalPower=suspend-then-hibernate
+      HandleLidSwitch=hibernate
+      HandleLidSwitchExternalPower=hibernate
     owner: root
     group: root
     mode: "0644"
 
-- name: "Create systemd sleep drop-in directory"
-  ansible.builtin.file:
-    path: /etc/systemd/sleep.conf.d
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: "Set hibernate delay to 2 hours for suspend-then-hibernate"
+- name: "Configure KDE powerdevilrc — disable DPMS/dim for all profiles, hibernate on lid (Plasma 6 format)"
   ansible.builtin.copy:
-    dest: /etc/systemd/sleep.conf.d/hibernate-delay.conf
+    dest: "/home/{{ arch_aur_user }}/.config/powerdevilrc"
     content: |
-      [Sleep]
-      HibernateDelaySec=7200
-    owner: root
-    group: root
-    mode: "0644"
+      [AC][Display]
+      TurnOffDisplayIdleTimeoutSec=-1
+      TurnOffDisplayWhenIdle=false
+      DimDisplayIdleTimeoutSec=-1
+      DimDisplayWhenIdle=false
 
-- name: "Disable KDE DPMS screen-off to prevent i915 C10 PHY entering unrecoverable ALPM port-suspend"
+      [AC][SuspendAndShutdown]
+      AutoSuspendAction=0
+      LidAction=0
+
+      [Battery][Display]
+      TurnOffDisplayIdleTimeoutSec=-1
+      TurnOffDisplayWhenIdle=false
+      DimDisplayIdleTimeoutSec=-1
+      DimDisplayWhenIdle=false
+
+      [Battery][SuspendAndShutdown]
+      AutoSuspendAction=0
+      LidAction=0
+
+      [LowBattery][Display]
+      TurnOffDisplayIdleTimeoutSec=-1
+      TurnOffDisplayWhenIdle=false
+      DimDisplayIdleTimeoutSec=-1
+      DimDisplayWhenIdle=false
+
+      [LowBattery][SuspendAndShutdown]
+      AutoSuspendAction=0
+      LidAction=0
+    owner: "{{ arch_aur_user }}"
+    group: "{{ arch_aur_user }}"
+    mode: "0640"
+  become: yes
+  become_user: "{{ arch_aur_user }}"
+
+- name: "Disable KDE DPMS screen-off in old Plasma 5 format (backwards compat fallback)"
   ansible.builtin.replace:
     path: "/home/{{ arch_aur_user }}/.config/powermanagementprofilesrc"
     regexp: '^(idleTime=)\d+$'
@@ -573,18 +594,7 @@
     after: '^\[(?:AC|Battery|LowBattery)\]\[DPMSControl\]'
   become: yes
   become_user: "{{ arch_aur_user }}"
-
-- name: "Add AC suspend-on-idle to KDE power management (replaces DPMS for power saving)"
-  ansible.builtin.blockinfile:
-    path: "/home/{{ arch_aur_user }}/.config/powermanagementprofilesrc"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - AC suspend"
-    insertafter: '^\[AC\]\[HandleButtonEvents\]'
-    block: |
-      [AC][SuspendSession]
-      idleTime=1200000
-      suspendType=1
-  become: yes
-  become_user: "{{ arch_aur_user }}"
+  failed_when: false
 
 - name: "Enable SSSD KCM socket for persistent Kerberos credential storage"
   ansible.builtin.systemd:
