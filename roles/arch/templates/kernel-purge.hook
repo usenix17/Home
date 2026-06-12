@@ -1,0 +1,13 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux
+Target = linux-zen
+Target = linux-headers
+Target = linux-zen-headers
+
+[Action]
+Description = Purging old kernel module directories (keeping 2 most recent per variant)...
+When = PostTransaction
+Exec = /usr/local/bin/kernel-purge 2

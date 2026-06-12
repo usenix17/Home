@@ -305,6 +305,55 @@
       - zramswap
   tags: ["never", "pacman"]
 
+- name: "Deploy kernel-purge script"
+  ansible.builtin.copy:
+    dest: /usr/local/bin/kernel-purge
+    content: |
+      #!/bin/bash
+      # Keep the N most recent /usr/lib/modules/ directories per kernel variant.
+      # Variants are detected by suffix: *-zen → zen, *-arch* → arch, else → other.
+      set -euo pipefail
+
+      KEEP=${1:-2}
+      MODULES=/usr/lib/modules
+
+      declare -A count=()
+
+      while IFS= read -r name; do
+          if   [[ $name =~ -zen$  ]]; then v=zen
+          elif [[ $name =~ -arch  ]]; then v=arch
+          else                              v=other
+          fi
+          count[$v]=$(( ${count[$v]:-0} + 1 ))
+          if (( ${count[$v]} > KEEP )); then
+              echo "kernel-purge: removing $MODULES/$name"
+              rm -rf "$MODULES/$name"
+          fi
+      done < <(ls "$MODULES" | sort -Vr)
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Create pacman hooks directory"
+  ansible.builtin.file:
+    path: /etc/pacman.d/hooks
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Deploy kernel-purge pacman hook"
+  ansible.builtin.template:
+    src: kernel-purge.hook
+    dest: /etc/pacman.d/hooks/kernel-purge.hook
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Run kernel-purge to clean up accumulated old kernel module directories"
+  ansible.builtin.command: /usr/local/bin/kernel-purge 2
+  changed_when: true
+
 - name: "Create NFS mount directories"
   ansible.builtin.file:
     path: "{{ item }}"
