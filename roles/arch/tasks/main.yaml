@@ -652,3 +652,22 @@
     name: sssd-kcm.socket
     enabled: true
     state: started
+
+- name: "Set EFI boot order — GRUB first, FreeBSD second"
+  ansible.builtin.command:
+    cmd: efibootmgr -o 0001,0000,0010,0011,0012,0013,0014,0015,0016,0017,0018,001B,001C,001D,001E,001F,0020,0021,0022,0023,0024,0025,0026,0027,0002
+  changed_when: false
+
+- name: "Add FreeBSD chainloader entry to GRUB custom menu"
+  ansible.builtin.blockinfile:
+    path: /etc/grub.d/40_custom
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - FreeBSD chainloader"
+    block: |
+      menuentry "FreeBSD" --class freebsd --class bsd --class os {
+          insmod part_gpt
+          insmod fat
+          insmod chain
+          search --no-floppy --fs-uuid --set=root 25A2-1DED
+          chainloader /efi/freebsd/loader.efi
+      }
+  notify: rebuild-grub
