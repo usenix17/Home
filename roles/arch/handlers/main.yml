@@ -25,3 +25,7 @@
   ansible.builtin.systemd:
     name: NetworkManager
     state: reloaded
+
+- name: reload-auditd
+  ansible.builtin.command: augenrules --load
+  changed_when: false

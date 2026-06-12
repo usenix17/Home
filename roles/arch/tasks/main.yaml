@@ -92,6 +92,7 @@
       - apachedirectorystudio
       - apprise
       - ark
+      - audit
       - bcc-tools
       - beep
       - bfg
@@ -671,3 +672,44 @@
           chainloader /efi/freebsd/loader.efi
       }
   notify: rebuild-grub
+
+- name: "Deploy auditd supply-chain / AUR malware file-integrity rules"
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/supplychain.rules
+    content: |
+      ## Supply-chain / AUR malware file-integrity watches
+      ## Ref: ioctl.fail AUR malware analysis (atomic-lockfile campaign)
+      ## Tuned for selene: NO blanket bpf() syscall rule (box runs netdata/
+      ## containerd/bpf tools). eBPF pinned-map detection is handled
+      ## separately to avoid drowning auditd in legitimate bpf() noise.
+
+      # Buffer size and failure mode (1 = printk warn, non-fatal)
+      -b 8192
+      -f 1
+
+      # --- Persistence: systemd unit creation (root + user) ---
+      -w /etc/systemd/system -p wa -k persist_systemd
+      -w /home/{{ arch_aur_user }}/.config/systemd/user -p wa -k persist_user_systemd
+
+      # --- Persistence: shell rc tampering ---
+      -w /home/{{ arch_aur_user }}/.bashrc -p wa -k persist_shellrc
+      -w /home/{{ arch_aur_user }}/.bash_profile -p wa -k persist_shellrc
+      -w /home/{{ arch_aur_user }}/.config/fish/config.fish -p wa -k persist_shellrc
+
+      # --- Persistence: cron ---
+      -w /etc/cron.d -p wa -k persist_cron
+      -w /var/spool/cron -p wa -k persist_cron
+
+      # --- Execution from staging dirs (AUR install-hook payloads) ---
+      -a always,exit -F arch=b64 -S execve -F dir=/dev/shm -F perm=x -k exec_shm
+      -a always,exit -F arch=b64 -S execve -F dir=/tmp -F perm=x -F auid>=1000 -F auid!=unset -k exec_tmp
+    owner: root
+    group: root
+    mode: "0640"
+  notify: reload-auditd
+
+- name: "Enable and start auditd"
+  ansible.builtin.systemd:
+    name: auditd
+    enabled: true
+    state: started
