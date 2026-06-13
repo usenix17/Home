@@ -713,3 +713,31 @@
     name: auditd
     enabled: true
     state: started
+
+- name: "Copy aur-mirror repository signing public key"
+  ansible.builtin.copy:
+    src: aur-mirror-signing-key.asc
+    dest: /etc/pacman.d/aur-mirror-signing-key.asc
+    owner: root
+    group: root
+    mode: "0644"
+  register: aur_mirror_key
+
+- name: "Import aur-mirror signing key into pacman keyring"
+  ansible.builtin.command:
+    cmd: pacman-key --add /etc/pacman.d/aur-mirror-signing-key.asc
+  when: aur_mirror_key.changed
+
+- name: "Locally sign (trust) the aur-mirror signing key"
+  ansible.builtin.command:
+    cmd: pacman-key --lsign-key 8280184D29B65F3C5002A6603959B28BA0CE2B53
+  when: aur_mirror_key.changed
+
+- name: "Add aur-mirror repository to pacman.conf (lowest priority — official repos win collisions)"
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - aur-mirror"
+    block: |
+      [aur-mirror]
+      SigLevel = Required
+      Server = https://aur.starnix.net
