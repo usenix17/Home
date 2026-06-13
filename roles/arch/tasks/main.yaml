@@ -741,3 +741,11 @@
       [aur-mirror]
       SigLevel = Required
       Server = https://aur.starnix.net
+
+- name: "Deploy aur-mirror-add helper (resolves AUR dep closure for the allowlist)"
+  ansible.builtin.copy:
+    src: aur-mirror-add
+    dest: /usr/local/bin/aur-mirror-add
+    owner: root
+    group: root
+    mode: "0755"

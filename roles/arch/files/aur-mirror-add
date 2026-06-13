@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# aur-mirror-add — resolve a package's AUR dependency closure and report (or
+# append) the entries missing from the aur-mirror allowlist. Official-repo
+# dependencies are omitted (pacman/makepkg resolve those automatically); only
+# AUR packages need to be in the allowlist.
+set -euo pipefail
+
+ALLOWLIST="${AUR_ALLOWLIST:-$HOME/ArgoCD/applications/aur-mirror/allowlist.yaml}"
+IMAGE="${AUR_BUILDER_IMAGE:-registry.starnix.net/library/aur-builder:latest}"
+
+usage() {
+  cat <<'EOF'
+aur-mirror-add — report/append the allowlist entries a package needs.
+
+Usage:
+  aur-mirror-add <package> [<package>...]    show entries missing from allowlist
+  aur-mirror-add --apply <package> [...]     append missing entries to the file
+
+Environment:
+  AUR_ALLOWLIST      path to allowlist.yaml
+                     (default: $HOME/ArgoCD/applications/aur-mirror/allowlist.yaml)
+  AUR_BUILDER_IMAGE  image providing `aur` when aurutils isn't installed locally
+                     (default: registry.starnix.net/library/aur-builder:latest)
+EOF
+}
+
+apply=0
+pkgs=()
+for arg in "$@"; do
+  case "$arg" in
+    --apply)   apply=1 ;;
+    -h|--help) usage; exit 0 ;;
+    -*)        echo "unknown option: $arg" >&2; exit 2 ;;
+    *)         pkgs+=("$arg") ;;
+  esac
+done
+
+[ "${#pkgs[@]}" -gt 0 ] || { usage; exit 2; }
+[ -f "$ALLOWLIST" ] || { echo "allowlist not found: $ALLOWLIST" >&2; exit 1; }
+
+# Prefer local aurutils; fall back to the builder image so this works on a
+# workstation that only has docker.
+aur_depends() {
+  if command -v aur >/dev/null 2>&1; then
+    aur depends -n "$@"
+  else
+    docker run --rm "$IMAGE" aur depends -n "$@"
+  fi
+}
+
+closure="$(aur_depends "${pkgs[@]}" | tr '\t' '\n' | sed '/^$/d' | sort -u)"
+[ -n "$closure" ] || { echo "no AUR packages resolved for: ${pkgs[*]} (official-repo only?)" >&2; exit 1; }
+
+approved="$(grep -oP '^\s*-\s*name:\s*\K\S+' "$ALLOWLIST" | sort -u)"
+missing="$(comm -23 <(printf '%s\n' "$closure") <(printf '%s\n' "$approved"))"
+
+if [ -z "$missing" ]; then
+  echo "✓ ${pkgs[*]} and all AUR deps already present in $ALLOWLIST"
+  exit 0
+fi
+
+is_requested() { local n; for n in "${pkgs[@]}"; do [ "$n" = "$1" ] && return 0; done; return 1; }
+
+gen() {
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if is_requested "$name"; then note=explicit; else note=dependency; fi
+    printf '      - name: %s\n        approved: true\n        note: %s\n' "$name" "$note"
+  done <<< "$missing"
+}
+
+count="$(printf '%s\n' "$missing" | grep -c .)"
+
+if [ "$apply" -eq 1 ]; then
+  gen >> "$ALLOWLIST"
+  echo "Appended $count entr$([ "$count" -eq 1 ] && echo y || echo ies) to $ALLOWLIST"
+  echo "Review:  git -C $(dirname "$ALLOWLIST") diff -- $(basename "$ALLOWLIST")"
+else
+  echo "# $count package(s) missing from the allowlist (append with --apply):"
+  gen
+fi
