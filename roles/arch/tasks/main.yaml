@@ -209,6 +209,7 @@
       - openrefine
       - opensc
       - osquery
+      - pac
       - packer
       - pgcli
       - phd2
@@ -742,29 +743,33 @@
       SigLevel = Required
       Server = https://aur.starnix.net
 
-- name: "Deploy aur-mirror-add helper (resolves AUR dep closure for the allowlist)"
-  ansible.builtin.copy:
-    src: aur-mirror-add
-    dest: /usr/local/bin/aur-mirror-add
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: "Create aur-mirror-add config directory"
+# The standalone aur-mirror-add bash helper is retired: the `pac mirror`
+# subcommand (in the `pac` package, installed from the aur-mirror) supersedes
+# it. pac is installed via the package list above; its config is deployed here.
+- name: "Create pac config directory"
   ansible.builtin.file:
-    path: "/home/{{ arch_aur_user }}/.config/aur-mirror"
+    path: "/home/{{ arch_aur_user }}/.config/pac"
     state: directory
     owner: "{{ arch_aur_user }}"
     group: "{{ arch_aur_user }}"
     mode: "0755"
 
-- name: "Deploy aur-mirror-add config (env var > this file > built-in default)"
+- name: "Deploy pac config (env var > this file > built-in default)"
   ansible.builtin.copy:
-    dest: "/home/{{ arch_aur_user }}/.config/aur-mirror/config"
+    dest: "/home/{{ arch_aur_user }}/.config/pac/config"
     content: |
-      # aur-mirror-add configuration. Resolution: env var > this file > built-in default.
+      # pac configuration. Resolution: env var > this file > built-in default.
       allowlist = ~/ArgoCD/applications/aur-mirror/allowlist.yaml
       builder_image = registry.starnix.net/library/aur-builder:latest
+      prefer = system
     owner: "{{ arch_aur_user }}"
     group: "{{ arch_aur_user }}"
     mode: "0644"
+
+- name: "Remove retired aur-mirror-add helper and config (superseded by pac mirror)"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /usr/local/bin/aur-mirror-add
+    - "/home/{{ arch_aur_user }}/.config/aur-mirror/config"
