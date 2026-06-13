@@ -8,8 +8,28 @@
 #                  no other approved package still needs)
 set -euo pipefail
 
-ALLOWLIST="${AUR_ALLOWLIST:-$HOME/ArgoCD/applications/aur-mirror/allowlist.yaml}"
-IMAGE="${AUR_BUILDER_IMAGE:-registry.starnix.net/library/aur-builder:latest}"
+# Settings resolve as: environment variable > config file > built-in default.
+# Config file (INI-ish "key = value", '#' comments): $AUR_MIRROR_CONFIG, else
+# $XDG_CONFIG_HOME/aur-mirror/config, else ~/.config/aur-mirror/config.
+CONFIG_FILE="${AUR_MIRROR_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/aur-mirror/config}"
+
+config_get() {  # config_get <key> -> value from CONFIG_FILE (last wins), or empty
+  [ -f "$CONFIG_FILE" ] || return 0
+  sed -n -E "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*(.*[^[:space:]])[[:space:]]*\$/\1/p" \
+    "$CONFIG_FILE" | tail -1
+}
+expand_tilde() {  # expand a leading ~ (config files store it literally)
+  case "$1" in
+    "~")   printf '%s' "$HOME" ;;
+    "~/"*) printf '%s' "$HOME/${1#\~/}" ;;
+    *)     printf '%s' "$1" ;;
+  esac
+}
+
+ALLOWLIST="$(expand_tilde "${AUR_ALLOWLIST:-$(config_get allowlist)}")"
+ALLOWLIST="${ALLOWLIST:-$HOME/ArgoCD/applications/aur-mirror/allowlist.yaml}"
+IMAGE="${AUR_BUILDER_IMAGE:-$(config_get builder_image)}"
+IMAGE="${IMAGE:-registry.starnix.net/library/aur-builder:latest}"
 
 usage() {
   cat <<'EOF'
@@ -20,10 +40,16 @@ Usage:
   aur-mirror-add --apply <package>...    append the missing entries
   aur-mirror-add --remove <package>...   remove the package + newly-orphaned deps
 
-Environment:
-  AUR_ALLOWLIST      path to allowlist.yaml
-                     (default: $HOME/ArgoCD/applications/aur-mirror/allowlist.yaml)
-  AUR_BUILDER_IMAGE  image providing `aur` when aurutils isn't installed locally
+Configuration (env var > config file > default):
+  Config file: $AUR_MIRROR_CONFIG, else ~/.config/aur-mirror/config
+    allowlist     = <path to allowlist.yaml>
+    builder_image = <image providing `aur` when aurutils isn't installed>
+
+  Env overrides:
+    AUR_ALLOWLIST      path to allowlist.yaml
+                       (default: ~/ArgoCD/applications/aur-mirror/allowlist.yaml)
+    AUR_BUILDER_IMAGE  builder image (default: registry.starnix.net/library/aur-builder:latest)
+    AUR_MIRROR_CONFIG  override config file path
 EOF
 }
 

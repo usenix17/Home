@@ -749,3 +749,22 @@
     owner: root
     group: root
     mode: "0755"
+
+- name: "Create aur-mirror-add config directory"
+  ansible.builtin.file:
+    path: "/home/{{ arch_aur_user }}/.config/aur-mirror"
+    state: directory
+    owner: "{{ arch_aur_user }}"
+    group: "{{ arch_aur_user }}"
+    mode: "0755"
+
+- name: "Deploy aur-mirror-add config (env var > this file > built-in default)"
+  ansible.builtin.copy:
+    dest: "/home/{{ arch_aur_user }}/.config/aur-mirror/config"
+    content: |
+      # aur-mirror-add configuration. Resolution: env var > this file > built-in default.
+      allowlist = ~/ArgoCD/applications/aur-mirror/allowlist.yaml
+      builder_image = registry.starnix.net/library/aur-builder:latest
+    owner: "{{ arch_aur_user }}"
+    group: "{{ arch_aur_user }}"
+    mode: "0644"
