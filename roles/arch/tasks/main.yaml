@@ -773,3 +773,125 @@
   loop:
     - /usr/local/bin/aur-mirror-add
     - "/home/{{ arch_aur_user }}/.config/aur-mirror/config"
+
+# ---------------------------------------------------------------------------
+# Falco runtime security (modern eBPF) + falcoctl, from the official pinned
+# tarball, with alerts shipped to Wazuh as JSON. Config in files/falco-*.
+# ---------------------------------------------------------------------------
+- name: "Download Falco release tarball (pinned + checksum)"
+  ansible.builtin.get_url:
+    url: "https://download.falco.org/packages/bin/x86_64/falco-{{ falco_version }}-x86_64.tar.gz"
+    dest: "/opt/falco-{{ falco_version }}-x86_64.tar.gz"
+    checksum: "sha256:{{ falco_tarball_sha256 }}"
+    mode: "0644"
+
+- name: "Extract Falco tarball"
+  ansible.builtin.unarchive:
+    src: "/opt/falco-{{ falco_version }}-x86_64.tar.gz"
+    dest: /opt
+    remote_src: true
+    creates: "/opt/falco-{{ falco_version }}-x86_64/usr/bin/falco"
+
+- name: "Install falco and falcoctl binaries"
+  ansible.builtin.copy:
+    src: "/opt/falco-{{ falco_version }}-x86_64/usr/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    remote_src: true
+    mode: "0755"
+  loop:
+    - falco
+    - falcoctl
+  notify: restart-falco
+
+- name: "Install Falco plugins / shared files"
+  ansible.builtin.copy:
+    src: "/opt/falco-{{ falco_version }}-x86_64/usr/share/falco/"
+    dest: /usr/share/falco/
+    remote_src: true
+    mode: "0644"
+  notify: restart-falco
+
+- name: "Bootstrap default Falco config (do not clobber local tuning)"
+  ansible.builtin.copy:
+    src: "/opt/falco-{{ falco_version }}-x86_64/etc/falco/{{ item }}"
+    dest: "/etc/falco/{{ item }}"
+    remote_src: true
+    force: false
+    mode: "0644"
+  loop:
+    - falco.yaml
+    - falco_rules.yaml
+    - falco_rules.local.yaml
+
+- name: "Ensure Falco config.d exists"
+  ansible.builtin.file:
+    path: /etc/falco/config.d
+    state: directory
+    mode: "0755"
+
+- name: "Select the modern_ebpf driver (no kernel module)"
+  ansible.builtin.copy:
+    src: falco-engine-modern-ebpf.yaml
+    dest: /etc/falco/config.d/engine-kind-falcoctl.yaml
+    mode: "0644"
+  notify: restart-falco
+
+- name: "Emit Falco alerts as JSON to a file for the Wazuh agent"
+  ansible.builtin.copy:
+    src: falco-json-output.yaml
+    dest: /etc/falco/config.d/zz-wazuh-json.yaml
+    mode: "0644"
+  notify: restart-falco
+
+- name: "Create Falco log directory"
+  ansible.builtin.file:
+    path: /var/log/falco
+    state: directory
+    mode: "0750"
+
+- name: "Deploy Falco logrotate policy"
+  ansible.builtin.copy:
+    src: falco.logrotate
+    dest: /etc/logrotate.d/falco
+    mode: "0644"
+
+- name: "Deploy Falco systemd units"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - falco.service
+    - falcoctl-artifact-follow.service
+  notify:
+    - daemon-reload
+    - restart-falco
+
+- name: "Enable and start Falco services"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop:
+    - falco.service
+    - falcoctl-artifact-follow.service
+
+- name: "Detect Wazuh agent (to wire Falco -> Wazuh)"
+  ansible.builtin.stat:
+    path: /var/ossec/etc/ossec.conf
+  register: arch_wazuh_ossec_conf
+
+- name: "Ship Falco alerts to the Wazuh agent (localfile)"
+  ansible.builtin.blockinfile:
+    path: /var/ossec/etc/ossec.conf
+    marker: "<!-- {mark} ANSIBLE MANAGED: falco -->"
+    block: |
+      <ossec_config>
+        <localfile>
+          <log_format>json</log_format>
+          <location>/var/log/falco/events.json</location>
+        </localfile>
+      </ossec_config>
+  when: arch_wazuh_ossec_conf.stat.exists
+  notify: restart-wazuh-agent

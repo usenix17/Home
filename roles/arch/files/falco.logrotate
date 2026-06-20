@@ -1,0 +1,11 @@
+# Falco writes JSON events here with keep_alive (fd held open), so rotate with
+# copytruncate -- the Wazuh agent detects the truncation and keeps tailing.
+/var/log/falco/events.json {
+    daily
+    rotate 7
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+}

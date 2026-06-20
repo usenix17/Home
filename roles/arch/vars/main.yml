@@ -1,3 +1,7 @@
 ---
 
 arch_aur_user: cloud
+
+# Falco runtime security -- pinned official release tarball.
+falco_version: "0.44.1"
+falco_tarball_sha256: "bc5b7a3bdf26fc91e520fc20b3461613c6e725148437121697a8d20243132127"

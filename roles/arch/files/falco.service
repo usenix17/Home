@@ -1,0 +1,25 @@
+[Unit]
+Description=Falco: Container Native Runtime Security (modern eBPF)
+Documentation=https://falco.org/docs/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+# Engine (modern_ebpf -- no kernel module) is set in
+# /etc/falco/config.d/engine-kind-falcoctl.yaml via:
+#   falcoctl driver config --type modern_ebpf
+ExecStart=/usr/bin/falco --pidfile=/run/falco/falco.pid
+# SIGHUP hot-reloads rules (e.g. after falcoctl-artifact-follow pulls updates):
+#   systemctl reload falco
+ExecReload=/bin/kill -HUP $MAINPID
+RuntimeDirectory=falco
+UMask=0077
+TimeoutStopSec=30
+Restart=on-failure
+# Falco exits 1 on config/rule errors; don't crash-loop on a bad config.
+RestartPreventExitStatus=1
+
+[Install]
+WantedBy=multi-user.target

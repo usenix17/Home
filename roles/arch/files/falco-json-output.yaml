@@ -1,0 +1,8 @@
+# Emit Falco alerts as JSON to a dedicated file for the Wazuh agent to tail.
+# Files in config.d override falco.yaml. stdout/journald stays enabled (now
+# JSON too); syslog stays as-is. Wazuh reads /var/log/falco/events.json.
+json_output: true
+file_output:
+  enabled: true
+  keep_alive: true
+  filename: /var/log/falco/events.json

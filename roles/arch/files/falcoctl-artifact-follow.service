@@ -1,0 +1,17 @@
+[Unit]
+Description=Falcoctl Artifact Follow: auto-update Falco rules
+Documentation=https://falco.org/docs/
+After=network-online.target falco.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+# Follows the refs in /etc/falcoctl/falcoctl.yaml (falco-rules:5) and writes
+# updated rule files under /etc/falco. Apply them with: systemctl reload falco
+ExecStart=/usr/bin/falcoctl artifact follow
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

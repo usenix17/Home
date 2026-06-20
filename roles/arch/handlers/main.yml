@@ -29,3 +29,13 @@
 - name: reload-auditd
   ansible.builtin.command: augenrules --load
   changed_when: false
+
+- name: restart-falco
+  ansible.builtin.systemd:
+    name: falco
+    state: restarted
+
+- name: restart-wazuh-agent
+  ansible.builtin.systemd:
+    name: wazuh-agent
+    state: restarted
