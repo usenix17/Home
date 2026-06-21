@@ -740,7 +740,10 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK - aur-mirror"
     block: |
       [aur-mirror]
-      SigLevel = Required
+      # DatabaseRequired: reject an unsigned/tampered repo DB, not just packages
+      # -- closes the downgrade-to-vulnerable and DB-tamper vectors. Our DB is
+      # signed (repo-add --sign) and the signing key is already trusted above.
+      SigLevel = Required DatabaseRequired
       Server = https://aur.starnix.net
 
 # The standalone aur-mirror-add bash helper is retired: the `pac mirror`
