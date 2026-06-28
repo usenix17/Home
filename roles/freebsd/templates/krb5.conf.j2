@@ -12,10 +12,10 @@ includedir /usr/local/etc/krb5.conf.d/
 
 [realms]
   STARNIX.NET = {
-    kdc = ipa1.starnix.net:88
-    master_kdc = ipa1.starnix.net:88
-    admin_server = ipa1.starnix.net:749
-    kpasswd_server = ipa1.starnix.net:464
+    kdc = {{ ipa_server }}:88
+    master_kdc = {{ ipa_server }}:88
+    admin_server = {{ ipa_server }}:749
+    kpasswd_server = {{ ipa_server }}:464
     default_domain = starnix.net
     pkinit_anchors = FILE:/usr/local/etc/ipa/ca.crt
   }

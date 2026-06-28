@@ -377,7 +377,7 @@
 
 - name: "Fetch IPA CA certificate into system trust store"
   ansible.builtin.get_url:
-    url: http://ipa1.starnix.net/ipa/config/ca.crt
+    url: http://{{ ipa_server }}/ipa/config/ca.crt
     dest: /etc/ca-certificates/trust-source/anchors/starnix-ipa-ca.crt
     mode: "0644"
     owner: root

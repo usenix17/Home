@@ -17,7 +17,7 @@
   delegate_to: localhost
 
 - name: "Get kerberos keytab"
-  ansible.builtin.shell: "ipa-getkeytab -s ipa1.starnix.net -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
+  ansible.builtin.shell: "ipa-getkeytab -s {{ ipa_server }} -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
   delegate_to: localhost
 
 - name: "Set keytab permissions on localhost"
@@ -100,7 +100,7 @@
 
 - name: "Fetch IPA CA certificate"
   ansible.builtin.get_url:
-    url: http://ipa1.starnix.net/ipa/config/ca.crt
+    url: http://{{ ipa_server }}/ipa/config/ca.crt
     dest: /usr/local/etc/ipa/ca.crt
     mode: "0644"
     owner: root
@@ -165,8 +165,8 @@
     group: wheel
 
 - name: "Configure OpenLDAP"
-  ansible.builtin.copy:
-    src: ldap.conf
+  ansible.builtin.template:
+    src: ldap.conf.j2
     dest: /usr/local/etc/openldap/ldap.conf
     mode: "0644"
     owner: root
