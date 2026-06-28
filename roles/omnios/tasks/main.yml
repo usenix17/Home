@@ -1,0 +1,234 @@
+---
+# OmniOS (illumos) FreeIPA client: native LDAP naming (ldapclient) for identity
+# against the IPA compat tree + pam_krb5 for Kerberos auth + Vault SSH certs.
+#
+# Run with become via pfexec, e.g. in inventory/group_vars:
+#   ansible_python_interpreter: /usr/bin/python3
+#   ansible_become: true
+#   ansible_become_method: pfexec      # cloud has the Primary Administrator profile
+# Requires (same as the freebsd role): become_pass (IPA admin pw for enrollment)
+# and ssh_ca (Vault SSH CA public key). Control node (bork) needs the ipa CLI.
+
+# === IPA enrollment (runs on the control node) ===
+
+- name: "Get kerberos ticket"
+  ansible.builtin.expect:
+    command: kinit admin
+    responses:
+      'Password for admin@STARNIX.NET:': "{{ become_pass }}\n"
+  delegate_to: localhost
+  become: false
+
+- name: "Ensure host is present in IPA"
+  ansible.builtin.command: "ipa host-add {{ inventory_hostname }} --force"
+  register: ipa_result
+  failed_when: ipa_result.rc != 0 and 'already exists' not in ipa_result.stderr
+  changed_when: ipa_result.rc == 0
+  delegate_to: localhost
+  become: false
+
+- name: "Get kerberos keytab"
+  ansible.builtin.command: "ipa-getkeytab -s {{ ipa_server }} -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
+  delegate_to: localhost
+  become: false
+
+- name: "Set keytab permissions on localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+
+- name: "Copy keytab to host"
+  ansible.builtin.copy:
+    src: "/dev/shm/{{ inventory_hostname }}.keytab"
+    dest: /etc/krb5/krb5.keytab
+    mode: "0600"
+    owner: root
+    group: sys
+
+- name: "Clean up keytab from localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    state: absent
+  delegate_to: localhost
+  become: false
+
+# === Kerberos ===
+
+- name: "Configure kerberos"
+  ansible.builtin.template:
+    src: krb5.conf.j2
+    dest: /etc/krb5/krb5.conf
+    mode: "0644"
+    owner: root
+    group: sys
+
+# === IPA CA certificate (kept for future LDAPS/PKINIT; LDAP is plaintext anon today) ===
+
+- name: "Fetch IPA CA certificate"
+  ansible.builtin.get_url:
+    url: "http://{{ ipa_server }}/ipa/config/ca.crt"
+    dest: /etc/krb5/starnix-ipa-ca.crt
+    mode: "0644"
+    owner: root
+    group: sys
+
+# === Native LDAP naming service (identity from the IPA compat tree) ===
+
+# ldap_cachemgr must resolve the IPA server WITHOUT using LDAP, or it deadlocks
+# on startup: ldapclient sets "hosts: files ldap", so resolving the server name
+# recurses into the not-yet-ready ldap backend. Pin the server in /etc/hosts first.
+- name: "Resolve IPA server address"
+  ansible.builtin.command: "getent hosts {{ ipa_server }}"
+  register: ipa_hostsent
+  changed_when: false
+
+- name: "Pin IPA server in /etc/hosts (ldap_cachemgr bootstrap)"
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "[[:space:]]{{ ipa_server }}([[:space:]]|$)"
+    line: "{{ ipa_hostsent.stdout.split()[0] }}\t{{ ipa_server }}"
+    state: present
+
+- name: "Check current ldapclient configuration"
+  ansible.builtin.command: ldapclient list
+  register: ldapclient_list
+  failed_when: false
+  changed_when: false
+
+- name: "Configure ldapclient against the IPA compat tree (anonymous)"
+  ansible.builtin.command:
+    argv:
+      - ldapclient
+      - manual
+      - -a
+      - credentialLevel=anonymous
+      - -a
+      - authenticationMethod=none
+      - -a
+      - defaultSearchBase=cn=compat,dc=starnix,dc=net
+      - -a
+      - domainName=starnix.net
+      - -a
+      - "defaultServerList={{ ipa_server }}"
+      - -a
+      - followReferrals=false
+      - -a
+      - serviceSearchDescriptor=passwd:cn=users,cn=compat,dc=starnix,dc=net
+      - -a
+      - serviceSearchDescriptor=group:cn=groups,cn=compat,dc=starnix,dc=net
+  when: ipa_server not in ldapclient_list.stdout
+  notify: restart name-service-cache
+
+# === NSS (template AFTER ldapclient, which rewrites nsswitch.conf itself) ===
+
+- name: "Configure nsswitch"
+  ansible.builtin.template:
+    src: nsswitch.conf.j2
+    dest: /etc/nsswitch.conf
+    mode: "0644"
+    owner: root
+    group: sys
+  notify: restart name-service-cache
+
+# === PAM (Kerberos auth; lockout-safe) ===
+
+- name: "Back up original pam.conf (once)"
+  ansible.builtin.copy:
+    src: /etc/pam.conf
+    dest: /etc/pam.conf.pre-ipa
+    remote_src: true
+    force: false
+    mode: "0644"
+    owner: root
+    group: sys
+
+- name: "Configure PAM for Kerberos"
+  ansible.builtin.template:
+    src: pam.conf.j2
+    dest: /etc/pam.conf
+    mode: "0644"
+    owner: root
+    group: sys
+
+# === SSH (Vault-signed user certificates) ===
+
+- name: "Write SSH CA public key"
+  ansible.builtin.copy:
+    content: "{{ ssh_ca }}"
+    dest: /etc/ssh/trusted-CA.pem
+    mode: "0644"
+    owner: root
+    group: sys
+  notify: restart ssh
+
+- name: "Ensure TrustedUserCAKeys is set in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?TrustedUserCAKeys"
+    line: "TrustedUserCAKeys /etc/ssh/trusted-CA.pem"
+    state: present
+    validate: "/usr/sbin/sshd -t -f %s"
+  notify: restart ssh
+
+- name: "Ensure PubkeyAuthentication is enabled in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: present
+    validate: "/usr/sbin/sshd -t -f %s"
+  notify: restart ssh
+
+- name: "Ensure PermitRootLogin is prohibit-password in sshd_config"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin prohibit-password"
+    state: present
+    validate: "/usr/sbin/sshd -t -f %s"
+  notify: restart ssh
+
+# === Services (SMF) ===
+
+- name: "Ensure ldap/client is enabled"
+  ansible.builtin.command: svcadm enable -rs svc:/network/ldap/client:default
+  changed_when: false
+
+# === Home directories ===
+# illumos has no pam_mkhomedir and /home is autofs (auto_home -> /export/home/&),
+# so create a local home under /export/home for each shell-access member, seeded
+# from /etc/skel. A shell loop is used because the member/uid/gid list is dynamic
+# (resolved live from the IPA compat tree via getent). Idempotent: only missing
+# homes are created.
+- name: "Create local homes for shell-access members"
+  ansible.builtin.shell: |
+    set -e
+    for u in $(getent group shell-access | awk -F: '{print $4}' | tr ',' ' '); do
+      pw=$(getent passwd "$u") || continue
+      uid=$(echo "$pw" | cut -d: -f3)
+      gid=$(echo "$pw" | cut -d: -f4)
+      home=$(echo "$pw" | cut -d: -f6 | sed 's,^/home/,/export/home/,')
+      if [ ! -d "$home" ]; then
+        mkdir -p "$home"
+        cp -R /etc/skel/. "$home"/ 2>/dev/null || true
+        chown -R "$uid:$gid" "$home"
+        chmod 0700 "$home"
+        echo "created:$home"
+      fi
+    done
+  register: omnios_homes
+  changed_when: "'created:' in omnios_homes.stdout"
+
+# === Sudo (group-based, passwordless) ===
+# Access is already gated by the Vault SSH cert + admin_sudoers membership, so
+# admin_sudoers gets passwordless sudo (no dependency on the krb5 auth stack).
+- name: "Grant passwordless sudo to the admin_sudoers group"
+  ansible.builtin.copy:
+    content: "%admin_sudoers ALL=(ALL) NOPASSWD: ALL\n"
+    dest: /etc/sudoers.d/admin_sudoers
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"

@@ -44,6 +44,17 @@ all:
         ansible_python_interpreter: "/usr/local/bin/python3"
         ansible_shell_executable: "/bin/sh"
 
+    omnios:
+      hosts:
+        omnios.starnix.net:
+      vars:
+        ansible_python_interpreter: "/usr/bin/python3"
+        ansible_become_method: pfexec
+        # illumos pfexec only takes "pfexec [-P privset] cmd [arg..]"; it rejects
+        # the sudo default flags (-H -S -n). Run the command through a shell so the
+        # become plugin emits: pfexec /bin/sh -c '<cmd>'
+        ansible_become_flags: "/bin/sh -c"
+
     proxmox:
       hosts:
         pve1.starnix.net:

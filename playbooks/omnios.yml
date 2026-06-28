@@ -1,0 +1,7 @@
+---
+
+- name: "Configure OmniOS"
+  hosts: "omnios"
+  gather_facts: true
+  roles:
+    - role: "omnios"

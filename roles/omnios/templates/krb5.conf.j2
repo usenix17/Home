@@ -1,0 +1,36 @@
+# Managed by Ansible (roles/omnios). FreeIPA realm client config.
+[libdefaults]
+    default_realm = STARNIX.NET
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+    rdns = false
+    forwardable = true
+    udp_preference_limit = 0
+
+[realms]
+    STARNIX.NET = {
+        kdc = {{ ipa_server }}
+        admin_server = {{ ipa_server }}
+        kpasswd_server = {{ ipa_server }}
+        default_domain = starnix.net
+    }
+
+[domain_realm]
+    .starnix.net = STARNIX.NET
+    starnix.net = STARNIX.NET
+    {{ inventory_hostname }} = STARNIX.NET
+
+[logging]
+    default = FILE:/var/krb5/kdc.log
+    kdc = FILE:/var/krb5/kdc.log
+
+[appdefaults]
+    kinit = {
+        renewable = true
+        forwardable = true
+    }
+    pam = {
+        # We enroll the host (have /etc/krb5/krb5.keytab), so verify the KDC's
+        # reply against the host key to prevent KDC spoofing.
+        validate = true
+    }

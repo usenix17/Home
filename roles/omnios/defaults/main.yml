@@ -1,0 +1,5 @@
+---
+# FreeIPA master this host enrolls against and resolves identity from.
+# Single knob for IPA server migrations (ipa1 -> ipa2 -> ipa9 -> ...).
+# Shared with the freebsd/arch roles; hoist to group_vars/all to drive all three.
+ipa_server: ipa9.starnix.net

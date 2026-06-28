@@ -1,0 +1,70 @@
+#
+# Managed by Ansible (roles/omnios).
+#
+# Kerberos (FreeIPA) auth is added to the "other" stack, which sshd and most
+# services use. Local accounts (root, cloud) still authenticate via pam_unix
+# because pam_unix_auth is "binding ... server_policy": local users succeed/fail
+# on unix; users that exist only in the name service (IPA) fall through to krb5.
+#
+# The "login" (console) stack is intentionally left pure pam_unix as a lockout
+# safety net -- console root login never depends on krb5/LDAP.
+#
+
+# --- login (console): local-only, lockout safety net ---
+login	auth requisite		pam_authtok_get.so.1
+login	auth required		pam_dhkeys.so.1
+login	auth required		pam_unix_cred.so.1
+login	auth required		pam_unix_auth.so.1
+login	auth required		pam_dial_auth.so.1
+
+# --- rlogin / rsh (legacy) ---
+rlogin	auth sufficient		pam_rhosts_auth.so.1
+rlogin	auth requisite		pam_authtok_get.so.1
+rlogin	auth required		pam_dhkeys.so.1
+rlogin	auth required		pam_unix_cred.so.1
+rlogin	auth required		pam_unix_auth.so.1
+krlogin	auth required		pam_unix_cred.so.1
+krlogin	auth required		pam_krb5.so.1
+rsh	auth sufficient		pam_rhosts_auth.so.1
+rsh	auth required		pam_unix_cred.so.1
+krsh	auth required		pam_unix_cred.so.1
+krsh	auth required		pam_krb5.so.1
+ktelnet	auth required		pam_unix_cred.so.1
+ktelnet	auth required		pam_krb5.so.1
+
+# --- ppp ---
+ppp	auth requisite		pam_authtok_get.so.1
+ppp	auth required		pam_dhkeys.so.1
+ppp	auth required		pam_unix_cred.so.1
+ppp	auth required		pam_unix_auth.so.1
+ppp	auth required		pam_dial_auth.so.1
+
+gdm-autologin auth  required    pam_unix_cred.so.1
+gdm-autologin auth  sufficient  pam_allow.so.1
+
+# --- other (sshd, su, etc.): local via unix, IPA via krb5 ---
+other	auth requisite		pam_authtok_get.so.1
+other	auth required		pam_dhkeys.so.1
+other	auth required		pam_unix_cred.so.1
+other	auth binding		pam_unix_auth.so.1 server_policy
+other	auth required		pam_krb5.so.1
+
+# --- account ---
+passwd	auth required		pam_passwd_auth.so.1
+cron	account required	pam_unix_account.so.1
+cups	account	required	pam_unix_account.so.1
+gdm-autologin account  sufficient  pam_allow.so.1
+other	account requisite	pam_roles.so.1
+other	account sufficient	pam_unix_account.so.1
+other	account required	pam_ldap.so.1
+
+# --- session ---
+other	session required	pam_unix_session.so.1
+other	session optional	pam_krb5.so.1
+
+# --- password (local via unix, IPA via krb5) ---
+other	password required	pam_dhkeys.so.1
+other	password requisite	pam_authtok_get.so.1
+other	password requisite	pam_authtok_check.so.1
+other	password required	pam_authtok_store.so.1 server_policy
+other	password required	pam_krb5.so.1

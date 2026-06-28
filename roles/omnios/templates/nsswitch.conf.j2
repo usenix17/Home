@@ -1,0 +1,23 @@
+# Managed by Ansible (roles/omnios). Identity from FreeIPA compat tree via the
+# native LDAP naming service (ldapclient); hosts stay on DNS.
+passwd:     files ldap
+group:      files ldap
+netgroup:   files ldap
+hosts:      files dns
+ipnodes:    files dns
+networks:   files
+protocols:  files
+rpc:        files
+ethers:     files
+netmasks:   files
+bootparams: files
+publickey:  files
+automount:  files
+aliases:    files
+services:   files
+printers:   user files
+project:    files
+auth_attr:  files
+prof_attr:  files
+tnrhtp:     files
+tnrhdb:     files

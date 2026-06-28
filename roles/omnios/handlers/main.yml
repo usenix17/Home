@@ -1,0 +1,8 @@
+---
+- name: restart name-service-cache
+  ansible.builtin.command: svcadm restart svc:/system/name-service-cache:default
+  changed_when: true
+
+- name: restart ssh
+  ansible.builtin.command: svcadm restart svc:/network/ssh:default
+  changed_when: true
