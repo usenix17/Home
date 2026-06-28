@@ -1,0 +1,12 @@
+# Prevent ARP flapping when multiple interfaces share the same subnet
+# (e.g. bond0 + vmbr0 on Proxmox, or eno1 + br0 on KVM hosts).
+# arp_ignore=1: only answer ARP requests targeting the receiving interface's own address.
+# arp_announce=2: always use the best local address for the target subnet.
+net.ipv4.conf.all.arp_ignore = 1
+net.ipv4.conf.all.arp_announce = 2
+net.ipv4.conf.default.arp_ignore = 1
+net.ipv4.conf.default.arp_announce = 2
+{% for iface in arp_ignore_interfaces %}
+net.ipv4.conf.{{ iface }}.arp_ignore = 1
+net.ipv4.conf.{{ iface }}.arp_announce = 2
+{% endfor %}

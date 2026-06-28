@@ -1,0 +1,4 @@
+---
+arp_ignore_interfaces:
+  - eno1
+  - br0

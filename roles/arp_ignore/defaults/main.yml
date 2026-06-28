@@ -1,0 +1,6 @@
+---
+# Additional interfaces to configure beyond the 'all' wildcard.
+# The 'all' sysctl is sufficient for most cases; add interface names here
+# only if you want explicit per-interface entries (e.g. for documentation).
+# Example: arp_ignore_interfaces: [bond0, vmbr0]
+arp_ignore_interfaces: []

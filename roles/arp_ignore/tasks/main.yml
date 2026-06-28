@@ -1,0 +1,13 @@
+---
+- name: "Deploy sysctl config to prevent ARP flapping on multi-interface hosts"
+  ansible.builtin.template:
+    src: 10-arp-ignore.conf.j2
+    dest: /etc/sysctl.d/10-arp-ignore.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "apply-sysctl"
+
+- name: "Apply sysctl settings immediately"
+  ansible.builtin.command: sysctl --system
+  changed_when: false

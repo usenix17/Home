@@ -1,0 +1,10 @@
+---
+- name: "Proxmox hosts baseline"
+  hosts: proxmox
+  roles:
+    - arp_ignore
+
+- name: "hecate baseline"
+  hosts: hecate.starnix.net
+  roles:
+    - arp_ignore

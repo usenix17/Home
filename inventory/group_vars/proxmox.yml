@@ -1,0 +1,4 @@
+---
+arp_ignore_interfaces:
+  - bond0
+  - vmbr0
