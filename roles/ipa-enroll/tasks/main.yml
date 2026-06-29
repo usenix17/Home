@@ -7,7 +7,10 @@
   ansible.builtin.expect:
     command: kinit admin
     responses:
-      'Password for admin@{{ ipa_realm }}:': "{{ become_pass }}\n"
+      # Realm-agnostic regex: expect response KEYS are not templated, so match
+      # the prompt prefix rather than embedding {{ ipa_realm }} (which would stay
+      # literal and never match -> timeout).
+      'Password for admin@': "{{ become_pass }}\n"
   delegate_to: localhost
 
 - name: "Ensure host is present in IPA"
