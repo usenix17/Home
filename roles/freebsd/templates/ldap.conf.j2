@@ -1,4 +1,4 @@
 URI ldaps://{{ ipa_server }}
-BASE dc=starnix,dc=net
+BASE {{ ipa_basedn }}
 SASL_MECH GSSAPI
 TLS_CACERT /usr/local/etc/ipa/ca.crt

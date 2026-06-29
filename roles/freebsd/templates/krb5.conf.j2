@@ -1,7 +1,7 @@
 includedir /usr/local/etc/krb5.conf.d/
 
 [libdefaults]
-  default_realm = STARNIX.NET
+  default_realm = {{ ipa_realm }}
   dns_lookup_realm = false
   rdns = false
   dns_canonicalize_hostname = false
@@ -11,16 +11,16 @@ includedir /usr/local/etc/krb5.conf.d/
   udp_preference_limit = 0
 
 [realms]
-  STARNIX.NET = {
+  {{ ipa_realm }} = {
     kdc = {{ ipa_server }}:88
     master_kdc = {{ ipa_server }}:88
     admin_server = {{ ipa_server }}:749
     kpasswd_server = {{ ipa_server }}:464
-    default_domain = starnix.net
+    default_domain = {{ ipa_domain }}
     pkinit_anchors = FILE:/usr/local/etc/ipa/ca.crt
   }
 
 [domain_realm]
-  .starnix.net = STARNIX.NET
-  starnix.net = STARNIX.NET
-  {{ inventory_hostname }} = STARNIX.NET
+  .{{ ipa_domain }} = {{ ipa_realm }}
+  {{ ipa_domain }} = {{ ipa_realm }}
+  {{ inventory_hostname }} = {{ ipa_realm }}

@@ -1,6 +1,6 @@
 [sssd]
 services = nss, pam, ssh, sudo
-domains = starnix.net
+domains = {{ ipa_domain }}
 
 [nss]
 homedir_substring = /home
@@ -11,7 +11,7 @@ homedir_substring = /home
 
 [ssh]
 
-[domain/starnix.net]
+[domain/{{ ipa_domain }}]
 debug_level = 2
 id_provider = ldap
 auth_provider = krb5
@@ -19,12 +19,12 @@ chpass_provider = krb5
 access_provider = permit
 
 ldap_uri = ldap://{{ ipa_server }}
-ldap_search_base = cn=compat,dc=starnix,dc=net
+ldap_search_base = cn=compat,{{ ipa_basedn }}
 ldap_schema = rfc2307
 ldap_tls_cacert = /usr/local/etc/ipa/ca.crt
 ldap_tls_reqcert = demand
 
-krb5_realm = STARNIX.NET
+krb5_realm = {{ ipa_realm }}
 krb5_server = {{ ipa_server }}
 krb5_kpasswd = {{ ipa_server }}
 krb5_store_password_if_offline = True
