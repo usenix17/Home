@@ -8,6 +8,23 @@
     state: present
   become: true
 
+# log.starnix.net (the old syslog target) is decommissioned -- strip its leftover
+# forwarding config so hosts stop trying to reach a host that no longer exists.
+- name: "Remove retired log.starnix.net forwarding drop-in"
+  ansible.builtin.file:
+    path: /etc/rsyslog.d/50-forwarding.conf
+    state: absent
+  become: true
+  notify: restart rsyslog
+
+- name: "Strip retired log.starnix.net forwarding line from rsyslog.conf"
+  ansible.builtin.lineinfile:
+    path: /etc/rsyslog.conf
+    regexp: '@log\.starnix\.net'
+    state: absent
+  become: true
+  notify: restart rsyslog
+
 # illumos/OmniOS: the native system-log (syslogd) owns /dev/log; it must yield to
 # rsyslog or the two daemons conflict. Stop/disable it where present (no-op else).
 - name: "Disable native system-log on illumos (rsyslog takes over)"
