@@ -1,0 +1,13 @@
+---
+# FreeBSD: the base syslogd forwards via a drop-in; local logging is untouched.
+# syslogd supports @host:port (13.x, verified) and includes /etc/syslog.d/*.conf.
+
+- name: "Forward all logs to Graylog (syslogd drop-in)"
+  ansible.builtin.template:
+    src: freebsd-graylog.conf.j2
+    dest: /etc/syslog.d/graylog.conf
+    mode: "0644"
+    owner: root
+    group: wheel
+  become: true
+  notify: reload syslogd

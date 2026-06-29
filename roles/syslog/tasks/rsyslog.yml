@@ -1,0 +1,37 @@
+---
+# Linux + OmniOS: rsyslog forwards everything to Graylog via a drop-in. The base
+# /etc/rsyslog.conf is left intact (it already includes /etc/rsyslog.d/*.conf).
+
+- name: "Install rsyslog"
+  ansible.builtin.package:
+    name: rsyslog
+    state: present
+  become: true
+
+# illumos/OmniOS: the native system-log (syslogd) owns /dev/log; it must yield to
+# rsyslog or the two daemons conflict. Stop/disable it where present (no-op else).
+- name: "Disable native system-log on illumos (rsyslog takes over)"
+  ansible.builtin.service:
+    name: system/system-log
+    state: stopped
+    enabled: false
+  become: true
+  when: ansible_system == 'SunOS'
+  failed_when: false
+
+- name: "Forward all logs to Graylog (rsyslog drop-in)"
+  ansible.builtin.template:
+    src: rsyslog-graylog.conf.j2
+    dest: /etc/rsyslog.d/50-graylog.conf
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  notify: restart rsyslog
+
+- name: "Enable and start rsyslog"
+  ansible.builtin.service:
+    name: rsyslog
+    state: started
+    enabled: true
+  become: true

@@ -6,3 +6,8 @@
     state: restarted
   become: true
 
+- name: reload syslogd
+  ansible.builtin.service:
+    name: syslogd
+    state: reloaded
+  become: true

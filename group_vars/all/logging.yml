@@ -1,0 +1,4 @@
+---
+# Central syslog target (Graylog UDP input). One knob for every host.
+syslog_target_host: graylog.starnix.net
+syslog_target_port: 1514

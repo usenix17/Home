@@ -1,15 +1,11 @@
 ---
+# Forward all system logs to the central Graylog server (graylog.starnix.net:1514/udp).
+# rsyslog on Linux + OmniOS (illumos); native syslogd on FreeBSD.
 
-- name: Install rsyslog
-  ansible.builtin.package:
-    name: rsyslog
-    state: present
-  become: true
+- name: "Forward syslog via rsyslog (Linux / OmniOS)"
+  ansible.builtin.include_tasks: rsyslog.yml
+  when: ansible_system in ['Linux', 'SunOS']
 
-- name: Configure rsyslog to forward logs to remote server
-  template:
-    src: rsyslog.conf.j2
-    dest: /etc/rsyslog.conf
-  notify: restart rsyslog
-  become: true
-
+- name: "Forward syslog via native syslogd (FreeBSD)"
+  ansible.builtin.include_tasks: freebsd.yml
+  when: ansible_system == 'FreeBSD'
