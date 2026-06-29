@@ -35,3 +35,4 @@
   hosts: "freebsd"
   roles:
     - role: "freebsd"
+    - role: "syslog"
