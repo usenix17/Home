@@ -4,3 +4,6 @@
 #   freebsd -> ipa_keytab_group: wheel
 ipa_keytab_dest: /etc/krb5.keytab
 ipa_keytab_group: root
+# host-add --force allows enrolling a host that lacks a DNS forward record.
+# omnios originally used it; default off (freebsd/ipa-client did not).
+ipa_host_add_force: false

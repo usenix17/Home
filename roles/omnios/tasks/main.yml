@@ -15,6 +15,7 @@
   vars:
     ipa_keytab_dest: /etc/krb5/krb5.keytab
     ipa_keytab_group: sys
+    ipa_host_add_force: true
 
 # === Kerberos ===
 

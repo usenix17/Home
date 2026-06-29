@@ -11,7 +11,7 @@
   delegate_to: localhost
 
 - name: "Ensure host is present in IPA"
-  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}"
+  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}{{ ' --force' if ipa_host_add_force | default(false) else '' }}"
   register: ipa_result
   failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
   changed_when: ipa_result.rc == 0
