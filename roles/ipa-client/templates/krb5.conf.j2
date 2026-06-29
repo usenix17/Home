@@ -2,7 +2,7 @@ includedir /var/lib/sss/pubconf/krb5.include.d/
 
 includedir /etc/krb5.conf.d/
 [libdefaults]
-  default_realm = STARNIX.NET
+  default_realm = {{ ipa_realm }}
   dns_lookup_realm = false
   rdns = false
   dns_canonicalize_hostname = false
@@ -14,12 +14,12 @@ includedir /etc/krb5.conf.d/
 
 
 [realms]
-  STARNIX.NET = {
+  {{ ipa_realm }} = {
     kdc = {{ ipa_server }}:88
     master_kdc = {{ ipa_server }}:88
     admin_server = {{ ipa_server }}:749
     kpasswd_server = {{ ipa_server }}:464
-    default_domain = starnix.net
+    default_domain = {{ ipa_domain }}
     pkinit_anchors = FILE:/var/lib/ipa-client/pki/kdc-ca-bundle.pem
     pkinit_pool = FILE:/var/lib/ipa-client/pki/ca-bundle.pem
 
@@ -27,7 +27,7 @@ includedir /etc/krb5.conf.d/
 
 
 [domain_realm]
-  .starnix.net = STARNIX.NET
-  starnix.net = STARNIX.NET
-  {{ ansible_host }} = STARNIX.NET
+  .{{ ipa_domain }} = {{ ipa_realm }}
+  {{ ipa_domain }} = {{ ipa_realm }}
+  {{ ansible_host }} = {{ ipa_realm }}
 

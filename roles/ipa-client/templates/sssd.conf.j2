@@ -1,8 +1,8 @@
-[domain/starnix.net]
+[domain/{{ ipa_domain }}]
 
 id_provider = ipa
 ipa_server = _srv_, {{ ipa_server }}
-ipa_domain = starnix.net
+ipa_domain = {{ ipa_domain }}
 ipa_hostname = {{ inventory_hostname }}
 auth_provider = ipa
 chpass_provider = ipa
@@ -15,7 +15,7 @@ krb5_store_password_if_offline = True
 [sssd]
 services = nss, pam, ssh, sudo
 
-domains = starnix.net
+domains = {{ ipa_domain }}
 [nss]
 homedir_substring = /home
 
