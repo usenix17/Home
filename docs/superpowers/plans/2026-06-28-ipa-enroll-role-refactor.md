@@ -4,7 +4,7 @@
 
 **Goal:** Make an IPA server/realm/domain change a single edit, and put the host-enrollment dance in one reusable role, without merging the genuinely OS-specific roles.
 
-**Architecture:** Identity values move to `inventory/inventory/group_vars/all/ipa.yml`; templates reference `{{ ipa_realm }}`/`{{ ipa_domain }}`/`{{ ipa_basedn }}`. The kinit/host-add/getkeytab/copy-keytab dance becomes `roles/ipa-enroll`, imported by the OS roles, which pass per-OS keytab dest/group as import vars. Pure refactor: rendered output must be unchanged.
+**Architecture:** Identity values move to `inventory/group_vars/all/ipa.yml`; templates reference `{{ ipa_realm }}`/`{{ ipa_domain }}`/`{{ ipa_basedn }}`. The kinit/host-add/getkeytab/copy-keytab dance becomes `roles/ipa-enroll`, imported by the OS roles, which pass per-OS keytab dest/group as import vars. Pure refactor: rendered output must be unchanged.
 
 **Tech Stack:** Ansible (roles, `group_vars`, `import_role`, Jinja2 templates). Repo: `/kronos/IaC`.
 
@@ -43,7 +43,7 @@ All commands run from `/kronos/IaC` unless noted.
 ### Task 1: Create the shared values file
 
 **Files:**
-- Create: `inventory/inventory/group_vars/all/ipa.yml`
+- Create: `inventory/group_vars/all/ipa.yml`
 
 - [ ] **Step 1: Write the file**
 
@@ -65,8 +65,8 @@ Expected: prints the dict with all four keys.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add inventory/inventory/group_vars/all/ipa.yml
-git commit -m "feat(ipa): add inventory/inventory/group_vars/all/ipa.yml as single source of IPA identity"
+git add inventory/group_vars/all/ipa.yml
+git commit -m "feat(ipa): add inventory/group_vars/all/ipa.yml as single source of IPA identity"
 ```
 
 ---
@@ -246,7 +246,7 @@ git commit -m "refactor(ipa-client): template IPA realm/domain/basedn from group
 
 ### Task 6: Remove the four per-role `ipa_server` defaults
 
-`inventory/inventory/group_vars/all/ipa.yml` now provides `ipa_server` (higher precedence than role defaults), so the per-role copies are dead duplication.
+`inventory/group_vars/all/ipa.yml` now provides `ipa_server` (higher precedence than role defaults), so the per-role copies are dead duplication.
 
 **Files:**
 - Modify: `roles/freebsd/defaults/main.yml`, `roles/arch/defaults/main.yml`, `roles/omnios/defaults/main.yml`, `roles/ipa-client/defaults/main.yml`
@@ -269,7 +269,7 @@ Expected: no output.
 
 - [ ] **Step 3: Confirm group_vars still resolves it (lookup test)**
 
-Run: `grep -n "ipa_server" inventory/inventory/group_vars/all/ipa.yml`
+Run: `grep -n "ipa_server" inventory/group_vars/all/ipa.yml`
 Expected: `ipa_server: ipa9.starnix.net` (the single remaining definition).
 
 - [ ] **Step 4: Commit**
@@ -330,7 +330,7 @@ ipa_keytab_group: root
 ---
 # Shared FreeIPA host enrollment dance. Runs the kinit/host-add/getkeytab on the
 # control node, then installs the keytab on the target. OS-agnostic: identity
-# comes from inventory/inventory/group_vars/all/ipa.yml; keytab dest/group are caller-overridable.
+# comes from inventory/group_vars/all/ipa.yml; keytab dest/group are caller-overridable.
 
 - name: "Get kerberos ticket"
   ansible.builtin.expect:
@@ -525,7 +525,7 @@ git push
 
 ## Done -- acceptance
 
-- [ ] `inventory/inventory/group_vars/all/ipa.yml` is the only place `ipa_server`/realm/domain/basedn are defined (`grep -rn "ipa_server:\|STARNIX.NET\|dc=starnix" roles/` shows only `{{ ipa_* }}` references, no literals).
+- [ ] `inventory/group_vars/all/ipa.yml` is the only place `ipa_server`/realm/domain/basedn are defined (`grep -rn "ipa_server:\|STARNIX.NET\|dc=starnix" roles/` shows only `{{ ipa_* }}` references, no literals).
 - [ ] The enrollment dance exists only in `roles/ipa-enroll/` (`grep -rn "getkeytab" roles/` -> only `roles/ipa-enroll`).
 - [ ] freebsd / omnios / ipa-client each enrolled a canary and login still works.
-- [ ] A future migration is one edit to `inventory/inventory/group_vars/all/ipa.yml`.
+- [ ] A future migration is one edit to `inventory/group_vars/all/ipa.yml`.
