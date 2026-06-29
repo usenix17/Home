@@ -1,2 +1,6 @@
 # Managed by Ansible (roles/syslog). Forward all logs to Graylog.
+# Pin the source hostname: some hosts (e.g. cloud-init images) list the hostname
+# on the 127.0.0.1 line in /etc/hosts, so it canonicalizes to "localhost" and
+# rsyslog would tag every forwarded message as "localhost". Force it explicitly.
+$LocalHostName {{ inventory_hostname_short }}
 *.* @{{ syslog_target_host }}:{{ syslog_target_port }};RSYSLOG_SyslogProtocol23Format
