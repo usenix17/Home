@@ -1,5 +1,1 @@
 ---
-# FreeIPA master this host enrolls against and resolves identity from.
-# Single knob for IPA server migrations (ipa1 -> ipa2 -> ipa9 -> ...).
-# Override per host/group in inventory if you ever run multiple replicas.
-ipa_server: ipa9.starnix.net
