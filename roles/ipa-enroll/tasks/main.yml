@@ -1,0 +1,44 @@
+---
+# Shared FreeIPA host enrollment dance. Runs kinit/host-add/getkeytab on the
+# control node, then installs the keytab on the target. OS-agnostic: identity
+# comes from inventory/group_vars/all/ipa.yml; keytab dest/group are overridable.
+
+- name: "Get kerberos ticket"
+  ansible.builtin.expect:
+    command: kinit admin
+    responses:
+      'Password for admin@{{ ipa_realm }}:': "{{ become_pass }}\n"
+  delegate_to: localhost
+
+- name: "Ensure host is present in IPA"
+  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}"
+  register: ipa_result
+  failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
+  changed_when: ipa_result.rc == 0
+  delegate_to: localhost
+
+- name: "Get kerberos keytab"
+  ansible.builtin.shell: "ipa-getkeytab -s {{ ipa_server }} -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
+  delegate_to: localhost
+
+- name: "Set keytab permissions on localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    mode: "0600"
+    owner: root
+    group: root
+  delegate_to: localhost
+
+- name: "Copy keytab to host"
+  ansible.builtin.copy:
+    src: "/dev/shm/{{ inventory_hostname }}.keytab"
+    dest: "{{ ipa_keytab_dest }}"
+    mode: "0600"
+    owner: root
+    group: "{{ ipa_keytab_group }}"
+
+- name: "Clean up keytab from localhost"
+  ansible.builtin.file:
+    path: "/dev/shm/{{ inventory_hostname }}.keytab"
+    state: absent
+  delegate_to: localhost

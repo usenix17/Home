@@ -1,0 +1,6 @@
+---
+# Keytab placement on the target host. Override per caller:
+#   omnios  -> ipa_keytab_dest: /etc/krb5/krb5.keytab, ipa_keytab_group: sys
+#   freebsd -> ipa_keytab_group: wheel
+ipa_keytab_dest: /etc/krb5.keytab
+ipa_keytab_group: root
