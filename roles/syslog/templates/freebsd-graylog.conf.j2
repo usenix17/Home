@@ -1,2 +1,3 @@
-# Managed by Ansible (roles/syslog). Forward all logs to Graylog.
-*.*	@{{ syslog_target_host }}:{{ syslog_target_port }}
+# Managed by Ansible (roles/syslog). Forward all logs to the local rsyslog relay
+# (loopback), which re-emits them to Graylog in RFC5424. See freebsd.yml.
+*.*	@127.0.0.1:10514

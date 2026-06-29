@@ -1,8 +1,45 @@
 ---
-# FreeBSD: the base syslogd forwards via a drop-in; local logging is untouched.
-# syslogd supports @host:port (13.x, verified) and includes /etc/syslog.d/*.conf.
+# FreeBSD: native syslogd keeps doing local logging, but it can't deliver to
+# Graylog reliably -- Graylog does not ingest its RFC3164 output, and its fixed
+# source port 514 is dropped by some host firewalls (pf). So native syslogd
+# forwards locally to rsyslog, which relays to Graylog in RFC5424 from an
+# ephemeral source port -- exactly like the Linux/OmniOS hosts.
+#
+# NOTE: requires a healthy pkg database (some hosts may need `pkg upgrade` first
+# to clear repo/installed version conflicts before rsyslog can install).
 
-- name: "Forward all logs to Graylog (syslogd drop-in)"
+- name: "Install rsyslog (Graylog relay)"
+  community.general.pkgng:
+    name: rsyslog
+    state: present
+  become: true
+
+- name: "Configure rsyslog relay (localhost RFC3164 in -> Graylog RFC5424 out)"
+  ansible.builtin.template:
+    src: freebsd-rsyslog-relay.conf.j2
+    dest: /usr/local/etc/rsyslog.conf
+    mode: "0644"
+    owner: root
+    group: wheel
+  become: true
+  notify: restart rsyslogd
+
+- name: "Enable rsyslog in rc.conf"
+  community.general.sysrc:
+    name: rsyslogd_enable
+    value: "YES"
+  become: true
+
+- name: "Start rsyslog"
+  ansible.builtin.service:
+    name: rsyslogd
+    state: started
+    enabled: true
+  become: true
+
+# Native syslogd forwards everything to the local rsyslog relay (loopback, so it
+# is not subject to LAN-facing pf rules). rsyslog re-emits it to Graylog.
+- name: "Point native syslogd at the local rsyslog relay (drop-in)"
   ansible.builtin.template:
     src: freebsd-graylog.conf.j2
     dest: /etc/syslog.d/graylog.conf

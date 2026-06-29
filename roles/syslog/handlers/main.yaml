@@ -11,3 +11,9 @@
     name: syslogd
     state: reloaded
   become: true
+
+- name: restart rsyslogd
+  ansible.builtin.service:
+    name: rsyslogd
+    state: restarted
+  become: true

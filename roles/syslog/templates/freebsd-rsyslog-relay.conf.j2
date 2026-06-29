@@ -1,0 +1,14 @@
+# Managed by Ansible (roles/syslog).
+# rsyslog runs ONLY as a Graylog relay on FreeBSD: native syslogd still owns
+# /dev/log and writes the local /var/log files. This config does NOT load
+# imuxsock (so it won't fight syslogd) and writes no local files -- it just
+# receives syslogd's loopback forward and re-emits it to Graylog in RFC5424
+# from an ephemeral source port.
+module(load="imudp")
+input(type="imudp" address="127.0.0.1" port="10514")
+
+*.* action(type="omfwd"
+    target="{{ syslog_target_host }}"
+    port="{{ syslog_target_port }}"
+    protocol="udp"
+    template="RSYSLOG_SyslogProtocol23Format")
