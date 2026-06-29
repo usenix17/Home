@@ -1,46 +1,10 @@
 ---
 
-# --- IPA enrollment (runs on the control node) ---
-
-- name: "Get kerberos ticket"
-  ansible.builtin.expect:
-    command: kinit admin
-    responses:
-      'Password for admin@STARNIX.NET:': "{{ become_pass }}\n"
-  delegate_to: localhost
-
-- name: "Ensure host is present in IPA"
-  ansible.builtin.shell: "ipa host-add {{ inventory_hostname }}"
-  register: ipa_result
-  failed_when: ipa_result.rc != 0 and "already exists" not in ipa_result.stderr
-  changed_when: ipa_result.rc == 0
-  delegate_to: localhost
-
-- name: "Get kerberos keytab"
-  ansible.builtin.shell: "ipa-getkeytab -s {{ ipa_server }} -p host/{{ inventory_hostname }} -k /dev/shm/{{ inventory_hostname }}.keytab"
-  delegate_to: localhost
-
-- name: "Set keytab permissions on localhost"
-  ansible.builtin.file:
-    path: "/dev/shm/{{ inventory_hostname }}.keytab"
-    mode: "0600"
-    owner: root
-    group: root
-  delegate_to: localhost
-
-- name: "Copy keytab to host"
-  ansible.builtin.copy:
-    src: "/dev/shm/{{ inventory_hostname }}.keytab"
-    dest: "/etc/krb5.keytab"
-    mode: "0600"
-    owner: root
-    group: wheel
-
-- name: "Clean up keytab from localhost"
-  ansible.builtin.file:
-    path: "/dev/shm/{{ inventory_hostname }}.keytab"
-    state: absent
-  delegate_to: localhost
+- name: "Enroll host in FreeIPA"
+  ansible.builtin.import_role:
+    name: ipa-enroll
+  vars:
+    ipa_keytab_group: wheel
 
 # --- Package installation ---
 
