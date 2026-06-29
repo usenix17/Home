@@ -35,7 +35,7 @@ Remove the two real sources of duplication so that:
 
 ## Design
 
-### 1. Single source of IPA truth -- `group_vars/all/ipa.yml` (new)
+### 1. Single source of IPA truth -- `inventory/inventory/group_vars/all/ipa.yml` (new)
 
 ```yaml
 ipa_server:      ipa9.starnix.net
@@ -82,7 +82,7 @@ Optionally adopt `ipa-enroll` for its keytab dance in a later pass -- not requir
 
 ## Rollout (incremental, low-risk)
 
-- **Phase 1 -- shared vars (no behavior change):** add `group_vars/all/ipa.yml`; parameterize
+- **Phase 1 -- shared vars (no behavior change):** add `inventory/inventory/group_vars/all/ipa.yml`; parameterize
   templates and remove per-role `ipa_server` defaults. Verify each role with
   `ansible-playbook <playbook> --check --diff` against a canary host -- rendered configs must be
   byte-identical to the pre-change output. Commit.
@@ -94,7 +94,7 @@ Optionally adopt `ipa-enroll` for its keytab dance in a later pass -- not requir
 
 ## Scope
 
-**In:** `group_vars/all/ipa.yml`; the `ipa-enroll` role; parameterizing freebsd / omnios /
+**In:** `inventory/inventory/group_vars/all/ipa.yml`; the `ipa-enroll` role; parameterizing freebsd / omnios /
 ipa-client (and arch's vars) to the shared values; removing the duplicated defaults and
 enrollment tasks.
 
@@ -103,7 +103,7 @@ refactoring arch's non-IPA logic; any runtime behavior change (this is a pure re
 
 ## Success criteria
 
-- An IPA server / realm / domain change is a single edit in `group_vars/all/ipa.yml`.
+- An IPA server / realm / domain change is a single edit in `inventory/inventory/group_vars/all/ipa.yml`.
 - The enrollment dance exists in exactly one place (`roles/ipa-enroll`).
 - `--check --diff` shows byte-identical rendered output before/after Phase 1 on every role.
 - freebsd / omnios / ipa-client still enroll and authenticate after their respective phase.
