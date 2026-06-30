@@ -16,17 +16,30 @@
     owner: root
     group: wheel
 
-- name: "Switch pkg repository to latest"
+- name: "Standardize pkg repos on the 'latest' branch (single ports repo)"
   ansible.builtin.copy:
     dest: /usr/local/etc/pkg/repos/FreeBSD.conf
+    # Overrides the base /etc/pkg/FreeBSD.conf, which on FreeBSD 15 ships the
+    # ports tree as FreeBSD-ports=quarterly. We point that (and kmods) at
+    # 'latest' and retire the pre-FreeBSD-15 'FreeBSD' repo name -- otherwise
+    # both quarterly and latest copies of the ports tree are enabled at once
+    # and their package versions conflict.
     content: |
-      FreeBSD: {
-        url: "pkg+http://pkg.FreeBSD.org/${ABI}/latest",
+      FreeBSD-ports: {
+        url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest",
         mirror_type: "srv",
         signature_type: "fingerprints",
         fingerprints: "/usr/share/keys/pkg",
         enabled: yes
       }
+      FreeBSD-ports-kmods: {
+        url: "pkg+https://pkg.FreeBSD.org/${ABI}/kmods_latest_${VERSION_MINOR}",
+        mirror_type: "srv",
+        signature_type: "fingerprints",
+        fingerprints: "/usr/share/keys/pkg",
+        enabled: yes
+      }
+      FreeBSD: { enabled: no }
     mode: "0644"
     owner: root
     group: wheel
@@ -34,6 +47,13 @@
 - name: "Update pkg cache"
   ansible.builtin.command: pkg update -f
   changed_when: false
+
+# Reconcile any packages still on the old branch onto 'latest' (a host that ran
+# the previous dual-repo config has a quarterly/latest mix that conflicts).
+- name: "Reconcile installed packages onto the latest branch"
+  ansible.builtin.command: pkg upgrade -y
+  register: pkg_reconcile
+  changed_when: "'Your packages are up to date' not in pkg_reconcile.stdout"
 
 - name: "Install FreeIPA client packages"
   community.general.pkgng:
