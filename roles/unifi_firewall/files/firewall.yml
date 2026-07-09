@@ -1,0 +1,41 @@
+# UniFi zone-firewall desired state (reconciled by files/reconcile.py).
+#
+# Rules are keyed by `key` -> stored on the controller as description "iac:<key>"
+# so reconciliation is stateless. Ordering/index is NOT declared here -- the UDM
+# owns rule order. Zones and groups are referenced by friendly name.
+#
+# This starter file manages the internal-DNS consolidation. Codify additional
+# rules incrementally (or bootstrap the full set with the exporter); pruning
+# only ever affects rules tagged iac:, never manual or predefined ones.
+
+groups:
+  - name: internal-dns
+    type: address-group
+    members:
+      - 192.168.1.53
+      - 10.17.89.53
+
+policies:
+  - key: restricted-internal-dns
+    name: Allow Restricted to internal DNS
+    action: ALLOW
+    protocol: all
+    ip_version: BOTH
+    source: {zone: Restricted}
+    destination: {zone: Internal, group: internal-dns, port: 53}
+
+  - key: vpn-internal-dns
+    name: Allow Vpn to internal DNS
+    action: ALLOW
+    protocol: all
+    ip_version: BOTH
+    source: {zone: Vpn}
+    destination: {zone: Internal, group: internal-dns, port: 53}
+
+  - key: hotspot-internal-dns
+    name: Allow Hotspot to internal DNS
+    action: ALLOW
+    protocol: all
+    ip_version: BOTH
+    source: {zone: Hotspot}
+    destination: {zone: Internal, group: internal-dns, port: 53}
