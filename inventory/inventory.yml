@@ -3,6 +3,8 @@ all:
     routers:
       hosts:
         odin.starnix.net:
+      vars:
+        ansible_user: "root"
 
     desktops:
       hosts:
