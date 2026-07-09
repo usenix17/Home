@@ -12,5 +12,6 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  become: false          # reconciler hits an API; no root (Semaphore has no sudo)
   roles:
     - unifi_firewall

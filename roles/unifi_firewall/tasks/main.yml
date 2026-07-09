@@ -22,6 +22,7 @@
 - name: Reconcile UniFi firewall ({{ 'APPLY' if unifi_fw_apply | bool else 'dry-run' }})
   ansible.builtin.command:
     argv: "{{ unifi_fw_argv }}"
+  become: false          # API call, not a privileged op; Semaphore runner lacks sudo
   environment:
     UNIFI_API_KEY: "{{ lookup('env', 'UNIFI_API_KEY') }}"
   register: unifi_fw_result
