@@ -132,22 +132,58 @@ def normalize(policy: dict) -> dict:
     return result
 
 
-def build_endpoint(base: dict, spec_side: dict, ctx: dict) -> dict:
+def set_matching_target(out: dict, fresh: bool) -> None:
+    """Keeps ``matching_target`` consistent with the endpoint content.
+
+    Args:
+        out: The endpoint being built (modified in place).
+        fresh: True when building a brand-new rule -- derive the target from
+            scratch. False when updating -- only repair a stale target that
+            has lost its members (the controller rejects those).
+    """
+    if fresh:
+        if out.get("web_domains"):
+            out["matching_target"] = "WEB"
+        elif out.get("network_ids"):
+            out["matching_target"] = "NETWORK"
+        elif out.get("ip_group_id") or out.get("ips"):
+            out["matching_target"] = "IP"
+            out["matching_target_type"] = "OBJECT"
+        else:
+            out["matching_target"] = "ANY"
+        return
+    target = out.get("matching_target")
+    if target == "NETWORK" and not out.get("network_ids"):
+        out["matching_target"] = "ANY"
+    elif target == "IP" and not (out.get("ips") or out.get("ip_group_id")):
+        out["matching_target"] = "ANY"
+
+
+def build_endpoint(base: dict, spec_side: dict, ctx: dict,
+                   fresh: bool) -> dict:
     """Overlays spec-declared fields onto a base endpoint.
 
-    Only declared fields are changed, so the live rule's other (server
-    managed) fields and their exact types are preserved -- the controller
-    rejects type drift such as an integer ``port``.
+    For updates (``fresh`` False) only declared fields change, so the live
+    rule's other server-managed fields and exact types are preserved. For a
+    fresh rule (``fresh`` True) the managed content fields are cleared first
+    so nothing leaks from the clone template.
 
     Args:
         base: The template or current endpoint to build upon.
         spec_side: The friendly source/destination mapping from a spec.
         ctx: Context with ``zones``, ``nets``, ``groups`` and ``ports`` maps.
+        fresh: Whether this endpoint belongs to a rule being created.
 
     Returns:
         A resolved endpoint block.
     """
     out = dict(base or {})
+    if fresh:
+        for empty in ("network_ids", "ips", "web_domains", "regions",
+                      "app_ids"):
+            out[empty] = []
+        for null in ("ip_group_id", "port", "port_group_id"):
+            out[null] = None
     want = spec_side or {}
     if want.get("zone"):
         out["zone_id"] = ctx["zones"].get(want["zone"])
@@ -164,10 +200,11 @@ def build_endpoint(base: dict, spec_side: dict, ctx: dict) -> dict:
     for passthrough in ("web_domains", "regions", "app_ids"):
         if want.get(passthrough):
             out[passthrough] = want[passthrough]
+    set_matching_target(out, fresh)
     return out
 
 
-def build_body(spec: dict, ctx: dict, base: dict) -> dict:
+def build_body(spec: dict, ctx: dict, base: dict, fresh: bool) -> dict:
     """Builds an API policy body by overlaying a spec onto a base policy.
 
     Args:
@@ -175,6 +212,7 @@ def build_body(spec: dict, ctx: dict, base: dict) -> dict:
         ctx: Resolution context.
         base: Policy to build on -- the clone template (create) or the current
             live policy (update), so unmanaged fields are preserved.
+        fresh: True when creating (clear the template's content fields).
 
     Returns:
         A policy body ready to POST or PUT.
@@ -191,9 +229,9 @@ def build_body(spec: dict, ctx: dict, base: dict) -> dict:
     if "logging" in spec:
         body["logging"] = spec["logging"]
     body["source"] = build_endpoint(
-        body.get("source", {}), spec.get("source"), ctx)
+        body.get("source", {}), spec.get("source"), ctx, fresh)
     body["destination"] = build_endpoint(
-        body.get("destination", {}), spec.get("destination"), ctx)
+        body.get("destination", {}), spec.get("destination"), ctx, fresh)
     return body
 
 
@@ -325,7 +363,7 @@ def find_current(spec: dict, body: dict, ctx: dict) -> tuple[Any, str]:
 
 
 def upsert_policy(ctrl: Controller, spec: dict, ctx: dict,
-                  apply: bool) -> int:
+                  apply: bool) -> tuple[int, bool]:
     """Creates, adopts or updates a single policy.
 
     Args:
@@ -335,37 +373,36 @@ def upsert_policy(ctrl: Controller, spec: dict, ctx: dict,
         apply: If true, execute; otherwise report only.
 
     Returns:
-        1 if the policy changed, else 0.
-
-    Raises:
-        SystemExit: If a create or update request fails.
+        A ``(changed, ok)`` tuple. ``changed`` is 1 if the policy needed a
+        change; ``ok`` is False if an apply request failed -- the error is
+        logged rather than raised so one bad rule does not abort the run.
     """
-    probe = build_body(spec, ctx, ctx["template"])
+    probe = build_body(spec, ctx, ctx["template"], True)
     current, status = find_current(spec, probe, ctx)
     if status == "ambiguous":
         print(f"  ! skip   {spec['key']}: multiple untagged matches")
-        return 0
+        return 0, True
     if status == "create":
         print(f"  + policy {spec['key']}  ({spec['name']})")
         if apply:
             code, resp = ctrl.call(
                 "POST", V2_API + "/firewall-policies", probe)
             if code not in (200, 201):
-                sys.exit(f"[4] create {spec['key']} failed: {code} "
-                         f"{str(resp)[:160]}")
-        return 1
-    desired = build_body(spec, ctx, current)
+                print(f"  ! ERROR  {spec['key']}: {code} {str(resp)[:130]}")
+                return 1, False
+        return 1, True
+    desired = build_body(spec, ctx, current, False)
     if normalize(desired) == normalize(current):
-        return 0
+        return 0, True
     label = "adopt" if status == "adopt" else "update"
     print(f"  ~ {label:6} {spec['key']}  ({spec['name']})")
     if apply:
         code, resp = ctrl.call(
             "PUT", V2_API + "/firewall-policies/" + current["_id"], desired)
         if code != 200:
-            sys.exit(f"[4] update {spec['key']} failed: {code} "
-                     f"{str(resp)[:160]}")
-    return 1
+            print(f"  ! ERROR  {spec['key']}: {code} {str(resp)[:130]}")
+            return 1, False
+    return 1, True
 
 
 def prune_policies(ctrl: Controller, ctx: dict, keep: set, apply: bool,
@@ -453,12 +490,18 @@ def main() -> int:
     changes = reconcile_groups(ctrl, desired.get("groups", []), args.apply)
     ctx = resolve_context(ctrl)
     keep = {spec["key"] for spec in desired.get("policies", [])}
+    failures = 0
     for spec in desired.get("policies", []):
-        changes += upsert_policy(ctrl, spec, ctx, args.apply)
+        delta, ok = upsert_policy(ctrl, spec, ctx, args.apply)
+        changes += delta
+        failures += 0 if ok else 1
     changes += prune_policies(ctrl, ctx, keep, args.apply, args.max_prune)
 
     verb = "applied" if args.apply else "pending"
-    print(f"== {changes} change(s) {verb}; {len(keep)} managed ==")
+    note = f", {failures} FAILED" if failures else ""
+    print(f"== {changes} change(s) {verb}; {len(keep)} managed{note} ==")
+    if failures:
+        return 4
     return 2 if changes and not args.apply else 0
 
 
