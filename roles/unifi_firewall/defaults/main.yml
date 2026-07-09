@@ -2,9 +2,6 @@
 # UniFi controller base URL (no trailing /api).
 unifi_api_url: "https://192.168.1.1"
 
-# Desired-state file reconciled onto the controller.
-unifi_fw_data: "{{ role_path }}/files/firewall.yml"
-
 # Dry-run by default; the Semaphore template overrides this to true to enforce.
 unifi_fw_apply: false
 

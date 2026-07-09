@@ -9,9 +9,8 @@
 #
 # SemaphoreUI template 3 runs this with unifi_fw_apply=true to enforce.
 - name: UniFi firewall as code
-  hosts: localhost
-  connection: local
+  hosts: odin.starnix.net
   gather_facts: false
-  become: false          # reconciler hits an API; no root (Semaphore has no sudo)
+  become: false          # reconciler only makes API calls; no root needed
   roles:
     - unifi_firewall

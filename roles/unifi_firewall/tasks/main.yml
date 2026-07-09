@@ -1,8 +1,9 @@
 ---
-# Reconcile the UniFi zone firewall via files/reconcile.py. The reconciler is
-# stateless (managed rules are tagged iac:<key> on the controller) and leaves
-# rule ordering to the UDM. Dry-run by default; set unifi_fw_apply=true to
-# enforce. UNIFI_API_KEY must be present in the environment (a Semaphore secret).
+# Reconcile the UniFi zone firewall via files/reconcile.py, staged onto the
+# target host (it only makes API calls -- no root). Managed rules are tagged
+# iac:<key> on the controller (stateless); ordering is left to the UDM. Dry-run
+# by default; set unifi_fw_apply=true to enforce. UNIFI_API_KEY must be present
+# in the environment (a Semaphore secret).
 
 - name: Assert UNIFI_API_KEY is present
   ansible.builtin.assert:
@@ -10,11 +11,23 @@
     fail_msg: UNIFI_API_KEY must be set in the environment.
     quiet: true
 
+- name: Stage reconciler on {{ inventory_hostname }}
+  ansible.builtin.copy:
+    src: reconcile.py
+    dest: /tmp/unifi_fw_reconcile.py
+    mode: "0755"
+
+- name: Stage desired state (rendered as JSON) on {{ inventory_hostname }}
+  ansible.builtin.copy:
+    content: "{{ lookup('file', role_path ~ '/files/firewall.yml') | from_yaml | to_nice_json }}"
+    dest: /tmp/unifi_fw_firewall.json
+    mode: "0644"
+
 - name: Build reconciler argument vector
   ansible.builtin.set_fact:
     unifi_fw_argv: >-
-      {{ ['python3', role_path ~ '/files/reconcile.py',
-          '--data', unifi_fw_data,
+      {{ ['python3', '/tmp/unifi_fw_reconcile.py',
+          '--data', '/tmp/unifi_fw_firewall.json',
           '--url', unifi_api_url,
           '--max-prune', unifi_fw_max_prune | string]
          + (['--apply'] if unifi_fw_apply | bool else []) }}
@@ -22,14 +35,22 @@
 - name: Reconcile UniFi firewall ({{ 'APPLY' if unifi_fw_apply | bool else 'dry-run' }})
   ansible.builtin.command:
     argv: "{{ unifi_fw_argv }}"
-  become: false          # API call, not a privileged op; Semaphore runner lacks sudo
+  become: false                         # API call, not a privileged op
   environment:
     UNIFI_API_KEY: "{{ lookup('env', 'UNIFI_API_KEY') }}"
   register: unifi_fw_result
   changed_when: "'0 change(s)' not in unifi_fw_result.stdout"
-  # rc 0 = converged, 2 = drift found in dry-run; 3 (prune guard) / 4 (error) fail.
+  # rc 0 = converged, 2 = drift in dry-run; 3 (prune guard) / 4 (error) fail.
   failed_when: unifi_fw_result.rc not in [0, 2]
 
 - name: Reconcile output
   ansible.builtin.debug:
     var: unifi_fw_result.stdout_lines
+
+- name: Remove staged files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/unifi_fw_reconcile.py
+    - /tmp/unifi_fw_firewall.json
