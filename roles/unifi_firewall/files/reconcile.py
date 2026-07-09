@@ -40,7 +40,7 @@ from typing import Any
 try:
     import yaml
 except ImportError:
-    sys.exit("PyYAML is required (pip install pyyaml)")
+    yaml = None
 
 TAG = "iac:"
 CLASSIC_API = "/proxy/network/api/s/default"
@@ -382,6 +382,32 @@ def prune_policies(ctrl: Controller, ctx: dict, keep: set, apply: bool,
     return len(stale)
 
 
+def load_desired(path: str) -> dict:
+    """Loads the desired state from a JSON or YAML file.
+
+    JSON is parsed with the standard library so the reconciler can run on a
+    host without PyYAML (the playbook renders the data as JSON); YAML is a
+    fallback for local editing.
+
+    Args:
+        path: Path to the desired-state file.
+
+    Returns:
+        The parsed desired state.
+
+    Raises:
+        SystemExit: If the file is not JSON and PyYAML is unavailable.
+    """
+    with open(path, encoding="utf-8") as handle:
+        text = handle.read()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        if yaml is None:
+            sys.exit("[4] data is not JSON and PyYAML is unavailable")
+        return yaml.safe_load(text) or {}
+
+
 def parse_args() -> argparse.Namespace:
     """Parses command-line arguments."""
     parser = argparse.ArgumentParser(description="UniFi firewall reconciler")
@@ -403,8 +429,7 @@ def main() -> int:
     if not key:
         print("UNIFI_API_KEY is not set", file=sys.stderr)
         return 4
-    with open(args.data, encoding="utf-8") as handle:
-        desired = yaml.safe_load(handle) or {}
+    desired = load_desired(args.data)
 
     ctrl = Controller(args.url, key, args.insecure)
     print(f"== UniFi firewall reconcile "
