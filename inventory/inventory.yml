@@ -5,6 +5,7 @@ all:
         odin.starnix.net:
       vars:
         ansible_user: "root"
+        ansible_ssh_pass: "{{ become_pass }}"
 
     desktops:
       hosts:
