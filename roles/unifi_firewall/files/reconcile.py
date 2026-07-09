@@ -161,6 +161,9 @@ def build_endpoint(base: dict, spec_side: dict, ctx: dict) -> dict:
         out["port"] = str(want["port"])
     if want.get("port_group"):
         out["port_group_id"] = ctx["ports"].get(want["port_group"])
+    for passthrough in ("web_domains", "regions", "app_ids"):
+        if want.get(passthrough):
+            out[passthrough] = want[passthrough]
     return out
 
 
@@ -278,6 +281,13 @@ def is_untagged(policy: dict) -> bool:
     return not description.startswith(TAG) and not policy.get("predefined")
 
 
+def dst_selector(policy: dict) -> tuple:
+    """Returns a tuple distinguishing rules that share a name and zone pair."""
+    dst = policy.get("destination") or {}
+    return (policy.get("action"), dst.get("ip_group_id"), dst.get("port"),
+            tuple(dst.get("ips") or []), dst.get("port_group_id"))
+
+
 def find_current(spec: dict, body: dict, ctx: dict) -> tuple[Any, str]:
     """Finds the live policy a spec maps to.
 
@@ -302,6 +312,11 @@ def find_current(spec: dict, body: dict, ctx: dict) -> tuple[Any, str]:
         and (p.get("source") or {}).get("zone_id") == src
         and (p.get("destination") or {}).get("zone_id") == dst
     ]
+    if len(matches) > 1:
+        # Several live rules share name + zone pair; narrow by the destination
+        # selector (action, group, port, ips).
+        want = dst_selector(body)
+        matches = [p for p in matches if dst_selector(p) == want]
     if len(matches) == 1:
         return matches[0], "adopt"
     if len(matches) > 1:
