@@ -1,15 +1,16 @@
 ---
 # Reconcile the UniFi zone-based firewall from
-# roles/unifi_firewall/files/firewall.yml. The reconciler talks to the
-# controller API from the Ansible host, so this runs on localhost.
-# UNIFI_API_KEY must be in the environment.
+# roles/unifi_firewall/files/firewall.yml. The reconciler only makes API calls
+# to the controller, so it runs locally on the Semaphore runner (which can
+# reach the UDM). UNIFI_API_KEY must be in the environment.
 #
 #   ansible-playbook playbooks/unifi_firewall.yml                     # dry-run
 #   ansible-playbook playbooks/unifi_firewall.yml -e unifi_fw_apply=true
 #
 # SemaphoreUI template 3 runs this with unifi_fw_apply=true to enforce.
 - name: UniFi firewall as code
-  hosts: odin.starnix.net
+  hosts: localhost
+  connection: local
   gather_facts: false
   become: false          # reconciler only makes API calls; no root needed
   roles:
