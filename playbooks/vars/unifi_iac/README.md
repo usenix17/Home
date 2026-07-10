@@ -52,6 +52,11 @@ ansible-playbook playbooks/unifi_iac.yml --check --diff   # preview (safe)
 ansible-playbook playbooks/unifi_iac.yml                   # enforce
 ```
 
+The play resolves the name->id maps once, then reconciles the entire state in a
+single `starnix.unifi.unifi_reconcile` call (fetch each collection once, diff in
+memory, write only the drift). A full run is ~30s rather than the minutes it
+would take looping the per-resource modules once per resource.
+
 ## Regenerating the vars from the live controller
 
 ```bash
