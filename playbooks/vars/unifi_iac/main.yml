@@ -1,0 +1,6 @@
+---
+# Connection settings for the UniFi as-code playbook.
+# The API key comes from the UNIFI_API_KEY environment variable.
+unifi_host: 192.168.1.1
+unifi_validate_certs: false
+unifi_api_key: "{{ lookup('env', 'UNIFI_API_KEY') }}"

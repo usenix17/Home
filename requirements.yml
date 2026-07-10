@@ -14,3 +14,7 @@ collections:
   - name: kubernetes.core
   - name: kewlfft.aur
   - name: google.cloud
+  # UniFi zone-firewall + networks + DHCP as code (see playbooks/unifi_iac.yml)
+  - name: https://github.com/usenix17/starnix.unifi.git
+    type: git
+    version: main

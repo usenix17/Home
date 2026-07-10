@@ -1,0 +1,32 @@
+# dhcp.yml -- generated from the live controller by discover_unifi_iac.py.
+# Names only; cross-references resolve at play time via the *_ids maps
+# that unifi_iac.yml builds. Matched by name -- edit values freely.
+unifi_dhcp:
+- name: Management
+  dns_servers:
+  - 192.168.1.53
+  - 10.17.89.53
+- name: Wireless
+  dns_servers:
+  - 192.168.1.53
+  - 10.17.89.53
+  ntp_servers:
+  - 192.168.1.24
+- name: Aux
+  dns_servers:
+  - 192.168.1.53
+  - 10.17.89.53
+- name: Wired
+  dns_servers:
+  - 192.168.1.53
+  - 10.17.89.53
+  ntp_servers:
+  - 192.168.1.24
+- name: Guest
+  dns_servers:
+  - 1.1.1.1
+  - 8.8.8.8
+- name: Omega
+  dns_servers:
+  - 192.168.1.53
+  - 10.17.89.53

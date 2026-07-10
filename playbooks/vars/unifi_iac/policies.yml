@@ -1,0 +1,2221 @@
+# policies.yml -- generated from the live controller by discover_unifi_iac.py.
+# Names only; cross-references resolve at play time via the *_ids maps
+# that unifi_iac.yml builds. Matched by name -- edit values freely.
+unifi_policies:
+- name: Allow all nebula (Internal->Internal)
+  enabled: true
+  description: iac:allow-all-nebula-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow All to Windows (Internal->Internal)
+  enabled: true
+  description: iac:allow-all-to-windows-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Connections to IPA (Internal->Internal)
+  enabled: true
+  description: iac:allow-connections-to-ipa-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Guest''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Internal to AUX
+  enabled: false
+  description: iac:allow-internal-to-aux
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (Internal->Internal)
+  enabled: true
+  description: iac:allow-plex-8
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Internal (Internal->Internal)
+  enabled: true
+  description: iac:allow-internal
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Multicat IOT Wireless
+  enabled: false
+  description: iac:allow-multicat-iot-wireless
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: IGMP
+      matchOpposite: false
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow Multicat IOT Wired
+  enabled: false
+  description: iac:allow-multicat-iot-wired
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: IGMP
+      matchOpposite: false
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Music Multicast to Wired (Internal->Internal)
+  enabled: true
+  description: iac:music-multicast-to-wired-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Music Multicast to Wireless
+  enabled: true
+  description: iac:music-multicast-to-wireless
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wireless''] }}'
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow gemini (Internal->Internal)
+  enabled: true
+  description: iac:allow-gemini-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow all to MQTT (Internal->Internal)
+  enabled: false
+  description: iac:allow-all-to-mqtt-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow gnome (Internal->Internal)
+  enabled: false
+  description: iac:allow-gnome-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (Internal->Internal)
+  enabled: true
+  description: iac:allow-wg-6
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Wired to Omega
+  enabled: true
+  description: iac:allow-wired-to-omega
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Omega''] }}'
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow https nomad Copy
+  enabled: true
+  description: iac:allow-https-nomad-copy
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Guest''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow https nomad
+  enabled: false
+  description: iac:allow-https-nomad
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Plex (Internal->Internal, IPV4_AND_IPV6)
+  enabled: true
+  description: iac:allow-plex-5
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow All to printserver
+  enabled: true
+  description: iac:allow-all-to-printserver
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.62
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 631
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Internal to ingress.starnix.net
+  enabled: true
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 80
+        - type: PORT_NUMBER
+          value: 443
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Internal to ingress
+  enabled: true
+  description: iac:allow-internal-to-ingress
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block TikTok
+  enabled: true
+  description: iac:block-tiktok
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Management''] }}'
+        - '{{ network_ids[''Wireless''] }}'
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: DOMAIN
+      domainFilter:
+        type: DOMAINS
+        domains:
+        - www.tiktok.com
+        - tiktok.com
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow all nebula (Internal->External)
+  enabled: true
+  description: iac:allow-all-nebula
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow All to Windows (Internal->External)
+  enabled: true
+  description: iac:allow-all-to-windows-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Connections to IPA (Internal->External)
+  enabled: true
+  description: iac:allow-connections-to-ipa-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Guest''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (Internal->External)
+  enabled: true
+  description: iac:allow-plex-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Internal (Internal->External)
+  enabled: true
+  description: iac:allow-internal-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Music Multicast to Wired (Internal->External)
+  enabled: true
+  description: iac:music-multicast-to-wired-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow gemini (Internal->External)
+  enabled: true
+  description: iac:allow-gemini-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow all to MQTT (Internal->External)
+  enabled: false
+  description: iac:allow-all-to-mqtt-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow gnome (Internal->External)
+  enabled: false
+  description: iac:allow-gnome-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (Internal->External)
+  enabled: true
+  description: iac:allow-wg-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (Internal->External, IPV4)
+  enabled: true
+  description: iac:allow-wg-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow DNS (Internal->External)
+  enabled: true
+  description: iac:allow-dns-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow out for Omega
+  enabled: true
+  description: iac:allow-out-for-omega
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Omega''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Block Roblox IPs (AS22697)
+  enabled: false
+  description: iac:block-roblox-as22697
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Roblox-AS22697''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow From Bair mac (Internal->Gateway)
+  enabled: true
+  description: iac:allow-from-bair-mac-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (Internal->Gateway)
+  enabled: false
+  description: iac:allow-plex-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.69
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow tftp (Internal->Gateway)
+  enabled: true
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 69
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow ipxe
+  enabled: false
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds: []
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 80
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow AppleTV (Internal->Gateway)
+  enabled: true
+  description: iac:allow-appletv
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.156
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow all nebula (Internal->Vpn)
+  enabled: true
+  description: iac:allow-all-nebula-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow All to Windows (Internal->Vpn)
+  enabled: true
+  description: iac:allow-all-to-windows
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Connections to IPA (Internal->Vpn)
+  enabled: true
+  description: iac:allow-connections-to-ipa
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Guest''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IPA-ports''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (Internal->Vpn)
+  enabled: true
+  description: iac:allow-plex-7
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Internal (Internal->Vpn)
+  enabled: true
+  description: iac:allow-internal-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Music Multicast to Wired (Internal->Vpn)
+  enabled: true
+  description: iac:music-multicast-to-wired
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow gemini (Internal->Vpn)
+  enabled: true
+  description: iac:allow-gemini
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow all to MQTT (Internal->Vpn)
+  enabled: false
+  description: iac:allow-all-to-mqtt-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow gnome (Internal->Vpn)
+  enabled: false
+  description: iac:allow-gnome-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (Internal->Vpn)
+  enabled: true
+  description: iac:allow-wg-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow all nebula (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-all-nebula-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow All to Windows (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-all-to-windows-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-plex-6
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Internal (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-internal-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Music Multicast to Wired (Internal->Hotspot)
+  enabled: true
+  description: iac:music-multicast-to-wired-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow gemini (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-gemini-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow all to MQTT (Internal->Hotspot)
+  enabled: false
+  description: iac:allow-all-to-mqtt
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- name: Allow gnome (Internal->Hotspot)
+  enabled: false
+  description: iac:allow-gnome
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (Internal->Hotspot)
+  enabled: true
+  description: iac:allow-wg-7
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wired''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow all to IoT vlan
+  enabled: false
+  description: iac:allow-all-to-iot-vlan
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: true
+- name: Allow all to dmz
+  enabled: true
+  description: iac:allow-all-to-dmz
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Wireless to DMZ
+  enabled: true
+  description: iac:wireless-to-dmz
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Wireless''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Wifi to AUX
+  enabled: true
+  description: iac:wifi-to-aux
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''Management''] }}'
+        - '{{ network_ids[''Wired''] }}'
+        - '{{ network_ids[''Omega''] }}'
+        - '{{ network_ids[''Wireless''] }}'
+        matchOpposite: false
+  destination:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - '{{ network_ids[''DMZ''] }}'
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow all to restricted
+  enabled: true
+  description: iac:allow-all-to-restricted
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Drop incoming http (External->Internal)
+  enabled: true
+  description: iac:drop-incoming-http-2
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Plex (External->Internal)
+  enabled: true
+  description: iac:allow-plex
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Drop incoming http (External->External)
+  enabled: true
+  description: iac:drop-incoming-http-4
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow WG (External->External)
+  enabled: true
+  description: iac:allow-wg
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow DNS (External->External)
+  enabled: true
+  description: iac:allow-dns-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Rocket
+  enabled: true
+  description: iac:allow-rocket
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Drop incoming http (External->Vpn)
+  enabled: true
+  description: iac:drop-incoming-http-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Drop incoming http (External->Hotspot)
+  enabled: true
+  description: iac:drop-incoming-http
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Block Traffic from 128.116.95.3 to 172.16.5.245
+  enabled: true
+  description: iac:block-traffic-from-128-116-95-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.95.3
+  destination:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Traffic from 128.116.48.3 to 172.16.5.245
+  enabled: true
+  description: iac:block-traffic-from-128-116-48-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.48.3
+  destination:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Traffic from 128.116.127.3 to 172.16.5.245
+  enabled: true
+  description: iac:block-traffic-from-128-116-127-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.127.3
+  destination:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Vpn to internal DNS
+  enabled: true
+  description: iac:vpn-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow WG (Vpn->External)
+  enabled: true
+  description: iac:allow-wg-8
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow DNS (Vpn->External)
+  enabled: true
+  description: iac:allow-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow From Bair mac (Vpn->Gateway)
+  enabled: true
+  description: iac:allow-from-bair-mac
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow tftp (Vpn->Gateway)
+  enabled: true
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 69
+      matchOpposite: false
+  logging_enabled: false
+- name: Allow AppleTV (Vpn->Gateway)
+  enabled: true
+  description: iac:allow-appletv-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Vpn''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Gateway''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.156
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow Hotspot to internal DNS
+  enabled: true
+  description: iac:hotspot-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow WG (Hotspot->External)
+  enabled: true
+  description: iac:allow-wg-5
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow DNS (Hotspot->External)
+  enabled: true
+  description: iac:allow-dns-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Hotspot''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Allow to nomad
+  enabled: true
+  description: iac:allow-to-nomad
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.86
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 443
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Plex (Dmz->Internal)
+  enabled: true
+  description: iac:allow-plex-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow MQTT
+  enabled: false
+  description: iac:allow-mqtt
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.203
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 1883
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: DHCP test
+  enabled: true
+  description: iac:dhcp-test
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.4.67
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow all to rocket
+  enabled: true
+  description: iac:allow-all-to-rocket
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: DHCP
+  enabled: true
+  description: iac:dhcp
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.141
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Connections to IPA (Dmz->Internal)
+  enabled: true
+  description: iac:allow-connections-to-ipa-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.24
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- name: Print
+  enabled: true
+  description: iac:print
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.62
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 631
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow all FreeBSD/Bastille
+  enabled: true
+  description: iac:allow-all-freebsd-bastille
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow to unbound
+  enabled: true
+  description: iac:allow-to-unbound
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Dmz''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.53
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 53
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Restricted to Ingress
+  enabled: true
+  description: iac:allow-restricted-to-ingress
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Allow Restricted to internal DNS
+  enabled: true
+  description: iac:restricted-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+  destination:
+    zoneId: '{{ zone_ids[''Internal''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Traffic from 172.16.5.245 to 128.116.95.3
+  enabled: true
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-95-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.95.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Traffic from 172.16.5.245 to 128.116.48.3
+  enabled: true
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-48-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.48.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Traffic from 172.16.5.245 to 128.116.127.3
+  enabled: true
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-127-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: '{{ zone_ids[''Restricted''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: '{{ zone_ids[''External''] }}'
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.127.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
