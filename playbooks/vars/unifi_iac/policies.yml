@@ -1,6 +1,6 @@
 # policies.yml -- generated from the live controller by discover_unifi_iac.py.
-# Names only; cross-references resolve at play time via the *_ids maps
-# that unifi_iac.yml builds. Matched by name -- edit values freely.
+# Names only; unifi_reconcile resolves every cross-reference to an id
+# at run time. Matched by name -- edit values freely.
 unifi_policies:
 - name: Allow all nebula (Internal->Internal)
   enabled: true
@@ -9,15 +9,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+        trafficMatchingListId: Nebula
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -28,15 +28,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+        trafficMatchingListId: Windows
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -47,21 +47,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Guest''] }}'
+        - Guest
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+        trafficMatchingListId: FreeIPA
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -72,15 +72,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+        trafficMatchingListId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -91,9 +91,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -112,15 +112,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+        trafficMatchingListId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -131,9 +131,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -150,9 +150,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -169,15 +169,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+        trafficMatchingListId: IoT_address
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -188,20 +188,20 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+        trafficMatchingListId: IoT_address
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wireless''] }}'
+        - Wireless
         matchOpposite: false
   ip_protocol_scope:
     ipVersion: IPV4
@@ -213,25 +213,25 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+        trafficMatchingListId: bork-lagg
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -247,9 +247,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -269,7 +269,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -279,7 +279,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -290,21 +290,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wired''] }}'
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -315,20 +315,20 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wired''] }}'
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Omega''] }}'
+        - Omega
         matchOpposite: false
   ip_protocol_scope:
     ipVersion: IPV4
@@ -340,15 +340,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Guest''] }}'
+        - Guest
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -359,9 +359,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -379,9 +379,9 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -406,9 +406,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -432,9 +432,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -461,9 +461,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -481,17 +481,17 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Management''] }}'
-        - '{{ network_ids[''Wireless''] }}'
-        - '{{ network_ids[''Wired''] }}'
+        - Management
+        - Wireless
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: DOMAIN
       domainFilter:
@@ -509,15 +509,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+        trafficMatchingListId: Nebula
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -528,15 +528,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+        trafficMatchingListId: Windows
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -547,21 +547,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Guest''] }}'
+        - Guest
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+        trafficMatchingListId: FreeIPA
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -572,9 +572,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -593,15 +593,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+        trafficMatchingListId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -612,15 +612,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+        trafficMatchingListId: IoT_address
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -631,25 +631,25 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+        trafficMatchingListId: bork-lagg
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -665,9 +665,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -687,7 +687,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -697,7 +697,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -708,21 +708,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wired''] }}'
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -733,15 +733,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -752,9 +752,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -773,15 +773,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Omega''] }}'
+        - Omega
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -791,15 +791,15 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Roblox-AS22697''] }}'
+        trafficMatchingListId: Roblox-AS22697
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -810,7 +810,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -820,7 +820,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -831,9 +831,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -852,9 +852,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -876,14 +876,14 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds: []
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -906,9 +906,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -927,15 +927,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+        trafficMatchingListId: Nebula
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -946,15 +946,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+        trafficMatchingListId: Windows
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -965,25 +965,25 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Guest''] }}'
+        - Guest
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''FreeIPA''] }}'
+        trafficMatchingListId: FreeIPA
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IPA-ports''] }}'
+        trafficMatchingListId: IPA-ports
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -994,9 +994,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1015,15 +1015,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+        trafficMatchingListId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1034,15 +1034,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+        trafficMatchingListId: IoT_address
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1053,25 +1053,25 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+        trafficMatchingListId: bork-lagg
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -1087,9 +1087,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1109,7 +1109,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1119,7 +1119,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1130,21 +1130,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wired''] }}'
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1155,15 +1155,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Nebula''] }}'
+        trafficMatchingListId: Nebula
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1174,15 +1174,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Windows''] }}'
+        trafficMatchingListId: Windows
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1193,9 +1193,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1214,15 +1214,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Internal''] }}'
+        trafficMatchingListId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1233,15 +1233,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''IoT_address''] }}'
+        trafficMatchingListId: IoT_address
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1252,25 +1252,25 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''bork-lagg''] }}'
+        trafficMatchingListId: bork-lagg
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''gemini''] }}'
+        trafficMatchingListId: gemini
   ip_protocol_scope:
     ipVersion: IPV4
     protocolFilter:
@@ -1286,9 +1286,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1308,7 +1308,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1318,7 +1318,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1329,21 +1329,21 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wired''] }}'
+        - Wired
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1354,9 +1354,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: true
@@ -1367,9 +1367,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -1380,15 +1380,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Wireless''] }}'
+        - Wireless
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -1399,23 +1399,23 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''Management''] }}'
-        - '{{ network_ids[''Wired''] }}'
-        - '{{ network_ids[''Omega''] }}'
-        - '{{ network_ids[''Wireless''] }}'
+        - Management
+        - Wired
+        - Omega
+        - Wireless
         matchOpposite: false
   destination:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
     trafficFilter:
       type: NETWORK
       networkFilter:
         networkIds:
-        - '{{ network_ids[''DMZ''] }}'
+        - DMZ
         matchOpposite: false
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
@@ -1427,9 +1427,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   destination:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -1439,15 +1439,15 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+        trafficMatchingListId: Web
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1457,9 +1457,9 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1483,15 +1483,15 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+        trafficMatchingListId: Web
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1502,15 +1502,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1521,9 +1521,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1542,9 +1542,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1562,15 +1562,15 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+        trafficMatchingListId: Web
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1580,15 +1580,15 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   destination:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: PORT
       portFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''Web''] }}'
+        trafficMatchingListId: Web
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1598,7 +1598,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1608,7 +1608,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 128.116.95.3
   destination:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1626,7 +1626,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1636,7 +1636,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 128.116.48.3
   destination:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1654,7 +1654,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1664,7 +1664,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 128.116.127.3
   destination:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1683,15 +1683,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+        trafficMatchingListId: internal-dns
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -1702,15 +1702,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1721,9 +1721,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1742,7 +1742,7 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1752,7 +1752,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.146
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1762,9 +1762,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1787,9 +1787,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Vpn''] }}'
+    zoneId: Vpn
   destination:
-    zoneId: '{{ zone_ids[''Gateway''] }}'
+    zoneId: Gateway
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1808,15 +1808,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+        trafficMatchingListId: internal-dns
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -1827,15 +1827,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''WireGuard''] }}'
+        trafficMatchingListId: WireGuard
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
@@ -1846,9 +1846,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Hotspot''] }}'
+    zoneId: Hotspot
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1867,9 +1867,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1898,9 +1898,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1925,9 +1925,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1951,9 +1951,9 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1972,9 +1972,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -1993,9 +1993,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2014,9 +2014,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2035,9 +2035,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2062,9 +2062,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -2075,9 +2075,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Dmz''] }}'
+    zoneId: Dmz
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2102,9 +2102,9 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2123,15 +2123,15 @@ unifi_policies:
     type: ALLOW
     allowReturnTraffic: false
   source:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
   destination:
-    zoneId: '{{ zone_ids[''Internal''] }}'
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
         matchOpposite: false
-        trafficMatchingListId: '{{ list_ids[''internal-dns''] }}'
+        trafficMatchingListId: internal-dns
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
@@ -2141,7 +2141,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2151,7 +2151,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.245
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2169,7 +2169,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2179,7 +2179,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.245
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2197,7 +2197,7 @@ unifi_policies:
   action:
     type: BLOCK
   source:
-    zoneId: '{{ zone_ids[''Restricted''] }}'
+    zoneId: Restricted
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
@@ -2207,7 +2207,7 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.245
   destination:
-    zoneId: '{{ zone_ids[''External''] }}'
+    zoneId: External
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:

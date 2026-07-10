@@ -42,18 +42,16 @@ def page(sid, path):
     return out
 
 
-def jref(mapping, name):
-    """Return a Jinja reference into a name->id map, e.g. {{ zone_ids['X'] }}."""
-    if "'" in name:
-        return '{{ %s["%s"] }}' % (mapping, name)
-    return "{{ %s['%s'] }}" % (mapping, name)
+def jref(_mapping, name):
+    """Return the plain name; unifi_reconcile resolves it to an id at run time."""
+    return name
 
 
 def dump(name, key, rows):
     header = (
         f"# {name} -- generated from the live controller by discover_unifi_iac.py.\n"
-        "# Names only; cross-references resolve at play time via the *_ids maps\n"
-        "# that unifi_iac.yml builds. Matched by name -- edit values freely.\n")
+        "# Names only; unifi_reconcile resolves every cross-reference to an id\n"
+        "# at run time. Matched by name -- edit values freely.\n")
     with open(os.path.join(OUT, name), "w", encoding="utf-8") as handle:
         handle.write(header)
         yaml.dump({key: rows}, handle, default_flow_style=False, sort_keys=False,

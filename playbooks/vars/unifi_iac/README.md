@@ -20,21 +20,21 @@ the current controller is a **no-op**. Edit the values to change config.
 
 ## How references work (no UUIDs)
 
-The vars are **name-based** -- there are no UUIDs. Resources are matched by their
-(unique) names, and every cross-reference is written as a name and resolved at
-play time. The playbook first queries the controller and builds four maps --
-`zone_ids`, `list_ids`, `network_ids`, `policy_ids` (name to id) -- so a policy
-reads, for example:
+The vars are **name-based** -- there are no UUIDs. Every cross-reference is
+written as a plain name, and `unifi_reconcile` resolves it to an id at run time
+(it fetches each collection once anyway, so it builds the name->id maps for
+free; a value that is already a UUID passes through). A policy reads, for
+example:
 
 ```yaml
 - name: Allow all nebula (Internal->Internal)
   source:
-    zoneId: "{{ zone_ids['Internal'] }}"
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
-        trafficMatchingListId: "{{ list_ids['Nebula'] }}"
+        trafficMatchingListId: Nebula
 ```
 
 Because policies are matched by name, every policy name must be unique. The v1
@@ -52,10 +52,10 @@ ansible-playbook playbooks/unifi_iac.yml --check --diff   # preview (safe)
 ansible-playbook playbooks/unifi_iac.yml                   # enforce
 ```
 
-The play resolves the name->id maps once, then reconciles the entire state in a
-single `starnix.unifi.unifi_reconcile` call (fetch each collection once, diff in
-memory, write only the drift). A full run is ~30s rather than the minutes it
-would take looping the per-resource modules once per resource.
+The play is a single `starnix.unifi.unifi_reconcile` call: it fetches each
+collection once, resolves the name references, diffs in memory, and writes only
+the drift. A full run is ~7s, versus the minutes it would take looping the
+per-resource modules once per resource.
 
 ## Regenerating the vars from the live controller
 

@@ -1,6 +1,6 @@
 # dhcp.yml -- generated from the live controller by discover_unifi_iac.py.
-# Names only; cross-references resolve at play time via the *_ids maps
-# that unifi_iac.yml builds. Matched by name -- edit values freely.
+# Names only; unifi_reconcile resolves every cross-reference to an id
+# at run time. Matched by name -- edit values freely.
 unifi_dhcp:
 - name: Management
   dns_servers:

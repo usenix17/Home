@@ -1,167 +1,167 @@
 # ordering.yml -- generated from the live controller by discover_unifi_iac.py.
-# Names only; cross-references resolve at play time via the *_ids maps
-# that unifi_iac.yml builds. Matched by name -- edit values freely.
+# Names only; unifi_reconcile resolves every cross-reference to an id
+# at run time. Matched by name -- edit values freely.
 unifi_ordering:
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+- source_zone: Internal
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Allow all nebula (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow All to Windows (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow Connections to IPA (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow Internal to AUX''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow Internal (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow Multicat IOT Wireless''] }}'
-  - '{{ policy_ids[''Allow Multicat IOT Wired''] }}'
-  - '{{ policy_ids[''Music Multicast to Wired (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Music Multicast to Wireless''] }}'
-  - '{{ policy_ids[''Allow gemini (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow all to MQTT (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow gnome (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow WG (Internal->Internal)''] }}'
-  - '{{ policy_ids[''Allow Wired to Omega''] }}'
-  - '{{ policy_ids[''Allow https nomad Copy''] }}'
-  - '{{ policy_ids[''Allow https nomad''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->Internal, IPV4_AND_IPV6)''] }}'
-  - '{{ policy_ids[''Allow All to printserver''] }}'
-  - '{{ policy_ids[''Allow Internal to ingress.starnix.net''] }}'
-  - '{{ policy_ids[''Allow Internal to ingress''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Restricted''] }}'
+  - Allow all nebula (Internal->Internal)
+  - Allow All to Windows (Internal->Internal)
+  - Allow Connections to IPA (Internal->Internal)
+  - Allow Internal to AUX
+  - Allow Plex (Internal->Internal)
+  - Allow Internal (Internal->Internal)
+  - Allow Multicat IOT Wireless
+  - Allow Multicat IOT Wired
+  - Music Multicast to Wired (Internal->Internal)
+  - Music Multicast to Wireless
+  - Allow gemini (Internal->Internal)
+  - Allow all to MQTT (Internal->Internal)
+  - Allow gnome (Internal->Internal)
+  - Allow WG (Internal->Internal)
+  - Allow Wired to Omega
+  - Allow https nomad Copy
+  - Allow https nomad
+  - Allow Plex (Internal->Internal, IPV4_AND_IPV6)
+  - Allow All to printserver
+  - Allow Internal to ingress.starnix.net
+  - Allow Internal to ingress
+- source_zone: Internal
+  destination_zone: Restricted
   before_system_defined:
-  - '{{ policy_ids[''Allow all to restricted''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Vpn''] }}'
+  - Allow all to restricted
+- source_zone: Internal
+  destination_zone: Vpn
   before_system_defined:
-  - '{{ policy_ids[''Allow all nebula (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow All to Windows (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow Connections to IPA (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow Internal (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Music Multicast to Wired (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow gemini (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow all to MQTT (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow gnome (Internal->Vpn)''] }}'
-  - '{{ policy_ids[''Allow WG (Internal->Vpn)''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''External''] }}'
+  - Allow all nebula (Internal->Vpn)
+  - Allow All to Windows (Internal->Vpn)
+  - Allow Connections to IPA (Internal->Vpn)
+  - Allow Plex (Internal->Vpn)
+  - Allow Internal (Internal->Vpn)
+  - Music Multicast to Wired (Internal->Vpn)
+  - Allow gemini (Internal->Vpn)
+  - Allow all to MQTT (Internal->Vpn)
+  - Allow gnome (Internal->Vpn)
+  - Allow WG (Internal->Vpn)
+- source_zone: Internal
+  destination_zone: External
   before_system_defined:
-  - '{{ policy_ids[''Block TikTok''] }}'
-  - '{{ policy_ids[''Allow all nebula (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow All to Windows (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow Connections to IPA (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow Internal (Internal->External)''] }}'
-  - '{{ policy_ids[''Music Multicast to Wired (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow gemini (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow all to MQTT (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow gnome (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow WG (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow WG (Internal->External, IPV4)''] }}'
-  - '{{ policy_ids[''Allow DNS (Internal->External)''] }}'
-  - '{{ policy_ids[''Allow out for Omega''] }}'
-  - '{{ policy_ids[''Block Roblox IPs (AS22697)''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Hotspot''] }}'
+  - Block TikTok
+  - Allow all nebula (Internal->External)
+  - Allow All to Windows (Internal->External)
+  - Allow Connections to IPA (Internal->External)
+  - Allow Plex (Internal->External)
+  - Allow Internal (Internal->External)
+  - Music Multicast to Wired (Internal->External)
+  - Allow gemini (Internal->External)
+  - Allow all to MQTT (Internal->External)
+  - Allow gnome (Internal->External)
+  - Allow WG (Internal->External)
+  - Allow WG (Internal->External, IPV4)
+  - Allow DNS (Internal->External)
+  - Allow out for Omega
+  - Block Roblox IPs (AS22697)
+- source_zone: Internal
+  destination_zone: Hotspot
   before_system_defined:
-  - '{{ policy_ids[''Allow all nebula (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow All to Windows (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow Internal (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Music Multicast to Wired (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow gemini (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow all to MQTT (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow gnome (Internal->Hotspot)''] }}'
-  - '{{ policy_ids[''Allow WG (Internal->Hotspot)''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Gateway''] }}'
+  - Allow all nebula (Internal->Hotspot)
+  - Allow All to Windows (Internal->Hotspot)
+  - Allow Plex (Internal->Hotspot)
+  - Allow Internal (Internal->Hotspot)
+  - Music Multicast to Wired (Internal->Hotspot)
+  - Allow gemini (Internal->Hotspot)
+  - Allow all to MQTT (Internal->Hotspot)
+  - Allow gnome (Internal->Hotspot)
+  - Allow WG (Internal->Hotspot)
+- source_zone: Internal
+  destination_zone: Gateway
   before_system_defined:
-  - '{{ policy_ids[''Allow From Bair mac (Internal->Gateway)''] }}'
-  - '{{ policy_ids[''Allow Plex (Internal->Gateway)''] }}'
-  - '{{ policy_ids[''Allow tftp (Internal->Gateway)''] }}'
-  - '{{ policy_ids[''Allow ipxe''] }}'
-  - '{{ policy_ids[''Allow AppleTV (Internal->Gateway)''] }}'
-- source_zone: '{{ zone_ids[''Internal''] }}'
-  destination_zone: '{{ zone_ids[''Dmz''] }}'
+  - Allow From Bair mac (Internal->Gateway)
+  - Allow Plex (Internal->Gateway)
+  - Allow tftp (Internal->Gateway)
+  - Allow ipxe
+  - Allow AppleTV (Internal->Gateway)
+- source_zone: Internal
+  destination_zone: Dmz
   before_system_defined:
-  - '{{ policy_ids[''Allow all to IoT vlan''] }}'
-  - '{{ policy_ids[''Allow all to dmz''] }}'
-  - '{{ policy_ids[''Wireless to DMZ''] }}'
-  - '{{ policy_ids[''Wifi to AUX''] }}'
-- source_zone: '{{ zone_ids[''Restricted''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+  - Allow all to IoT vlan
+  - Allow all to dmz
+  - Wireless to DMZ
+  - Wifi to AUX
+- source_zone: Restricted
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Allow Restricted to Ingress''] }}'
-  - '{{ policy_ids[''Allow Restricted to internal DNS''] }}'
-- source_zone: '{{ zone_ids[''Restricted''] }}'
-  destination_zone: '{{ zone_ids[''External''] }}'
+  - Allow Restricted to Ingress
+  - Allow Restricted to internal DNS
+- source_zone: Restricted
+  destination_zone: External
   before_system_defined:
-  - '{{ policy_ids[''Block Traffic from 172.16.5.245 to 128.116.95.3''] }}'
-  - '{{ policy_ids[''Block Traffic from 172.16.5.245 to 128.116.48.3''] }}'
-  - '{{ policy_ids[''Block Traffic from 172.16.5.245 to 128.116.127.3''] }}'
-- source_zone: '{{ zone_ids[''Vpn''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+  - Block Traffic from 172.16.5.245 to 128.116.95.3
+  - Block Traffic from 172.16.5.245 to 128.116.48.3
+  - Block Traffic from 172.16.5.245 to 128.116.127.3
+- source_zone: Vpn
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Allow Vpn to internal DNS''] }}'
-- source_zone: '{{ zone_ids[''Vpn''] }}'
-  destination_zone: '{{ zone_ids[''External''] }}'
+  - Allow Vpn to internal DNS
+- source_zone: Vpn
+  destination_zone: External
   before_system_defined:
-  - '{{ policy_ids[''Allow WG (Vpn->External)''] }}'
-  - '{{ policy_ids[''Allow DNS (Vpn->External)''] }}'
-- source_zone: '{{ zone_ids[''Vpn''] }}'
-  destination_zone: '{{ zone_ids[''Gateway''] }}'
+  - Allow WG (Vpn->External)
+  - Allow DNS (Vpn->External)
+- source_zone: Vpn
+  destination_zone: Gateway
   before_system_defined:
-  - '{{ policy_ids[''Allow From Bair mac (Vpn->Gateway)''] }}'
-  - '{{ policy_ids[''Allow tftp (Vpn->Gateway)''] }}'
-  - '{{ policy_ids[''Allow AppleTV (Vpn->Gateway)''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+  - Allow From Bair mac (Vpn->Gateway)
+  - Allow tftp (Vpn->Gateway)
+  - Allow AppleTV (Vpn->Gateway)
+- source_zone: External
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Drop incoming http (External->Internal)''] }}'
-  - '{{ policy_ids[''Allow Plex (External->Internal)''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''Restricted''] }}'
+  - Drop incoming http (External->Internal)
+  - Allow Plex (External->Internal)
+- source_zone: External
+  destination_zone: Restricted
   before_system_defined:
-  - '{{ policy_ids[''Block Traffic from 128.116.95.3 to 172.16.5.245''] }}'
-  - '{{ policy_ids[''Block Traffic from 128.116.48.3 to 172.16.5.245''] }}'
-  - '{{ policy_ids[''Block Traffic from 128.116.127.3 to 172.16.5.245''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''Vpn''] }}'
+  - Block Traffic from 128.116.95.3 to 172.16.5.245
+  - Block Traffic from 128.116.48.3 to 172.16.5.245
+  - Block Traffic from 128.116.127.3 to 172.16.5.245
+- source_zone: External
+  destination_zone: Vpn
   before_system_defined:
-  - '{{ policy_ids[''Drop incoming http (External->Vpn)''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''External''] }}'
+  - Drop incoming http (External->Vpn)
+- source_zone: External
+  destination_zone: External
   before_system_defined:
-  - '{{ policy_ids[''Drop incoming http (External->External)''] }}'
-  - '{{ policy_ids[''Allow WG (External->External)''] }}'
-  - '{{ policy_ids[''Allow DNS (External->External)''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''Hotspot''] }}'
+  - Drop incoming http (External->External)
+  - Allow WG (External->External)
+  - Allow DNS (External->External)
+- source_zone: External
+  destination_zone: Hotspot
   before_system_defined:
-  - '{{ policy_ids[''Drop incoming http (External->Hotspot)''] }}'
-- source_zone: '{{ zone_ids[''External''] }}'
-  destination_zone: '{{ zone_ids[''Gateway''] }}'
+  - Drop incoming http (External->Hotspot)
+- source_zone: External
+  destination_zone: Gateway
   before_system_defined:
-  - '{{ policy_ids[''Allow Rocket''] }}'
-- source_zone: '{{ zone_ids[''Hotspot''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+  - Allow Rocket
+- source_zone: Hotspot
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Allow Hotspot to internal DNS''] }}'
-- source_zone: '{{ zone_ids[''Hotspot''] }}'
-  destination_zone: '{{ zone_ids[''External''] }}'
+  - Allow Hotspot to internal DNS
+- source_zone: Hotspot
+  destination_zone: External
   before_system_defined:
-  - '{{ policy_ids[''Allow WG (Hotspot->External)''] }}'
-  - '{{ policy_ids[''Allow DNS (Hotspot->External)''] }}'
-- source_zone: '{{ zone_ids[''Dmz''] }}'
-  destination_zone: '{{ zone_ids[''Internal''] }}'
+  - Allow WG (Hotspot->External)
+  - Allow DNS (Hotspot->External)
+- source_zone: Dmz
+  destination_zone: Internal
   before_system_defined:
-  - '{{ policy_ids[''Allow to nomad''] }}'
-  - '{{ policy_ids[''Allow Plex (Dmz->Internal)''] }}'
-  - '{{ policy_ids[''Allow MQTT''] }}'
-  - '{{ policy_ids[''DHCP test''] }}'
-  - '{{ policy_ids[''Allow all to rocket''] }}'
-  - '{{ policy_ids[''DHCP''] }}'
-  - '{{ policy_ids[''Allow Connections to IPA (Dmz->Internal)''] }}'
-  - '{{ policy_ids[''Print''] }}'
-  - '{{ policy_ids[''Allow all FreeBSD/Bastille''] }}'
-  - '{{ policy_ids[''Allow to unbound''] }}'
+  - Allow to nomad
+  - Allow Plex (Dmz->Internal)
+  - Allow MQTT
+  - DHCP test
+  - Allow all to rocket
+  - DHCP
+  - Allow Connections to IPA (Dmz->Internal)
+  - Print
+  - Allow all FreeBSD/Bastille
+  - Allow to unbound
