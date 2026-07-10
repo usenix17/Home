@@ -59,10 +59,9 @@ UNIFI_API_KEY=... OUT=playbooks/vars/unifi_iac \
   python3 playbooks/vars/unifi_iac/discover_unifi_iac.py
 ```
 
-## Relationship to the v2 reconciler
+## The v2 reconciler is retired
 
-`roles/unifi_firewall` (the tag-based v2 reconciler) manages the same firewall
-policies through a different API. Treat **one** of them as the source of truth
--- this collection-based playbook is the migration path off the reconciler.
-Running both in enforce mode with divergent desired states would have them
-fight; check-mode here never writes and is always safe.
+This playbook replaced the old tag-based v2 reconciler (`roles/unifi_firewall`),
+which has been removed -- it is now the sole source of truth for the firewall.
+See [RETIREMENT.md](RETIREMENT.md) for the cutover steps (Semaphore template +
+making the collection installable on the runner).
