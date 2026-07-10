@@ -11,10 +11,12 @@
 #   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml --check --diff
 #   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml
 #
-# NOTE: this manages the SAME firewall as roles/unifi_firewall (the v2
-# reconciler), which enforces the original policy names. Treat ONE of them as
-# the source of truth -- this is the migration path off the reconciler.
-# Check-mode (--check) never writes and is always safe.
+# This is the sole source of truth for the firewall (the v2 reconciler was
+# retired). Check-mode (--check) never writes and is always safe. A full run
+# touches ~170 resources and takes a few minutes (one module process per
+# resource); for a fast targeted apply, use tags, e.g.:
+#   ansible-playbook playbooks/unifi_iac.yml --tags dhcp
+#   ansible-playbook playbooks/unifi_iac.yml --tags firewall   # groups+zones+policies+ordering
 - name: UniFi as code
   hosts: localhost
   connection: local
@@ -40,6 +42,7 @@
       validate_certs: "{{ unifi_validate_certs }}"
   tasks:
     - name: Build name-to-id resolution maps from the controller
+      tags: always          # the maps are needed by every tagged subset
       block:
         - name: Resolve the site id
           starnix.unifi.unifi_site_info:
@@ -92,6 +95,7 @@
       loop: "{{ unifi_groups }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [groups, firewall]
 
     - name: Firewall zones
       starnix.unifi.unifi_firewall_zone:
@@ -101,6 +105,7 @@
       loop: "{{ unifi_zones }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [zones, firewall]
 
     - name: Networks
       starnix.unifi.unifi_network:
@@ -113,6 +118,7 @@
       loop: "{{ unifi_networks }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [networks]
 
     - name: Firewall policies
       starnix.unifi.unifi_firewall_policy:
@@ -131,6 +137,7 @@
       loop: "{{ unifi_policies }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [policies, firewall]
 
     - name: Firewall policy ordering
       starnix.unifi.unifi_firewall_policy_order:
@@ -141,6 +148,7 @@
       loop: "{{ unifi_ordering }}"
       loop_control:
         label: "{{ item.source_zone }} -> {{ item.destination_zone }}"
+      tags: [ordering, firewall]
 
     - name: Per-network DHCP options
       starnix.unifi.unifi_network_dhcp:
@@ -152,3 +160,4 @@
       loop: "{{ unifi_dhcp }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [dhcp]
