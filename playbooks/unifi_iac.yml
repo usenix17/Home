@@ -1,0 +1,108 @@
+---
+# UniFi "everything as code" via the starnix.unifi collection.
+#
+# Manages the zone-based firewall (groups, zones, policies, ordering), networks,
+# and per-network DHCP options through the official v1 Integration API (and the
+# classic API for DHCP). The vars under vars/unifi_iac/ were reverse-engineered
+# from the live controller, so a run against the current controller is a no-op;
+# edit the vars to change config.
+#
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml --check --diff
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml
+#
+# NOTE: this manages the SAME firewall as roles/unifi_firewall (the v2
+# reconciler). Treat ONE of them as the source of truth -- this is the migration
+# path off the reconciler. Check-mode (--check) never writes and is always safe.
+- name: UniFi as code
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars_files:
+    - vars/unifi_iac/main.yml
+    - vars/unifi_iac/groups.yml
+    - vars/unifi_iac/zones.yml
+    - vars/unifi_iac/networks.yml
+    - vars/unifi_iac/policies.yml
+    - vars/unifi_iac/ordering.yml
+    - vars/unifi_iac/dhcp.yml
+  module_defaults:
+    group/starnix.unifi.unifi:
+      host: "{{ unifi_host }}"
+      api_key: "{{ unifi_api_key }}"
+      validate_certs: "{{ unifi_validate_certs }}"
+      site: default
+    starnix.unifi.unifi_network_dhcp:
+      host: "{{ unifi_host }}"
+      api_key: "{{ unifi_api_key }}"
+      validate_certs: "{{ unifi_validate_certs }}"
+  tasks:
+    - name: Traffic-matching lists (address/port groups)
+      starnix.unifi.unifi_firewall_group:
+        id: "{{ item.id | default(omit) }}"
+        name: "{{ item.name }}"
+        type: "{{ item.type }}"
+        items: "{{ item['items'] }}"
+      loop: "{{ unifi_groups }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Firewall zones
+      starnix.unifi.unifi_firewall_zone:
+        id: "{{ item.id | default(omit) }}"
+        name: "{{ item.name }}"
+        network_ids: "{{ item.network_ids | default([]) }}"
+      loop: "{{ unifi_zones }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Networks
+      starnix.unifi.unifi_network:
+        id: "{{ item.id | default(omit) }}"
+        name: "{{ item.name }}"
+        management: "{{ item.management }}"
+        enabled: "{{ item.enabled }}"
+        vlan_id: "{{ item.vlan_id }}"
+        zone_id: "{{ item.zone_id | default(omit) }}"
+      loop: "{{ unifi_networks }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Firewall policies
+      starnix.unifi.unifi_firewall_policy:
+        id: "{{ item.id | default(omit) }}"
+        name: "{{ item.name }}"
+        enabled: "{{ item.enabled }}"
+        description: "{{ item.description | default(omit) }}"
+        action: "{{ item.action }}"
+        source: "{{ item.source }}"
+        destination: "{{ item.destination }}"
+        ip_protocol_scope: "{{ item.ip_protocol_scope }}"
+        connection_state_filter: "{{ item.connection_state_filter | default(omit) }}"
+        ipsec_filter: "{{ item.ipsec_filter | default(omit) }}"
+        logging_enabled: "{{ item.logging_enabled | default(false) }}"
+        schedule: "{{ item.schedule | default(omit) }}"
+      loop: "{{ unifi_policies }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Firewall policy ordering
+      starnix.unifi.unifi_firewall_policy_order:
+        source_zone_id: "{{ item.source_zone_id }}"
+        destination_zone_id: "{{ item.destination_zone_id }}"
+        before_system_defined: "{{ item.before_system_defined | default(omit) }}"
+        after_system_defined: "{{ item.after_system_defined | default(omit) }}"
+      loop: "{{ unifi_ordering }}"
+      loop_control:
+        label: "{{ item.source_zone_id }} -> {{ item.destination_zone_id }}"
+
+    - name: Per-network DHCP options
+      starnix.unifi.unifi_network_dhcp:
+        name: "{{ item.name }}"
+        dns_servers: "{{ item.dns_servers | default(omit) }}"
+        ntp_servers: "{{ item.ntp_servers | default(omit) }}"
+        wins_servers: "{{ item.wins_servers | default(omit) }}"
+        lease_time: "{{ item.lease_time | default(omit) }}"
+      loop: "{{ unifi_dhcp }}"
+      loop_control:
+        label: "{{ item.name }}"

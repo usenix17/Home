@@ -1,0 +1,258 @@
+# groups.yml -- generated from the live controller by discover_unifi_iac.py.
+# Each entry pins its live id (exact, efficient no-op). Edit values to
+# change config; drop the id to make an entry portable to a new site.
+unifi_groups:
+- id: 860509ec-a8ad-4631-9699-dcb242e98879
+  name: bork-lagg
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.86
+- id: 88b5a4a0-b590-49d5-a797-680f16004f1b
+  name: Denon_ports
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 3813
+  - type: PORT_NUMBER
+    value: 443
+  - type: PORT_NUMBER
+    value: 80
+  - type: PORT_NUMBER
+    value: 8080
+  - type: PORT_NUMBER
+    value: 5020
+  - type: PORT_NUMBER
+    value: 10443
+- id: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  name: Internal
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 192.168.1.0/24
+  - type: SUBNET
+    value: 172.16.4.0/24
+- id: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  name: WireGuard
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 192.168.4.0/24
+- id: 979b961f-3176-4efc-862c-81e0047b8555
+  name: AdGuard-port
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 53
+  - type: PORT_NUMBER
+    value: 80
+  - type: PORT_NUMBER
+    value: 443
+- id: ca25b511-c4e0-4355-af28-748f60d5b565
+  name: Finn
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.4.5
+  - type: IP_ADDRESS
+    value: 192.168.1.71
+  - type: IP_ADDRESS
+    value: 172.16.4.14
+  - type: IP_ADDRESS
+    value: 172.16.5.101
+- id: cb65086c-1607-483f-9a49-d3cfc0773584
+  name: Local Internal
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 192.168.0.0/16
+  - type: SUBNET
+    value: 172.16.4.0/24
+- id: d57cb897-8594-4514-80a2-467d5808e5f4
+  name: Internal Interfaces
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 192.168.1.0/24
+  - type: SUBNET
+    value: 192.168.2.0/24
+  - type: SUBNET
+    value: 172.16.4.0/24
+- id: e3c840c9-b3e8-48b2-9ed5-fde2b2e103de
+  name: Proxy
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.19
+- id: e7d5cfb8-cca9-44f5-9217-32e94f7cdc22
+  name: Nebula
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 100.69.0.0/22
+- id: f8fc1e44-22c2-469e-9cec-9d89d5298eba
+  name: HTTP
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 80
+- id: 0014224e-8ef3-41bb-8178-01be711216e1
+  name: Web
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 80
+  - type: PORT_NUMBER
+    value: 443
+- id: 14ea487e-638e-4069-b0f4-a593820d81a5
+  name: FreeIPA
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.24
+- id: 176854ba-2cbb-4f53-b6fd-42ea5f22fbdf
+  name: rocket
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.102
+- id: 18a28260-50b5-43b3-adf1-7ed6ccc07620
+  name: AdGuard
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.54
+- id: 2293f8f8-e233-4afc-8ba5-a1aa1a74b0ac
+  name: FreeBSD-Bastille
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 10.17.89.0/24
+- id: 2bdcfb61-9c46-49f0-a61f-78599e8f28c8
+  name: Bork
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.86
+- id: 2d26553d-3795-4a7a-8c08-385053c78093
+  name: e2guardian
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 8080
+- id: 2f1e49c0-11fe-4be3-bdec-3d17859cb811
+  name: Roblox-AS22697
+  type: IPV4_ADDRESSES
+  items:
+  - type: SUBNET
+    value: 128.116.0.0/17
+  - type: SUBNET
+    value: 103.140.28.0/23
+  - type: SUBNET
+    value: 141.193.3.0/24
+  - type: SUBNET
+    value: 205.201.62.0/24
+- id: 30a771ad-34c7-49e7-9743-1ecbcccf127f
+  name: Finn-Group
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.71
+- id: 442f0435-0c09-4c0a-b64d-01d7dcc819e5
+  name: internal-dns
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.53
+  - type: IP_ADDRESS
+    value: 10.17.89.53
+- id: 4a5b4abb-dfa3-4320-9265-129c1d74724b
+  name: DNS
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 53
+- id: 4dbe6431-79b7-4575-93cf-6b40a7fb8fce
+  name: Admiral
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 35.186.219.42
+  - type: IP_ADDRESS
+    value: 35.186.249.84
+  - type: IP_ADDRESS
+    value: 35.190.48.184
+  - type: IP_ADDRESS
+    value: 35.190.58.50
+  - type: IP_ADDRESS
+    value: 35.190.62.199
+  - type: IP_ADDRESS
+    value: 35.190.74.157
+  - type: IP_ADDRESS
+    value: 35.190.74.222
+  - type: IP_ADDRESS
+    value: 35.190.74.49
+  - type: IP_ADDRESS
+    value: 35.190.90.202
+  - type: IP_ADDRESS
+    value: 35.190.91.111
+  - type: IP_ADDRESS
+    value: 35.201.103.212
+  - type: IP_ADDRESS
+    value: 35.201.96.133
+- id: 4e07af43-96ea-42cc-baa1-8930b6b00b61
+  name: Internal_Services
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.54
+  - type: IP_ADDRESS
+    value: 192.168.1.136
+- id: 51396ba4-da12-408f-b18c-e24ccf8873ea
+  name: FreeIPA-DNS
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 53
+- id: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  name: gemini
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 1965
+- id: 622cffa4-6350-41ad-9225-cb33a8cc4abf
+  name: Windows
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 192.168.1.239
+- id: 66a448c4-0ae4-4adf-9ff0-bc9c2ce308db
+  name: IPA-ports
+  type: PORTS
+  items:
+  - type: PORT_NUMBER
+    value: 443
+  - type: PORT_NUMBER
+    value: 389
+  - type: PORT_NUMBER
+    value: 636
+  - type: PORT_NUMBER
+    value: 88
+  - type: PORT_NUMBER
+    value: 464
+  - type: PORT_NUMBER
+    value: 53
+- id: 6f038839-bef3-4807-8afe-54b71e897182
+  name: IoT_address
+  type: IPV4_ADDRESSES
+  items:
+  - type: IP_ADDRESS
+    value: 172.16.5.176
+  - type: IP_ADDRESS
+    value: 172.16.5.112
+  - type: IP_ADDRESS
+    value: 172.16.5.205
+  - type: IP_ADDRESS
+    value: 172.16.5.184
+  - type: IP_ADDRESS
+    value: 172.16.5.96

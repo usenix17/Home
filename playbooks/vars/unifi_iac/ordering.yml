@@ -1,0 +1,167 @@
+# ordering.yml -- generated from the live controller by discover_unifi_iac.py.
+# Each entry pins its live id (exact, efficient no-op). Edit values to
+# change config; drop the id to make an entry portable to a new site.
+unifi_ordering:
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - 16e826be-d79d-47bb-929c-bf25cce629cc
+  - beabddbf-1ff2-42d5-9d45-0e3640b2f25d
+  - 3dfbe82d-7345-461f-8198-68731b5581f3
+  - 68174548-3d81-44f4-ae5e-3d264b118252
+  - 990f6c72-a376-434d-91ca-04531d4b43fb
+  - 88326c1a-6011-4daa-b720-70bec28632be
+  - 5d573b34-1774-423c-9ad1-856486d4ab59
+  - f84b4aa3-2c39-4630-9de9-5c45370e2cf5
+  - 40cd75bc-5ad9-44b3-abfc-ef1593108096
+  - fa98f0c3-788f-4e34-9e58-566b40df8aa4
+  - 49d0a6ad-ee7d-46aa-94a4-affc064e3f48
+  - ae4d36ae-3fe8-4fce-9e63-6390e8b2b515
+  - f28ebb28-5e7d-4d56-9822-5c7ca58b0754
+  - 4705b8cb-cf8d-4140-a664-ac3d98711aba
+  - 9b4ec71e-f80c-416c-9560-7dae1279c5eb
+  - 1b71c986-13bf-4c59-a8e1-3fde2d9d0fac
+  - a2f33eb0-c6ff-4c91-9c1c-430ae6fb1921
+  - 2d4ce721-7c52-455f-9b2e-2b4dff9dbf83
+  - 9d8c6ad0-2342-45a1-bcc8-295d66486343
+  - 46c63592-8c96-4ac3-8027-91e22f577976
+  - 64cbfc8c-f315-479f-90ec-8bc21377e4f3
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 53432a66-51c0-4f3f-b226-02aac511a439
+  before_system_defined:
+  - e52b5917-3ec3-4d3c-aeeb-99c1ac4c0f5e
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  before_system_defined:
+  - dd66e708-02fe-4c7f-9f92-77724f5aff6a
+  - a62201e4-488c-464b-8d19-7630731a121a
+  - 8af0812a-b3bf-495a-8e0a-f2bc0c96efb5
+  - 8a0d065d-1653-40dc-9ae9-8a821a6f7f0f
+  - bb986bd6-826d-4825-be3e-9bc557c6274f
+  - 29e72152-451d-4816-af14-10dc2a194881
+  - fdc76953-a666-4ee6-9dd2-2c05c8a6e4b2
+  - 6c1ab427-b411-43ed-b2ac-b49794967502
+  - b51d6b6c-4266-49c6-b18b-17dccc1786ca
+  - 409e12ca-0470-4f6f-9861-e6b7fd2b8175
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  before_system_defined:
+  - b7a42c1e-ae27-4774-8018-3f406d86abae
+  - b68c2b28-76ec-449f-95e1-0cf0445c84ab
+  - 6a87be54-9a46-4b1e-807f-4ba602c62bf5
+  - 63d4038e-1a32-45f8-bb8b-b08571bfe24d
+  - 669b829d-97c9-4123-ba97-b18ec22bec8b
+  - fe1ebefe-a4e2-488f-a660-3e89558fbced
+  - d44b6e1d-fda3-4f92-8b70-5def61ba16f7
+  - 4fe1d17f-5f52-4fd6-bac8-07e7d016599d
+  - c4b828bd-566d-486c-b06b-e04ce57a77da
+  - bd37952a-5028-44e7-8881-db5caf9ccfda
+  - 868fadb9-935c-430b-b1c6-57689ee9c127
+  - 80eaa9f4-6b75-445b-af0c-60308165fc5b
+  - b4232df6-445a-40c4-b87d-4d0a4acd54f1
+  - d14fdba9-7e1e-45e4-ae46-3dcb45fc9153
+  - 09092547-989c-46c3-8193-ca0eafd442e8
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  before_system_defined:
+  - cd3a094d-2a24-4963-96f1-6fde36d3700e
+  - 3e85787d-9049-4bbd-90c8-d861ebee845c
+  - d9216d9d-d897-41d3-8f3c-4c6fadccc842
+  - 1bda45ae-afc9-4263-8638-a1a6dc1e5543
+  - 15cb07f5-dc19-4ed1-8f29-a246e082c1b6
+  - 39f77ca6-469c-493f-a62c-2f130131e29f
+  - 80b2ae0e-be19-40c0-8f36-5094ddf21e8a
+  - 1cbb841e-a534-456c-971e-e880b0bcb219
+  - 00e451c9-27ae-4617-8ef1-f7e1de63e227
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+  before_system_defined:
+  - 7e35899b-6e72-47e7-b24b-1cf289ea6af5
+  - 29039c40-b494-4f3f-97a3-03bc7a6f21c5
+  - d858c00c-ae9c-49a7-93b7-a1fd3220316a
+  - 582c7b25-9a66-43f6-8567-c91d4eb17a52
+  - d96e0050-6ae4-4881-bda5-fc8e1802077e
+- source_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination_zone_id: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  before_system_defined:
+  - 3909b8f0-b440-4a08-8911-2f23d3906c45
+  - f2b1dc08-0639-4876-9825-5f8154a9cbea
+  - 1b25936a-0f6d-41f3-8bfc-f4a031f1840c
+  - 3ec125f4-06ca-4c23-a00a-48d4bc0d4151
+- source_zone_id: 53432a66-51c0-4f3f-b226-02aac511a439
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - b9e4b112-5cdc-45e5-b413-16b067334524
+  - 6368d0e6-f36f-4654-ba35-73e259cfc89e
+- source_zone_id: 53432a66-51c0-4f3f-b226-02aac511a439
+  destination_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  before_system_defined:
+  - c2ae5c20-3956-49bb-b3a8-c2cd84470bc0
+  - be3e0900-d075-42a8-a898-0f6ba0e9f6a9
+  - 121ded32-2393-4a74-a511-f0f9d34985a1
+- source_zone_id: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - 121222b7-a101-42d0-a6ae-a0a487f2af0c
+- source_zone_id: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  before_system_defined:
+  - 41198d3b-9e01-4bdb-9e77-6e0190634dbd
+  - c766d836-8088-44bf-a1a5-7a14c7956e64
+- source_zone_id: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination_zone_id: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+  before_system_defined:
+  - 3fade7aa-2fe4-4d58-8c53-352359e23a27
+  - 60cc066e-99d9-48b3-9178-3ac740a4a9dd
+  - 7c9d1683-e523-47ed-9ded-9a4f64472151
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - b9fed723-785b-4cf6-9e26-4053389bf37b
+  - 04ae9006-3077-4cc8-941c-1e7b59e7e61d
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 53432a66-51c0-4f3f-b226-02aac511a439
+  before_system_defined:
+  - 624b7eab-7dbc-47dc-99eb-39412520a3cb
+  - bbd5c477-69e0-461d-b0c2-445631cbf7c4
+  - 41298fd0-85fb-4024-a213-2fa906425510
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  before_system_defined:
+  - 3c7e17d2-d382-4f89-afc3-5e417c2241dc
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  before_system_defined:
+  - ae1afa09-be17-49ee-8801-872eb7a2a064
+  - bcdc23b4-85b9-4e41-b94e-13e00065c874
+  - d2ca4e2e-19e8-4ba5-ad85-b1c064f951e3
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  before_system_defined:
+  - 86d6d142-b03b-4129-9e32-21e7e1e37918
+- source_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination_zone_id: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+  before_system_defined:
+  - b621e40f-4990-463b-8e51-1a67de62e1d6
+- source_zone_id: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - a4ceabac-9b32-4410-aa57-527cb6ace05d
+- source_zone_id: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  destination_zone_id: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  before_system_defined:
+  - bd4d0a11-01fe-4883-9a5d-2e6553544846
+  - 2b1f2319-9d52-49e4-b8ec-6da58c1d3b7e
+- source_zone_id: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination_zone_id: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  before_system_defined:
+  - 92fb644f-1d76-404c-afe4-c5c64b5d4350
+  - ff874e2b-6341-46bd-a92b-8f3ace44e082
+  - 1e2b9ce2-51f3-466b-a238-7a19908cb4e5
+  - 12faa0ec-0c36-40df-b63a-22c0fcc0d1a5
+  - e810c846-a164-4ea6-b1aa-f63eb8c5398b
+  - 3d0bec7b-5191-4a29-aa60-fbf090cfb5e6
+  - 88f113a5-f548-4fee-80d9-2a73b5b674fb
+  - 08e602e2-95ff-4b2b-a3c9-225d03b1488f
+  - c443deb4-12a3-4c45-b801-999f90302192
+  - 4c319670-3266-4cd3-ad41-09e96277d4dc

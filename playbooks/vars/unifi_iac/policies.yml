@@ -1,0 +1,2322 @@
+# policies.yml -- generated from the live controller by discover_unifi_iac.py.
+# Each entry pins its live id (exact, efficient no-op). Edit values to
+# change config; drop the id to make an entry portable to a new site.
+unifi_policies:
+- id: 16e826be-d79d-47bb-929c-bf25cce629cc
+  enabled: true
+  name: Allow all nebula
+  description: iac:allow-all-nebula-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: e7d5cfb8-cca9-44f5-9217-32e94f7cdc22
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: beabddbf-1ff2-42d5-9d45-0e3640b2f25d
+  enabled: true
+  name: Allow All to Windows
+  description: iac:allow-all-to-windows-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 622cffa4-6350-41ad-9225-cb33a8cc4abf
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 3dfbe82d-7345-461f-8198-68731b5581f3
+  enabled: true
+  name: Allow Connections to IPA
+  description: iac:allow-connections-to-ipa-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7f6409fa-8689-4e65-8e66-cd1787c4de78
+        matchOpposite: false
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 14ea487e-638e-4069-b0f4-a593820d81a5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 68174548-3d81-44f4-ae5e-3d264b118252
+  enabled: false
+  name: Allow Internal to AUX
+  description: iac:allow-internal-to-aux
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 990f6c72-a376-434d-91ca-04531d4b43fb
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-8
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 88326c1a-6011-4daa-b720-70bec28632be
+  enabled: true
+  name: Allow Internal
+  description: iac:allow-internal
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 5d573b34-1774-423c-9ad1-856486d4ab59
+  enabled: false
+  name: Allow Multicat IOT Wireless
+  description: iac:allow-multicat-iot-wireless
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: IGMP
+      matchOpposite: false
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: f84b4aa3-2c39-4630-9de9-5c45370e2cf5
+  enabled: false
+  name: Allow Multicat IOT Wired
+  description: iac:allow-multicat-iot-wired
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: IGMP
+      matchOpposite: false
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: 40cd75bc-5ad9-44b3-abfc-ef1593108096
+  enabled: true
+  name: Music Multicast to Wired
+  description: iac:music-multicast-to-wired-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 6f038839-bef3-4807-8afe-54b71e897182
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: fa98f0c3-788f-4e34-9e58-566b40df8aa4
+  enabled: true
+  name: Music Multicast to Wireless
+  description: iac:music-multicast-to-wireless
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 6f038839-bef3-4807-8afe-54b71e897182
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7109181b-99a3-4a4a-ac57-1c1a86879952
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 49d0a6ad-ee7d-46aa-94a4-affc064e3f48
+  enabled: true
+  name: Allow gemini
+  description: iac:allow-gemini-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 860509ec-a8ad-4631-9699-dcb242e98879
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- id: ae4d36ae-3fe8-4fce-9e63-6390e8b2b515
+  enabled: false
+  name: Allow all to MQTT
+  description: iac:allow-all-to-mqtt-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: f28ebb28-5e7d-4d56-9822-5c7ca58b0754
+  enabled: false
+  name: Allow gnome
+  description: iac:allow-gnome-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 4705b8cb-cf8d-4140-a664-ac3d98711aba
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-6
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 9b4ec71e-f80c-416c-9560-7dae1279c5eb
+  enabled: true
+  name: Allow Wired to Omega
+  description: iac:allow-wired-to-omega
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7942ecc2-72d1-463b-94b4-4211daefbc44
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 1b71c986-13bf-4c59-a8e1-3fde2d9d0fac
+  enabled: true
+  name: Allow https nomad Copy
+  description: iac:allow-https-nomad-copy
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7f6409fa-8689-4e65-8e66-cd1787c4de78
+        matchOpposite: false
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: a2f33eb0-c6ff-4c91-9c1c-430ae6fb1921
+  enabled: false
+  name: Allow https nomad
+  description: iac:allow-https-nomad
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 2d4ce721-7c52-455f-9b2e-2b4dff9dbf83
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-5
+  action:
+    type: BLOCK
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 9d8c6ad0-2342-45a1-bcc8-295d66486343
+  enabled: true
+  name: Allow All to printserver
+  description: iac:allow-all-to-printserver
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.62
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 631
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 46c63592-8c96-4ac3-8027-91e22f577976
+  enabled: true
+  name: Allow Internal to ingress.starnix.net
+  description: ''
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 80
+        - type: PORT_NUMBER
+          value: 443
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 64cbfc8c-f315-479f-90ec-8bc21377e4f3
+  enabled: true
+  name: Allow Internal to ingress
+  description: iac:allow-internal-to-ingress
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: b7a42c1e-ae27-4774-8018-3f406d86abae
+  enabled: true
+  name: Block TikTok
+  description: iac:block-tiktok
+  action:
+    type: BLOCK
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 9e52f051-e12a-4990-8c96-c9366ba50af1
+        - 7109181b-99a3-4a4a-ac57-1c1a86879952
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: DOMAIN
+      domainFilter:
+        type: DOMAINS
+        domains:
+        - www.tiktok.com
+        - tiktok.com
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: b68c2b28-76ec-449f-95e1-0cf0445c84ab
+  enabled: true
+  name: Allow all nebula
+  description: iac:allow-all-nebula
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: e7d5cfb8-cca9-44f5-9217-32e94f7cdc22
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 6a87be54-9a46-4b1e-807f-4ba602c62bf5
+  enabled: true
+  name: Allow All to Windows
+  description: iac:allow-all-to-windows-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 622cffa4-6350-41ad-9225-cb33a8cc4abf
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 63d4038e-1a32-45f8-bb8b-b08571bfe24d
+  enabled: true
+  name: Allow Connections to IPA
+  description: iac:allow-connections-to-ipa-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7f6409fa-8689-4e65-8e66-cd1787c4de78
+        matchOpposite: false
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 14ea487e-638e-4069-b0f4-a593820d81a5
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 669b829d-97c9-4123-ba97-b18ec22bec8b
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: fe1ebefe-a4e2-488f-a660-3e89558fbced
+  enabled: true
+  name: Allow Internal
+  description: iac:allow-internal-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: d44b6e1d-fda3-4f92-8b70-5def61ba16f7
+  enabled: true
+  name: Music Multicast to Wired
+  description: iac:music-multicast-to-wired-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 6f038839-bef3-4807-8afe-54b71e897182
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 4fe1d17f-5f52-4fd6-bac8-07e7d016599d
+  enabled: true
+  name: Allow gemini
+  description: iac:allow-gemini-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 860509ec-a8ad-4631-9699-dcb242e98879
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- id: c4b828bd-566d-486c-b06b-e04ce57a77da
+  enabled: false
+  name: Allow all to MQTT
+  description: iac:allow-all-to-mqtt-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: bd37952a-5028-44e7-8881-db5caf9ccfda
+  enabled: false
+  name: Allow gnome
+  description: iac:allow-gnome-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 868fadb9-935c-430b-b1c6-57689ee9c127
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 80eaa9f4-6b75-445b-af0c-60308165fc5b
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: b4232df6-445a-40c4-b87d-4d0a4acd54f1
+  enabled: true
+  name: Allow DNS
+  description: iac:allow-dns-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: d14fdba9-7e1e-45e4-ae46-3dcb45fc9153
+  enabled: true
+  name: Allow out for Omega
+  description: iac:allow-out-for-omega
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7942ecc2-72d1-463b-94b4-4211daefbc44
+        matchOpposite: false
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 09092547-989c-46c3-8193-ca0eafd442e8
+  enabled: false
+  name: Block Roblox IPs (AS22697)
+  description: iac:block-roblox-as22697
+  action:
+    type: BLOCK
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 2f1e49c0-11fe-4be3-bdec-3d17859cb811
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 7e35899b-6e72-47e7-b24b-1cf289ea6af5
+  enabled: true
+  name: Allow From Bair mac
+  description: iac:allow-from-bair-mac-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 29039c40-b494-4f3f-97a3-03bc7a6f21c5
+  enabled: false
+  name: Allow Plex
+  description: iac:allow-plex-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.69
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: d858c00c-ae9c-49a7-93b7-a1fd3220316a
+  enabled: true
+  name: Allow tftp
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 69
+      matchOpposite: false
+  logging_enabled: false
+- id: 582c7b25-9a66-43f6-8567-c91d4eb17a52
+  enabled: false
+  name: Allow ipxe
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds: []
+        matchOpposite: false
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 80
+      matchOpposite: false
+  logging_enabled: false
+- id: d96e0050-6ae4-4881-bda5-fc8e1802077e
+  enabled: true
+  name: Allow AppleTV
+  description: iac:allow-appletv
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.156
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: dd66e708-02fe-4c7f-9f92-77724f5aff6a
+  enabled: true
+  name: Allow all nebula
+  description: iac:allow-all-nebula-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: e7d5cfb8-cca9-44f5-9217-32e94f7cdc22
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: a62201e4-488c-464b-8d19-7630731a121a
+  enabled: true
+  name: Allow All to Windows
+  description: iac:allow-all-to-windows
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 622cffa4-6350-41ad-9225-cb33a8cc4abf
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 8af0812a-b3bf-495a-8e0a-f2bc0c96efb5
+  enabled: true
+  name: Allow Connections to IPA
+  description: iac:allow-connections-to-ipa
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7f6409fa-8689-4e65-8e66-cd1787c4de78
+        matchOpposite: false
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 14ea487e-638e-4069-b0f4-a593820d81a5
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 66a448c4-0ae4-4adf-9ff0-bc9c2ce308db
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 8a0d065d-1653-40dc-9ae9-8a821a6f7f0f
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-7
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: bb986bd6-826d-4825-be3e-9bc557c6274f
+  enabled: true
+  name: Allow Internal
+  description: iac:allow-internal-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 29e72152-451d-4816-af14-10dc2a194881
+  enabled: true
+  name: Music Multicast to Wired
+  description: iac:music-multicast-to-wired
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 6f038839-bef3-4807-8afe-54b71e897182
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: fdc76953-a666-4ee6-9dd2-2c05c8a6e4b2
+  enabled: true
+  name: Allow gemini
+  description: iac:allow-gemini
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 860509ec-a8ad-4631-9699-dcb242e98879
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- id: 6c1ab427-b411-43ed-b2ac-b49794967502
+  enabled: false
+  name: Allow all to MQTT
+  description: iac:allow-all-to-mqtt-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: b51d6b6c-4266-49c6-b18b-17dccc1786ca
+  enabled: false
+  name: Allow gnome
+  description: iac:allow-gnome-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 409e12ca-0470-4f6f-9861-e6b7fd2b8175
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: cd3a094d-2a24-4963-96f1-6fde36d3700e
+  enabled: true
+  name: Allow all nebula
+  description: iac:allow-all-nebula-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: e7d5cfb8-cca9-44f5-9217-32e94f7cdc22
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 3e85787d-9049-4bbd-90c8-d861ebee845c
+  enabled: true
+  name: Allow All to Windows
+  description: iac:allow-all-to-windows-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 622cffa4-6350-41ad-9225-cb33a8cc4abf
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: d9216d9d-d897-41d3-8f3c-4c6fadccc842
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-6
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 1bda45ae-afc9-4263-8638-a1a6dc1e5543
+  enabled: true
+  name: Allow Internal
+  description: iac:allow-internal-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 8db55fe9-a9a2-4238-86ca-b903fb14d94e
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 15cb07f5-dc19-4ed1-8f29-a246e082c1b6
+  enabled: true
+  name: Music Multicast to Wired
+  description: iac:music-multicast-to-wired-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 6f038839-bef3-4807-8afe-54b71e897182
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 39f77ca6-469c-493f-a62c-2f130131e29f
+  enabled: true
+  name: Allow gemini
+  description: iac:allow-gemini-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 860509ec-a8ad-4631-9699-dcb242e98879
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 51dac638-c7d1-49a5-a5a0-d514265d050e
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: NAMED_PROTOCOL
+      protocol:
+        name: TCP
+      matchOpposite: false
+  logging_enabled: false
+- id: 80b2ae0e-be19-40c0-8f36-5094ddf21e8a
+  enabled: false
+  name: Allow all to MQTT
+  description: iac:allow-all-to-mqtt
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.52
+  ip_protocol_scope:
+    ipVersion: IPV4
+  ipsec_filter: MATCH_ENCRYPTED
+  logging_enabled: false
+- id: 1cbb841e-a534-456c-971e-e880b0bcb219
+  enabled: false
+  name: Allow gnome
+  description: iac:allow-gnome
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 00e451c9-27ae-4617-8ef1-f7e1de63e227
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-7
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        matchOpposite: false
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 3909b8f0-b440-4a08-8911-2f23d3906c45
+  enabled: false
+  name: Allow all to IoT vlan
+  description: iac:allow-all-to-iot-vlan
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: true
+- id: f2b1dc08-0639-4876-9825-5f8154a9cbea
+  enabled: true
+  name: Allow all to dmz
+  description: iac:allow-all-to-dmz
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 1b25936a-0f6d-41f3-8bfc-f4a031f1840c
+  enabled: true
+  name: Wireless to DMZ
+  description: iac:wireless-to-dmz
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 7109181b-99a3-4a4a-ac57-1c1a86879952
+        matchOpposite: false
+  destination:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 3ec125f4-06ca-4c23-a00a-48d4bc0d4151
+  enabled: true
+  name: Wifi to AUX
+  description: iac:wifi-to-aux
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 9e52f051-e12a-4990-8c96-c9366ba50af1
+        - 2f33f37a-3cbe-4fa1-921a-612cc65e0b73
+        - 7942ecc2-72d1-463b-94b4-4211daefbc44
+        - 7109181b-99a3-4a4a-ac57-1c1a86879952
+        matchOpposite: false
+  destination:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+    trafficFilter:
+      type: NETWORK
+      networkFilter:
+        networkIds:
+        - 165474aa-abfa-4bcc-a5d3-3eba981ec525
+        matchOpposite: false
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: e52b5917-3ec3-4d3c-aeeb-99c1ac4c0f5e
+  enabled: true
+  name: Allow all to restricted
+  description: iac:allow-all-to-restricted
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  destination:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: b9fed723-785b-4cf6-9e26-4053389bf37b
+  enabled: true
+  name: Drop incoming http
+  description: iac:drop-incoming-http-2
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 0014224e-8ef3-41bb-8178-01be711216e1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 04ae9006-3077-4cc8-941c-1e7b59e7e61d
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: ae1afa09-be17-49ee-8801-872eb7a2a064
+  enabled: true
+  name: Drop incoming http
+  description: iac:drop-incoming-http-4
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 0014224e-8ef3-41bb-8178-01be711216e1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: bcdc23b4-85b9-4e41-b94e-13e00065c874
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: d2ca4e2e-19e8-4ba5-ad85-b1c064f951e3
+  enabled: true
+  name: Allow DNS
+  description: iac:allow-dns-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: b621e40f-4990-463b-8e51-1a67de62e1d6
+  enabled: true
+  name: Allow Rocket
+  description: iac:allow-rocket
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 3c7e17d2-d382-4f89-afc3-5e417c2241dc
+  enabled: true
+  name: Drop incoming http
+  description: iac:drop-incoming-http-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 0014224e-8ef3-41bb-8178-01be711216e1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 86d6d142-b03b-4129-9e32-21e7e1e37918
+  enabled: true
+  name: Drop incoming http
+  description: iac:drop-incoming-http
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  destination:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: PORT
+      portFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 0014224e-8ef3-41bb-8178-01be711216e1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 624b7eab-7dbc-47dc-99eb-39412520a3cb
+  enabled: true
+  name: Block Traffic from 128.116.95.3 to 172.16.5.245
+  description: iac:block-traffic-from-128-116-95-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.95.3
+  destination:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: bbd5c477-69e0-461d-b0c2-445631cbf7c4
+  enabled: true
+  name: Block Traffic from 128.116.48.3 to 172.16.5.245
+  description: iac:block-traffic-from-128-116-48-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.48.3
+  destination:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 41298fd0-85fb-4024-a213-2fa906425510
+  enabled: true
+  name: Block Traffic from 128.116.127.3 to 172.16.5.245
+  description: iac:block-traffic-from-128-116-127-3-to-172-16-5-245
+  action:
+    type: BLOCK
+  source:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.127.3
+  destination:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 121222b7-a101-42d0-a6ae-a0a487f2af0c
+  enabled: true
+  name: Allow Vpn to internal DNS
+  description: iac:vpn-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 442f0435-0c09-4c0a-b64d-01d7dcc819e5
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 41198d3b-9e01-4bdb-9e77-6e0190634dbd
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-8
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: c766d836-8088-44bf-a1a5-7a14c7956e64
+  enabled: true
+  name: Allow DNS
+  description: iac:allow-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 3fade7aa-2fe4-4d58-8c53-352359e23a27
+  enabled: true
+  name: Allow From Bair mac
+  description: iac:allow-from-bair-mac
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.146
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 60cc066e-99d9-48b3-9178-3ac740a4a9dd
+  enabled: true
+  name: Allow tftp
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.28
+  ip_protocol_scope:
+    ipVersion: IPV4
+    protocolFilter:
+      type: PROTOCOL_NUMBER
+      protocolNumber: 69
+      matchOpposite: false
+  logging_enabled: false
+- id: 7c9d1683-e523-47ed-9ded-9a4f64472151
+  enabled: true
+  name: Allow AppleTV
+  description: iac:allow-appletv-2
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 605a356b-2f9f-44a2-a4be-49366d206d7b
+  destination:
+    zoneId: 86b07b5c-cd36-4440-ad7d-7f690d4abd47
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.156
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: a4ceabac-9b32-4410-aa57-527cb6ace05d
+  enabled: true
+  name: Allow Hotspot to internal DNS
+  description: iac:hotspot-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 442f0435-0c09-4c0a-b64d-01d7dcc819e5
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: bd4d0a11-01fe-4883-9a5d-2e6553544846
+  enabled: true
+  name: Allow WG
+  description: iac:allow-wg-5
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 96ff2d69-3ea5-4c7c-916b-ec5b13a84270
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 2b1f2319-9d52-49e4-b8ec-6da58c1d3b7e
+  enabled: true
+  name: Allow DNS
+  description: iac:allow-dns-3
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 7b896930-3b7a-4edd-a911-28e5d86b442f
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 1.1.1.1
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 92fb644f-1d76-404c-afe4-c5c64b5d4350
+  enabled: true
+  name: Allow to nomad
+  description: iac:allow-to-nomad
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.86
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 443
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: ff874e2b-6341-46bd-a92b-8f3ace44e082
+  enabled: true
+  name: Allow Plex
+  description: iac:allow-plex-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.169
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 32400
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 1e2b9ce2-51f3-466b-a238-7a19908cb4e5
+  enabled: false
+  name: Allow MQTT
+  description: iac:allow-mqtt
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.203
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 1883
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 12faa0ec-0c36-40df-b63a-22c0fcc0d1a5
+  enabled: true
+  name: DHCP test
+  description: iac:dhcp-test
+  action:
+    type: BLOCK
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.4.67
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: e810c846-a164-4ea6-b1aa-f63eb8c5398b
+  enabled: true
+  name: Allow all to rocket
+  description: iac:allow-all-to-rocket
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.35
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 3d0bec7b-5191-4a29-aa60-fbf090cfb5e6
+  enabled: true
+  name: DHCP
+  description: iac:dhcp
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.141
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 88f113a5-f548-4fee-80d9-2a73b5b674fb
+  enabled: true
+  name: Allow Connections to IPA
+  description: iac:allow-connections-to-ipa-4
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.24
+  ip_protocol_scope:
+    ipVersion: IPV4
+  logging_enabled: false
+- id: 08e602e2-95ff-4b2b-a3c9-225d03b1488f
+  enabled: true
+  name: Print
+  description: iac:print
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.62
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 631
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: c443deb4-12a3-4c45-b801-999f90302192
+  enabled: true
+  name: Allow all FreeBSD/Bastille
+  description: iac:allow-all-freebsd-bastille
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 4c319670-3266-4cd3-ad41-09e96277d4dc
+  enabled: true
+  name: Allow to unbound
+  description: iac:allow-to-unbound
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: ea6a2df3-69eb-48f4-a72d-eedb7236ebd2
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.53
+      portFilter:
+        type: PORTS
+        matchOpposite: false
+        items:
+        - type: PORT_NUMBER
+          value: 53
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: b9e4b112-5cdc-45e5-b413-16b067334524
+  enabled: true
+  name: Allow Restricted to Ingress
+  description: iac:allow-restricted-to-ingress
+  action:
+    type: ALLOW
+    allowReturnTraffic: true
+  source:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.7.207
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 6368d0e6-f36f-4654-ba35-73e259cfc89e
+  enabled: true
+  name: Allow Restricted to internal DNS
+  description: iac:restricted-internal-dns
+  action:
+    type: ALLOW
+    allowReturnTraffic: false
+  source:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+  destination:
+    zoneId: 08803f57-0793-4f45-9239-7f74fc1f0ce5
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        matchOpposite: false
+        trafficMatchingListId: 442f0435-0c09-4c0a-b64d-01d7dcc819e5
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: c2ae5c20-3956-49bb-b3a8-c2cd84470bc0
+  enabled: true
+  name: Block Traffic from 172.16.5.245 to 128.116.95.3
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-95-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.95.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: be3e0900-d075-42a8-a898-0f6ba0e9f6a9
+  enabled: true
+  name: Block Traffic from 172.16.5.245 to 128.116.48.3
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-48-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.48.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- id: 121ded32-2393-4a74-a511-f0f9d34985a1
+  enabled: true
+  name: Block Traffic from 172.16.5.245 to 128.116.127.3
+  description: iac:block-traffic-from-172-16-5-245-to-128-116-127-3
+  action:
+    type: BLOCK
+  source:
+    zoneId: 53432a66-51c0-4f3f-b226-02aac511a439
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.245
+  destination:
+    zoneId: 6cd86536-5c40-4339-a4d5-2f587e6e6955
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 128.116.127.3
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false

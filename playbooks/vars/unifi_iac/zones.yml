@@ -1,0 +1,8 @@
+# zones.yml -- generated from the live controller by discover_unifi_iac.py.
+# Each entry pins its live id (exact, efficient no-op). Edit values to
+# change config; drop the id to make an entry portable to a new site.
+unifi_zones:
+- id: 53432a66-51c0-4f3f-b226-02aac511a439
+  name: Restricted
+  network_ids:
+  - efb6ea9e-f402-4afa-af5f-420a39f6b3d5
