@@ -1,6 +1,6 @@
 # dhcp.yml -- generated from the live controller by discover_unifi_iac.py.
-# Each entry pins its live id (exact, efficient no-op). Edit values to
-# change config; drop the id to make an entry portable to a new site.
+# Names only; cross-references resolve at play time via the *_ids maps
+# that unifi_iac.yml builds. Matched by name -- edit values freely.
 unifi_dhcp:
 - name: Management
   dns_servers:

@@ -3,16 +3,18 @@
 #
 # Manages the zone-based firewall (groups, zones, policies, ordering), networks,
 # and per-network DHCP options through the official v1 Integration API (and the
-# classic API for DHCP). The vars under vars/unifi_iac/ were reverse-engineered
-# from the live controller, so a run against the current controller is a no-op;
-# edit the vars to change config.
+# classic API for DHCP). The vars under vars/unifi_iac/ are name-based; this
+# play first builds name->id resolution maps from the controller so the vars
+# stay free of UUIDs. Reverse-engineered from the live controller, so a run
+# against the current controller is a no-op; edit the vars to change config.
 #
 #   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml --check --diff
 #   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_iac.yml
 #
 # NOTE: this manages the SAME firewall as roles/unifi_firewall (the v2
-# reconciler). Treat ONE of them as the source of truth -- this is the migration
-# path off the reconciler. Check-mode (--check) never writes and is always safe.
+# reconciler), which enforces the original policy names. Treat ONE of them as
+# the source of truth -- this is the migration path off the reconciler.
+# Check-mode (--check) never writes and is always safe.
 - name: UniFi as code
   hosts: localhost
   connection: local
@@ -37,9 +39,53 @@
       api_key: "{{ unifi_api_key }}"
       validate_certs: "{{ unifi_validate_certs }}"
   tasks:
+    - name: Build name-to-id resolution maps from the controller
+      block:
+        - name: Resolve the site id
+          starnix.unifi.unifi_site_info:
+          register: _info
+
+        - name: Set the site API base
+          ansible.builtin.set_fact:
+            _api: >-
+              https://{{ unifi_host }}/proxy/network/integration/v1/sites/{{ _info.sites[0].id }}
+
+        - name: Fetch zones, lists, and networks
+          ansible.builtin.uri:
+            url: "{{ _api }}/{{ item }}?limit=200"
+            headers:
+              X-API-KEY: "{{ unifi_api_key }}"
+            validate_certs: "{{ unifi_validate_certs }}"
+          loop:
+            - firewall/zones
+            - traffic-matching-lists
+            - networks
+          register: _ref
+          check_mode: false  # read-only lookup; must run even under --check
+
+        - name: Fetch policies (paginated)
+          ansible.builtin.uri:
+            url: "{{ _api }}/firewall/policies?offset={{ item }}&limit=200"
+            headers:
+              X-API-KEY: "{{ unifi_api_key }}"
+            validate_certs: "{{ unifi_validate_certs }}"
+          loop: [0, 200, 400]
+          register: _polpages
+          check_mode: false  # read-only lookup; must run even under --check
+
+        - name: Build the resolution maps
+          ansible.builtin.set_fact:
+            zone_ids: "{{ _ref.results[0].json.data | items2dict(key_name='name', value_name='id') }}"
+            list_ids: "{{ _ref.results[1].json.data | items2dict(key_name='name', value_name='id') }}"
+            network_ids: "{{ _ref.results[2].json.data | items2dict(key_name='name', value_name='id') }}"
+            policy_ids: >-
+              {{ _polpages.results | map(attribute='json.data') | flatten
+                 | selectattr('metadata.origin', 'eq', 'USER_DEFINED') | list
+                 | items2dict(key_name='name', value_name='id') }}
+
     - name: Traffic-matching lists (address/port groups)
       starnix.unifi.unifi_firewall_group:
-        id: "{{ item.id | default(omit) }}"
+        id: "{{ list_ids[item.name] | default(omit) }}"
         name: "{{ item.name }}"
         type: "{{ item.type }}"
         items: "{{ item['items'] }}"
@@ -49,7 +95,7 @@
 
     - name: Firewall zones
       starnix.unifi.unifi_firewall_zone:
-        id: "{{ item.id | default(omit) }}"
+        id: "{{ zone_ids[item.name] | default(omit) }}"
         name: "{{ item.name }}"
         network_ids: "{{ item.network_ids | default([]) }}"
       loop: "{{ unifi_zones }}"
@@ -58,7 +104,7 @@
 
     - name: Networks
       starnix.unifi.unifi_network:
-        id: "{{ item.id | default(omit) }}"
+        id: "{{ network_ids[item.name] | default(omit) }}"
         name: "{{ item.name }}"
         management: "{{ item.management }}"
         enabled: "{{ item.enabled }}"
@@ -70,7 +116,7 @@
 
     - name: Firewall policies
       starnix.unifi.unifi_firewall_policy:
-        id: "{{ item.id | default(omit) }}"
+        id: "{{ policy_ids[item.name] | default(omit) }}"
         name: "{{ item.name }}"
         enabled: "{{ item.enabled }}"
         description: "{{ item.description | default(omit) }}"
@@ -88,13 +134,13 @@
 
     - name: Firewall policy ordering
       starnix.unifi.unifi_firewall_policy_order:
-        source_zone_id: "{{ item.source_zone_id }}"
-        destination_zone_id: "{{ item.destination_zone_id }}"
+        source_zone_id: "{{ item.source_zone }}"
+        destination_zone_id: "{{ item.destination_zone }}"
         before_system_defined: "{{ item.before_system_defined | default(omit) }}"
         after_system_defined: "{{ item.after_system_defined | default(omit) }}"
       loop: "{{ unifi_ordering }}"
       loop_control:
-        label: "{{ item.source_zone_id }} -> {{ item.destination_zone_id }}"
+        label: "{{ item.source_zone }} -> {{ item.destination_zone }}"
 
     - name: Per-network DHCP options
       starnix.unifi.unifi_network_dhcp:

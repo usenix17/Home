@@ -18,11 +18,31 @@ the current controller is a **no-op**. Edit the values to change config.
 | `ordering.yml` | policy evaluation order | `unifi_firewall_policy_order` |
 | `dhcp.yml` | per-network DHCP (DNS/NTP/...) | `unifi_network_dhcp` |
 
-Each entry pins its live `id` so lookups are an exact, efficient GET-by-id. Drop
-the `id` from an entry to make it portable to a fresh controller (matched by
-name instead). Opaque objects (`action`, `source`, `destination`,
-`ip_protocol_scope`) are passed through verbatim; obtain new shapes by
-inspecting an existing policy.
+## How references work (no UUIDs)
+
+The vars are **name-based** -- there are no UUIDs. Resources are matched by their
+(unique) names, and every cross-reference is written as a name and resolved at
+play time. The playbook first queries the controller and builds four maps --
+`zone_ids`, `list_ids`, `network_ids`, `policy_ids` (name to id) -- so a policy
+reads, for example:
+
+```yaml
+- name: Allow all nebula (Internal->Internal)
+  source:
+    zoneId: "{{ zone_ids['Internal'] }}"
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: TRAFFIC_MATCHING_LIST
+        trafficMatchingListId: "{{ list_ids['Nebula'] }}"
+```
+
+Because policies are matched by name, every policy name must be unique. The v1
+Policy Engine expands each logical rule into one policy per zone-pair, so the
+duplicates were renamed with a `(Source->Destination)` suffix (e.g.
+`Allow DNS (Internal->External)`). The opaque objects (`action`, `source`,
+`destination`, `ip_protocol_scope`) are otherwise passed through verbatim; get a
+new shape by inspecting an existing policy.
 
 ## Usage
 
