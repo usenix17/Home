@@ -1,0 +1,74 @@
+---
+# graylog jail (Bastille, VNET) -- reproduces the monolithic iocage `graylog` jail:
+# Graylog + MongoDB + OpenSearch in one jail. Data is PRE-STAGED on datasets in
+# Phase 0 and nullfs-mounted; this role never moves the ~764 GB OpenSearch tree.
+
+graylog_jail_name: "graylog"
+graylog_jail_ip: "192.168.1.151"
+graylog_jail_cidr: "24"
+graylog_jail_gateway: "192.168.1.1"
+
+graylog_release: "{{ bastille_release | default('15.0-RELEASE') }}"
+bastille_prefix: "{{ bastille_prefix | default('/usr/local/bastille') }}"
+bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
+graylog_jail_root: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}/root"
+graylog_jail_dir: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}"
+
+# Package versions to reproduce (data-format parity). NOTE: opensearch210 (2.10)
+# is EOL and may be absent from the FreeBSD 15 repo -- override graylog_opensearch_pkg
+# with the available 2.x build (2.10 indices are read by newer 2.x without reindex).
+graylog_opensearch_pkg: "opensearch210"
+graylog_java_pkg: "openjdk21"
+graylog_packages:
+  - graylog
+  - mongodb70
+  - mongodb-tools
+  - "{{ graylog_opensearch_pkg }}"
+  - "{{ graylog_java_pkg }}"
+  - curl                              # used for service readiness checks
+
+# Service accounts (verified) -- must match on-disk data ownership on the datasets.
+graylog_opensearch_uid: 855
+graylog_opensearch_gid: 855
+graylog_mongodb_uid: 922
+graylog_mongodb_gid: 922
+graylog_graylog_uid: 848
+graylog_graylog_gid: 848
+
+# Pre-staged data (nullfs). Stage these from the STOPPED old jail in Phase 0.
+graylog_os_data_src: "/mnt/Store/graylog-opensearch"   # ~764 GB
+graylog_os_data_dst: "/var/db/opensearch"
+graylog_mongo_data_src: "/mnt/Store/graylog-mongodb"   # ~207 MB
+graylog_mongo_data_dst: "/var/db/mongodb"
+graylog_data_src: "/mnt/Store/graylog-data"            # ~26 MB (message journal etc.)
+graylog_data_dst: "/var/db/graylog"
+
+# Graylog node identity -- carried from the old jail (F-J4). Fresh node-id changes
+# index ranges / input bindings, so keep the original.
+graylog_node_id: "c9dbffc7-c0c1-4761-8a2f-7ff041d3b7f1"
+graylog_node_id_file: "/usr/local/etc/graylog/server/node-id"
+
+# Secrets -- provide via ansible-vault. Do NOT hardcode real values here.
+# graylog_root_password_sha2 must be the INTENDED admin hash from the old jail
+# (the old config had a duplicate line whose last value was sha256("password") --
+# do NOT carry that one). graylog_password_secret must EQUAL the old value or
+# encrypted fields/tokens will not decrypt.
+graylog_password_secret: "{{ vault_graylog_password_secret | default('CHANGE_ME_IN_VAULT') }}"
+graylog_root_password_sha2: "{{ vault_graylog_root_password_sha2 | default('CHANGE_ME_IN_VAULT') }}"
+
+# Graylog server settings (reproduced).
+graylog_conf_path: "/usr/local/etc/graylog/graylog.conf"
+graylog_http_bind_address: "0.0.0.0:9000"
+graylog_http_publish_uri: "http://192.168.1.151:9000/"
+graylog_elasticsearch_hosts: "http://127.0.0.1:9200"
+graylog_mongodb_uri: "mongodb://localhost/graylog"
+graylog_min_mem: "2g"
+graylog_max_mem: "2g"
+
+# OpenSearch settings (reproduced).
+graylog_os_cluster_name: "graylog"
+graylog_os_node_name: "graylog-os-1"
+graylog_os_heap: "2g"
+graylog_os_java_home: "/usr/local/openjdk21"
+
+graylog_verify: true

@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: bastille_minio
+  author: starnix
+  description: MinIO S3 object-storage jail on Bastille (FreeBSD 15), migrated from iocage.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: FreeBSD
+      versions:
+        - "15"
+
+# The host must have Bastille installed/configured and the release bootstrapped.
+dependencies:
+  - role: bastille

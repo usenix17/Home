@@ -1,0 +1,11 @@
+---
+# Deploy the certbot (Let's Encrypt / DNS-01 Cloudflare) jail on mimir.
+#
+# Prereqs: FreeBSD 15 host with Bastille; /etc/letsencrypt staged at
+# certbot_le_src; vault_certbot_cloudflare_api_token provided via ansible-vault.
+
+- name: "certbot jail on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "bastille_certbot"

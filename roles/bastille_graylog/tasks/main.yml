@@ -1,0 +1,311 @@
+---
+# Build/converge the monolithic graylog Bastille jail (Graylog + MongoDB +
+# OpenSearch) on FreeBSD 15. Data is PRE-STAGED on datasets in Phase 0 and
+# nullfs-mounted here -- this role never copies the ~764 GB OpenSearch tree.
+
+# --- Preconditions -----------------------------------------------------------
+
+- name: "Verify the staged data sources exist on the host"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: graylog_src_stat
+  loop:
+    - "{{ graylog_os_data_src }}"
+    - "{{ graylog_mongo_data_src }}"
+    - "{{ graylog_data_src }}"
+
+- name: "Fail if any staged data source is missing"
+  ansible.builtin.assert:
+    that: item.stat.exists and item.stat.isdir
+    fail_msg: >-
+      {{ item.item }} not found. Stage the graylog data (OpenSearch, MongoDB,
+      graylog data_dir) onto datasets from the STOPPED old jail in Phase 0 before
+      running this role.
+    quiet: true
+  loop: "{{ graylog_src_stat.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+# --- Jail lifecycle ----------------------------------------------------------
+
+- name: "Check whether the jail already exists"
+  ansible.builtin.stat:
+    path: "{{ graylog_jail_dir }}/jail.conf"
+  register: graylog_jail_stat
+
+- name: "Create the graylog VNET jail"
+  ansible.builtin.command: >-
+    bastille create -V {{ graylog_jail_name }} {{ graylog_release }}
+    {{ graylog_jail_ip }}/{{ graylog_jail_cidr }} {{ bastille_network_bridge }}
+  when: not graylog_jail_stat.stat.exists
+  changed_when: true
+
+- name: "Seed jail resolv.conf from the host (if missing)"
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: "{{ graylog_jail_root }}/etc/resolv.conf"
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+    force: false
+
+- name: "Set the default route inside the jail"
+  community.general.sysrc:
+    name: defaultrouter
+    value: "{{ graylog_jail_gateway }}"
+    path: "{{ graylog_jail_root }}/etc/rc.conf"
+
+- name: "Check whether the jail is running"
+  ansible.builtin.command: "jls -j {{ graylog_jail_name }}"
+  register: graylog_jls
+  changed_when: false
+  failed_when: false
+
+- name: "Start the jail"
+  ansible.builtin.command: "bastille start {{ graylog_jail_name }}"
+  when: graylog_jls.rc != 0
+  changed_when: true
+
+# --- Packages + service accounts --------------------------------------------
+
+- name: "Check whether graylog is installed in the jail"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} pkg -N info -e graylog"
+  register: graylog_pkg
+  changed_when: false
+  failed_when: false
+
+- name: "Install the Graylog stack packages in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ graylog_jail_name }}
+    env ASSUME_ALWAYS_YES=yes pkg install -y {{ graylog_packages | join(' ') }}
+  when: graylog_pkg.rc != 0
+  changed_when: true
+
+- name: "Read the service accounts in the jail"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} id {{ item }}"
+  register: graylog_ids
+  changed_when: false
+  loop:
+    - opensearch
+    - mongodb
+    - graylog
+  loop_control:
+    label: "{{ item }}"
+
+- name: "Assert service uids/gids match the on-disk data ownership"
+  ansible.builtin.assert:
+    that:
+      - "'uid=' ~ graylog_opensearch_uid ~ '(' in (graylog_ids.results[0].stdout)"
+      - "'uid=' ~ graylog_mongodb_uid ~ '(' in (graylog_ids.results[1].stdout)"
+      - "'uid=' ~ graylog_graylog_uid ~ '(' in (graylog_ids.results[2].stdout)"
+    fail_msg: >-
+      One or more service uids differ from the staged data ownership
+      (opensearch={{ graylog_opensearch_uid }}, mongodb={{ graylog_mongodb_uid }},
+      graylog={{ graylog_graylog_uid }}). Correct the uids before mounting data.
+    quiet: true
+
+# --- Data (nullfs) -----------------------------------------------------------
+
+- name: "Ensure in-jail data mount targets exist"
+  ansible.builtin.file:
+    path: "{{ graylog_jail_root }}{{ item }}"
+    state: directory
+    mode: "0750"
+  loop:
+    - "{{ graylog_os_data_dst }}"
+    - "{{ graylog_mongo_data_dst }}"
+    - "{{ graylog_data_dst }}"
+
+- name: "Check jail fstab for each data mount"
+  ansible.builtin.command: "grep -F {{ item.dst }} {{ graylog_jail_dir }}/fstab"
+  register: graylog_fstab
+  changed_when: false
+  failed_when: false
+  loop:
+    - { src: "{{ graylog_os_data_src }}", dst: "{{ graylog_os_data_dst }}" }
+    - { src: "{{ graylog_mongo_data_src }}", dst: "{{ graylog_mongo_data_dst }}" }
+    - { src: "{{ graylog_data_src }}", dst: "{{ graylog_data_dst }}" }
+  loop_control:
+    label: "{{ item.dst }}"
+
+- name: "Attach staged data (nullfs) into the jail"
+  ansible.builtin.command: >-
+    bastille mount {{ graylog_jail_name }} {{ item.item.src }} {{ item.item.dst }} nullfs rw 0 0
+  when: item.rc != 0
+  changed_when: true
+  loop: "{{ graylog_fstab.results }}"
+  loop_control:
+    label: "{{ item.item.dst }}"
+
+- name: "Ensure the OpenSearch tmp dir exists"
+  ansible.builtin.file:
+    path: "{{ graylog_jail_root }}{{ graylog_os_data_dst }}/tmp"
+    state: directory
+    mode: "0750"
+    owner: "{{ graylog_opensearch_uid }}"
+    group: "{{ graylog_opensearch_gid }}"
+
+# --- Node identity -----------------------------------------------------------
+
+- name: "Ensure the graylog server config dir exists"
+  ansible.builtin.file:
+    path: "{{ graylog_jail_root }}{{ graylog_node_id_file | dirname }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ graylog_graylog_uid }}"
+    group: "{{ graylog_graylog_gid }}"
+
+- name: "Install the carried graylog node-id"
+  ansible.builtin.copy:
+    content: "{{ graylog_node_id }}\n"
+    dest: "{{ graylog_jail_root }}{{ graylog_node_id_file }}"
+    mode: "0644"
+    owner: "{{ graylog_graylog_uid }}"
+    group: "{{ graylog_graylog_gid }}"
+  register: graylog_nodeid_cfg
+
+# --- Service configuration ---------------------------------------------------
+
+- name: "Configure mongod.conf"
+  ansible.builtin.template:
+    src: mongod.conf.j2
+    dest: "{{ graylog_jail_root }}/usr/local/etc/mongodb.conf"
+    mode: "0644"
+    owner: root
+    group: wheel
+  register: graylog_mongo_cfg
+
+- name: "Configure opensearch.yml"
+  ansible.builtin.template:
+    src: opensearch.yml.j2
+    dest: "{{ graylog_jail_root }}/usr/local/etc/opensearch/opensearch.yml"
+    mode: "0640"
+    owner: root
+    group: "{{ graylog_opensearch_gid }}"
+  register: graylog_os_cfg
+
+- name: "Ensure the OpenSearch jvm.options.d dir exists"
+  ansible.builtin.file:
+    path: "{{ graylog_jail_root }}/usr/local/etc/opensearch/jvm.options.d"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: "{{ graylog_opensearch_gid }}"
+
+- name: "Configure the OpenSearch heap override"
+  ansible.builtin.template:
+    src: heap.options.j2
+    dest: "{{ graylog_jail_root }}/usr/local/etc/opensearch/jvm.options.d/heap.options"
+    mode: "0640"
+    owner: root
+    group: "{{ graylog_opensearch_gid }}"
+  register: graylog_os_heap_cfg
+
+- name: "Configure graylog.conf"
+  ansible.builtin.lineinfile:
+    path: "{{ graylog_jail_root }}{{ graylog_conf_path }}"
+    regexp: "{{ item.re }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { re: '^#?\s*is_leader\s*=', line: "is_leader = true" }
+    - { re: '^#?\s*node_id_file\s*=', line: "node_id_file = {{ graylog_node_id_file }}" }
+    - { re: '^#?\s*password_secret\s*=', line: "password_secret = {{ graylog_password_secret }}" }
+    - { re: '^#?\s*root_password_sha2\s*=', line: "root_password_sha2 = {{ graylog_root_password_sha2 }}" }
+    - { re: '^#?\s*http_bind_address\s*=', line: "http_bind_address = {{ graylog_http_bind_address }}" }
+    - { re: '^#?\s*http_publish_uri\s*=', line: "http_publish_uri = {{ graylog_http_publish_uri }}" }
+    - { re: '^#?\s*elasticsearch_hosts\s*=', line: "elasticsearch_hosts = {{ graylog_elasticsearch_hosts }}" }
+    - { re: '^#?\s*mongodb_uri\s*=', line: "mongodb_uri = {{ graylog_mongodb_uri }}" }
+  loop_control:
+    label: "{{ item.re }}"
+  no_log: true
+  register: graylog_gl_cfg
+
+- name: "Set the in-jail rc.conf service entries"
+  community.general.sysrc:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    path: "{{ graylog_jail_root }}/etc/rc.conf"
+  loop:
+    - { name: "mongod_enable", value: "YES" }
+    - { name: "opensearch_enable", value: "YES" }
+    - { name: "opensearch_env", value: "OPENSEARCH_TMPDIR={{ graylog_os_data_dst }}/tmp" }
+    - { name: "opensearch_java_home", value: "{{ graylog_os_java_home }}" }
+    - { name: "graylogd_enable", value: "YES" }
+    - { name: "graylog_min_mem", value: "{{ graylog_min_mem }}" }
+    - { name: "graylog_max_mem", value: "{{ graylog_max_mem }}" }
+  loop_control:
+    label: "{{ item.name }}"
+
+# --- Ordered start: mongod -> opensearch -> graylogd -------------------------
+
+- name: "Check mongod status"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service mongod status"
+  register: graylog_mongod_status
+  changed_when: false
+  failed_when: false
+
+- name: "Start mongod"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service mongod start"
+  when: graylog_mongod_status.rc != 0
+  changed_when: true
+
+- name: "Restart mongod on config change"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service mongod restart"
+  when: graylog_mongod_status.rc == 0 and graylog_mongo_cfg.changed
+  changed_when: true
+
+- name: "Check opensearch status"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service opensearch status"
+  register: graylog_os_status
+  changed_when: false
+  failed_when: false
+
+- name: "Start opensearch"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service opensearch start"
+  when: graylog_os_status.rc != 0
+  changed_when: true
+
+- name: "Restart opensearch on config change"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service opensearch restart"
+  when: graylog_os_status.rc == 0 and (graylog_os_cfg.changed or graylog_os_heap_cfg.changed)
+  changed_when: true
+
+- name: "Wait for OpenSearch to answer on :9200"
+  ansible.builtin.command: >-
+    bastille cmd {{ graylog_jail_name }}
+    curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9200
+  register: graylog_os_ready
+  until: graylog_os_ready.stdout == "200"
+  retries: 60
+  delay: 5
+  changed_when: false
+
+- name: "Check graylogd status"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd status"
+  register: graylog_gld_status
+  changed_when: false
+  failed_when: false
+
+- name: "Start graylogd"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd start"
+  when: graylog_gld_status.rc != 0
+  changed_when: true
+
+- name: "Restart graylogd on config change"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd restart"
+  when: graylog_gld_status.rc == 0 and (graylog_gl_cfg.changed or graylog_nodeid_cfg.changed)
+  changed_when: true
+
+# --- Verification ------------------------------------------------------------
+
+- name: "Wait for the Graylog API to report healthy"
+  ansible.builtin.uri:
+    url: "http://{{ graylog_jail_ip }}:9000/api/system/lbstatus"
+    status_code: [200, 503]
+  register: graylog_lb
+  until: graylog_lb.status == 200
+  retries: 60
+  delay: 10
+  when: graylog_verify | bool

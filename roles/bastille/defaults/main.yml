@@ -1,0 +1,21 @@
+---
+# Bastille host configuration for mimir (FreeBSD 15 jail host).
+# See docs: mimir TrueNAS -> FreeBSD 15 migration design, section on jails.
+
+# Release the jails are built from. Keep in sync with the host's userland.
+bastille_release: "15.0-RELEASE"
+
+# Filesystem/ZFS layout. On mimir the jails live on the Store pool so they ride
+# the pool import, exactly like the retired iocage jails did.
+bastille_prefix: "/usr/local/bastille"      # bastille_prefix: jail roots at {{ bastille_prefix }}/jails/<name>/root
+bastille_zfs_enable: "YES"
+bastille_zfs_zpool: "Store"                 # pool that backs the jail datasets
+bastille_zfs_prefix: "bastille"             # -> Store/bastille/...
+
+# VNET networking. Jails are L2-bridged onto the EXISTING lagg0 bridge (bridge0),
+# so they get real addresses on 192.168.1.0/24 -- NOT a Bastille-managed NAT bridge.
+bastille_network_bridge: "bridge0"
+
+# bastille.conf keys this role manages (shell-style key="value").
+# The package ships this file under /usr/local/etc/bastille/.
+bastille_conf_path: "/usr/local/etc/bastille/bastille.conf"

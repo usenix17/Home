@@ -1,0 +1,18 @@
+---
+# Deploy the MinIO object-storage jail on mimir (FreeBSD 15, Bastille).
+#
+# Prereqs on the target:
+#   - FreeBSD 15 host with the Store pool imported and mounted at /mnt/Store
+#   - Bucket data present at /mnt/Store/minio (owner uid/gid 473)
+#   - minio_root_password provided via ansible-vault (see group_vars)
+#
+# Usage:
+#   ansible-playbook playbooks/minio.yml
+#   ansible-playbook playbooks/minio.yml --check          # dry run
+#   ansible-playbook playbooks/minio.yml -e minio_verify_buckets=false
+
+- name: "MinIO jail on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "bastille_minio"

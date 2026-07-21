@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+systemLog:
+  destination: file
+  logAppend: true
+  path: {{ graylog_mongo_data_dst }}/mongod.log
+storage:
+  dbPath: {{ graylog_mongo_data_dst }}
+processManagement:
+  timeZoneInfo: /usr/share/zoneinfo
+net:
+  port: 27017
+  bindIp: 127.0.0.1

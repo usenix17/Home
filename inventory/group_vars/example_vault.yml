@@ -4,6 +4,15 @@ pvh_root_pass: CorrectHorseBatteryStaple
 app1password: qwertyuiop
 vendor_api_token: TF1DaAFxfeJ9zcVdE
 
+# mimir jails (storage group). Put the real values in an ansible-vault encrypted
+# file for the storage group, e.g. inventory/group_vars/storage.yml.
+vault_minio_root_password: CorrectHorseBatteryStaple
+vault_certbot_cloudflare_api_token: CorrectHorseBatteryStaple
+# graylog password_secret MUST equal the OLD jail's value or encrypted fields break.
+vault_graylog_password_secret: CorrectHorseBatteryStaple
+# Real sha256 admin hash goes in the encrypted vault, not here.
+vault_graylog_root_password_sha2: REPLACE_WITH_REAL_SHA256
+
 system_users:
   - {
       username: iac,

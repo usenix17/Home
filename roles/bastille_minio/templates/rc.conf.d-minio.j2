@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+# In-jail service config for MinIO (dropped in /etc/rc.conf.d/minio).
+minio_enable="YES"
+minio_user="{{ minio_user }}"
+minio_group="{{ minio_group }}"
+minio_data="{{ minio_data_dst }}"
+minio_address="{{ minio_api_address }}"
+minio_console_address="{{ minio_console_address }}"
+minio_env_file="/usr/local/etc/minio.env"
