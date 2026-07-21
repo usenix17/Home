@@ -1,0 +1,121 @@
+---
+# Build/converge the certbot Bastille jail on a FreeBSD 15 host.
+# Renews the mimir Let's Encrypt cert via DNS-01 (Cloudflare) on a weekly timer.
+
+# --- Preconditions -----------------------------------------------------------
+
+- name: "Verify the staged Let's Encrypt config exists on the host"
+  ansible.builtin.stat:
+    path: "{{ certbot_le_src }}/renewal"
+  register: certbot_le_stat
+
+- name: "Fail if the Let's Encrypt config is not staged"
+  ansible.builtin.assert:
+    that: certbot_le_stat.stat.exists
+    fail_msg: >-
+      {{ certbot_le_src }} does not contain a Let's Encrypt config (no renewal/).
+      Stage it in Phase 0 by copying the old jail's /etc/letsencrypt here.
+
+# --- Jail lifecycle ----------------------------------------------------------
+
+- name: "Check whether the jail already exists"
+  ansible.builtin.stat:
+    path: "{{ certbot_jail_dir }}/jail.conf"
+  register: certbot_jail_stat
+
+- name: "Create the certbot VNET jail"
+  ansible.builtin.command: >-
+    bastille create -V {{ certbot_jail_name }} {{ certbot_release }}
+    {{ certbot_jail_ip }}/{{ certbot_jail_cidr }} {{ bastille_network_bridge }}
+  when: not certbot_jail_stat.stat.exists
+  changed_when: true
+
+- name: "Seed jail resolv.conf from the host (if missing)"
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: "{{ certbot_jail_root }}/etc/resolv.conf"
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+    force: false
+
+- name: "Set the default route inside the jail"
+  community.general.sysrc:
+    name: defaultrouter
+    value: "{{ certbot_jail_gateway }}"
+    path: "{{ certbot_jail_root }}/etc/rc.conf"
+
+- name: "Check whether the jail is running"
+  ansible.builtin.command: "jls -j {{ certbot_jail_name }}"
+  register: certbot_jls
+  changed_when: false
+  failed_when: false
+
+- name: "Start the jail"
+  ansible.builtin.command: "bastille start {{ certbot_jail_name }}"
+  when: certbot_jls.rc != 0
+  changed_when: true
+
+# --- Packages ----------------------------------------------------------------
+
+- name: "Check whether certbot is installed in the jail"
+  ansible.builtin.command: "bastille cmd {{ certbot_jail_name }} pkg -N info -e py311-certbot"
+  register: certbot_pkg
+  changed_when: false
+  failed_when: false
+
+- name: "Install certbot + dns-cloudflare in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ certbot_jail_name }}
+    env ASSUME_ALWAYS_YES=yes pkg install -y {{ certbot_packages | join(' ') }}
+  when: certbot_pkg.rc != 0
+  changed_when: true
+
+# --- Config + credentials ----------------------------------------------------
+
+- name: "Attach the Let's Encrypt config (nullfs) into the jail"
+  ansible.builtin.command: >-
+    bastille mount {{ certbot_jail_name }}
+    {{ certbot_le_src }} {{ certbot_le_dst }} nullfs rw 0 0
+  args:
+    creates: "{{ certbot_jail_root }}{{ certbot_le_dst }}/renewal"
+
+- name: "Install the Cloudflare API credential in the jail"
+  ansible.builtin.template:
+    src: certbot_cloudflare.conf.j2
+    dest: "{{ certbot_jail_root }}{{ certbot_cloudflare_cred_path }}"
+    mode: "0600"
+    owner: root
+    group: wheel
+  no_log: true
+
+- name: "Enable weekly certbot renewal via periodic(8)"
+  community.general.sysrc:
+    name: weekly_certbot_enable
+    value: "{{ certbot_weekly_enable }}"
+    path: "{{ certbot_jail_root }}/etc/periodic.conf"
+
+- name: "Configure the certbot renewal deploy hook"
+  community.general.sysrc:
+    name: weekly_certbot_deploy_hook
+    value: "{{ certbot_deploy_hook }}"
+    state: "{{ 'present' if certbot_deploy_hook | length > 0 else 'absent' }}"
+    path: "{{ certbot_jail_root }}/etc/periodic.conf"
+
+# --- Verification ------------------------------------------------------------
+
+- name: "Verify certbot sees the migrated certificate"
+  ansible.builtin.command: "bastille cmd {{ certbot_jail_name }} certbot certificates"
+  register: certbot_certs
+  changed_when: false
+  when: certbot_verify | bool
+
+- name: "Assert the primary domain certificate is present"
+  ansible.builtin.assert:
+    that: "certbot_primary_domain in certbot_certs.stdout"
+    fail_msg: >-
+      certbot does not list a certificate for {{ certbot_primary_domain }}.
+      Check that {{ certbot_le_src }} was staged from the old jail's /etc/letsencrypt.
+    quiet: true
+  when: certbot_verify | bool

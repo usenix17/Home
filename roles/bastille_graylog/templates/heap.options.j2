@@ -1,0 +1,4 @@
+# {{ ansible_managed }}
+# OpenSearch JVM heap override (jvm.options.d). Keep Xms == Xmx.
+-Xms{{ graylog_os_heap }}
+-Xmx{{ graylog_os_heap }}

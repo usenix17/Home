@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: bastille_graylog
+  author: starnix
+  description: Graylog + MongoDB + OpenSearch jail (Bastille), migrated from iocage.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: FreeBSD
+      versions:
+        - "15"
+
+dependencies:
+  - role: bastille

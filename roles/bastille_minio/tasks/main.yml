@@ -1,0 +1,197 @@
+---
+# Build/converge the MinIO Bastille jail on a FreeBSD 15 host.
+# Idempotent: creates the jail only if missing, and every step is guarded.
+
+# --- Preconditions -----------------------------------------------------------
+
+- name: "Verify the MinIO bucket data source exists on the host"
+  ansible.builtin.stat:
+    path: "{{ minio_data_src }}"
+  register: minio_src
+
+- name: "Fail if the bucket data source is missing"
+  ansible.builtin.assert:
+    that:
+      - minio_src.stat.exists
+      - minio_src.stat.isdir
+    fail_msg: >-
+      {{ minio_data_src }} not found -- is the Store pool imported and mounted at
+      /mnt/Store? MinIO must not be started against an empty path (it would write
+      onto the boot SSD instead of the pool).
+
+# --- Jail lifecycle ----------------------------------------------------------
+
+- name: "Check whether the jail already exists"
+  ansible.builtin.stat:
+    path: "{{ minio_jail_dir }}/jail.conf"
+  register: minio_jail_stat
+
+- name: "Create the MinIO VNET jail (L2-bridged onto {{ bastille_network_bridge }})"
+  ansible.builtin.command: >-
+    bastille create -V {{ minio_jail_name }} {{ minio_release }}
+    {{ minio_jail_ip }}/{{ minio_jail_cidr }} {{ bastille_network_bridge }}
+  when: not minio_jail_stat.stat.exists
+  changed_when: true
+
+- name: "Seed jail resolv.conf from the host (if missing)"
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: "{{ minio_jail_root }}/etc/resolv.conf"
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+    force: false
+
+- name: "Set the default route inside the jail"
+  community.general.sysrc:
+    name: defaultrouter
+    value: "{{ minio_jail_gateway }}"
+    path: "{{ minio_jail_root }}/etc/rc.conf"
+
+- name: "Check whether the jail is running"
+  ansible.builtin.command: "jls -j {{ minio_jail_name }}"
+  register: minio_jls
+  changed_when: false
+  failed_when: false
+
+- name: "Start the jail"
+  ansible.builtin.command: "bastille start {{ minio_jail_name }}"
+  when: minio_jls.rc != 0
+  changed_when: true
+
+# --- Bucket data (nullfs) ----------------------------------------------------
+
+- name: "Ensure the in-jail mount target exists"
+  ansible.builtin.file:
+    path: "{{ minio_jail_root }}{{ minio_data_dst }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+
+- name: "Check the jail fstab for the bucket nullfs mount"
+  ansible.builtin.command: "grep -F {{ minio_data_dst }} {{ minio_jail_dir }}/fstab"
+  register: minio_fstab
+  changed_when: false
+  failed_when: false
+
+- name: "Attach the bucket data (nullfs) into the jail"
+  ansible.builtin.command: >-
+    bastille mount {{ minio_jail_name }}
+    {{ minio_data_src }} {{ minio_data_dst }} nullfs rw 0 0
+  when: minio_fstab.rc != 0
+  changed_when: true
+
+# --- Packages + service account ---------------------------------------------
+
+- name: "Check whether the MinIO package is installed in the jail"
+  ansible.builtin.command: "bastille cmd {{ minio_jail_name }} pkg -N info -e minio"
+  register: minio_pkg
+  changed_when: false
+  failed_when: false
+
+# ASSUME_ALWAYS_YES avoids the interactive pkg-bootstrap prompt on a fresh jail
+# (which would otherwise hang the play).
+- name: "Install MinIO packages in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ minio_jail_name }}
+    env ASSUME_ALWAYS_YES=yes pkg install -y {{ minio_packages | join(' ') }}
+  when: minio_pkg.rc != 0
+  changed_when: true
+
+- name: "Read the minio service account in the jail"
+  ansible.builtin.command: "bastille cmd {{ minio_jail_name }} id {{ minio_user }}"
+  register: minio_id
+  changed_when: false
+
+- name: "Assert minio uid/gid match the on-disk bucket ownership"
+  ansible.builtin.assert:
+    that:
+      - "'uid=' ~ minio_uid ~ '(' in minio_id.stdout"
+      - "'gid=' ~ minio_gid ~ '(' in minio_id.stdout"
+    fail_msg: >-
+      minio account is '{{ minio_id.stdout }}' but the bucket data on Store is owned
+      by {{ minio_uid }}:{{ minio_gid }}. Correct the UID/GID before starting MinIO,
+      otherwise it cannot read/write its own objects on the nullfs mount.
+
+# --- Service configuration ---------------------------------------------------
+
+- name: "Ensure in-jail config directories exist"
+  ansible.builtin.file:
+    path: "{{ minio_jail_root }}{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+  loop:
+    - /usr/local/etc/rc.d
+    - /etc/rc.conf.d
+
+- name: "Install the MinIO rc.d script in the jail"
+  ansible.builtin.template:
+    src: minio.rc.j2
+    dest: "{{ minio_jail_root }}/usr/local/etc/rc.d/minio"
+    mode: "0755"
+    owner: root
+    group: wheel
+  notify: "Restart MinIO in jail"
+
+- name: "Install the MinIO credentials env file in the jail"
+  ansible.builtin.template:
+    src: minio.env.j2
+    dest: "{{ minio_jail_root }}/usr/local/etc/minio.env"
+    mode: "0600"
+    owner: root
+    group: wheel
+  no_log: true
+  notify: "Restart MinIO in jail"
+
+- name: "Install the MinIO rc.conf.d config in the jail"
+  ansible.builtin.template:
+    src: rc.conf.d-minio.j2
+    dest: "{{ minio_jail_root }}/etc/rc.conf.d/minio"
+    mode: "0644"
+    owner: root
+    group: wheel
+  notify: "Restart MinIO in jail"
+
+- name: "Apply any pending MinIO config changes now"
+  ansible.builtin.meta: flush_handlers
+
+- name: "Check whether the MinIO service is running in the jail"
+  ansible.builtin.command: "bastille cmd {{ minio_jail_name }} service minio status"
+  register: minio_svc
+  changed_when: false
+  failed_when: false
+
+- name: "Start the MinIO service in the jail"
+  ansible.builtin.command: "bastille cmd {{ minio_jail_name }} service minio start"
+  when: minio_svc.rc != 0
+  changed_when: true
+
+# --- Verification ------------------------------------------------------------
+
+- name: "Verify MinIO is serving the expected buckets"
+  when: minio_verify_buckets | bool
+  block:
+    - name: "Configure a local mc alias in the jail"
+      ansible.builtin.command: >-
+        bastille cmd {{ minio_jail_name }}
+        mc alias set local http://127.0.0.1:9000 {{ minio_root_user }} {{ minio_root_password }}
+      no_log: true
+      changed_when: false
+
+    - name: "List buckets"
+      ansible.builtin.command: "bastille cmd {{ minio_jail_name }} mc ls local"
+      register: minio_ls
+      changed_when: false
+
+    - name: "Assert each expected bucket is present"
+      ansible.builtin.assert:
+        that: "item in minio_ls.stdout"
+        fail_msg: "Expected bucket '{{ item }}' not found in the MinIO listing."
+        quiet: true
+      loop: "{{ minio_expected_buckets }}"
+      loop_control:
+        label: "{{ item }}"

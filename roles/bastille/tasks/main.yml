@@ -1,0 +1,41 @@
+---
+# Install and configure Bastille on a FreeBSD 15 host, and bootstrap the release
+# that jails are cloned from. Idempotent: safe to re-run.
+
+- name: "Install Bastille"
+  community.general.pkgng:
+    name: bastille
+    state: present
+
+- name: "Enable Bastille at boot"
+  community.general.sysrc:
+    name: bastille_enable
+    value: "YES"
+    state: present
+
+- name: "Configure bastille.conf (ZFS + prefix)"
+  ansible.builtin.lineinfile:
+    path: "{{ bastille_conf_path }}"
+    regexp: '^{{ item.key }}='
+    line: '{{ item.key }}="{{ item.value }}"'
+    state: present
+    create: false
+  loop:
+    - { key: "bastille_prefix", value: "{{ bastille_prefix }}" }
+    - { key: "bastille_zfs_enable", value: "{{ bastille_zfs_enable }}" }
+    - { key: "bastille_zfs_zpool", value: "{{ bastille_zfs_zpool }}" }
+    - { key: "bastille_zfs_prefix", value: "{{ bastille_zfs_prefix }}" }
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: "Check whether the release is already bootstrapped"
+  ansible.builtin.stat:
+    path: "{{ bastille_prefix }}/releases/{{ bastille_release }}/bin/sh"
+  register: bastille_release_stat
+
+# Downloads base.txz for the release and stages it under {{ bastille_prefix }}/releases.
+# Network-bound; only runs when the release is missing.
+- name: "Bootstrap the {{ bastille_release }} release"
+  ansible.builtin.command: "bastille bootstrap {{ bastille_release }}"
+  when: not bastille_release_stat.stat.exists
+  changed_when: true

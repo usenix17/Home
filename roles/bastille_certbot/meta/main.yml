@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: bastille_certbot
+  author: starnix
+  description: Let's Encrypt certbot jail (Bastille, DNS-01/Cloudflare), migrated from iocage.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: FreeBSD
+      versions:
+        - "15"
+
+dependencies:
+  - role: bastille

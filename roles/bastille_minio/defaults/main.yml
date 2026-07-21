@@ -1,0 +1,59 @@
+---
+# MinIO object-storage jail (Bastille, VNET) -- reproduces the retired iocage
+# `minio` jail from mimir. Data (buckets) rides the Store pool import unchanged.
+
+minio_jail_name: "minio"
+
+# L2-bridged VNET on the LAN, same address the iocage jail used.
+minio_jail_ip: "192.168.1.150"
+minio_jail_cidr: "24"
+minio_jail_gateway: "192.168.1.1"
+
+# Release + host prefix come from the bastille base role; repeated here as
+# defaults so this role is usable standalone and overridable per host.
+minio_release: "{{ bastille_release | default('15.0-RELEASE') }}"
+bastille_prefix: "{{ bastille_prefix | default('/usr/local/bastille') }}"
+bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
+
+# Absolute host path of the jail root (ZFS-backed, under bastille_prefix).
+minio_jail_root: "{{ bastille_prefix }}/jails/{{ minio_jail_name }}/root"
+minio_jail_dir: "{{ bastille_prefix }}/jails/{{ minio_jail_name }}"
+
+# Bucket data: nullfs from the Store pool (a plain dir inside Store, owner 473).
+# Optionally promote /mnt/Store/minio to its own dataset before running this.
+minio_data_src: "/mnt/Store/minio"      # host path (nullfs source)
+minio_data_dst: "/mnt/minio"            # in-jail path == minio_data below
+
+# Service account. The FreeBSD `minio` port uses fixed UID/GID 473, which MUST
+# match the on-disk ownership of the bucket data on the Store pool.
+minio_user: "minio"
+minio_group: "minio"
+minio_uid: 473
+minio_gid: 473
+
+# Listeners (S3 API + web console), same as the iocage jail.
+minio_api_address: ":9000"
+minio_console_address: ":9001"
+
+minio_packages:
+  - minio
+  - minio-client
+
+# Root credentials. Override minio_root_password from an ansible-vault var
+# (see inventory/group_vars). Never commit the real value in plaintext.
+minio_root_user: "minio"
+minio_root_password: "{{ vault_minio_root_password | default('CHANGE_ME_IN_VAULT') }}"
+
+# Expected buckets -- used only by the verification task as a sanity checklist.
+minio_expected_buckets:
+  - gek-backups
+  - host1-backups
+  - kopia
+  - longhorn-backups
+  - nocodb
+  - seafile-blocks
+  - seafile-commits
+  - seafile-fs
+  - terraform-state
+  - test
+minio_verify_buckets: true

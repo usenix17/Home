@@ -1,0 +1,39 @@
+---
+# certbot jail (Bastille, VNET) -- reproduces the retired iocage `certbot` jail.
+# Issues/renews the mimir.starnix.net Let's Encrypt cert via DNS-01 (Cloudflare).
+
+certbot_jail_name: "certbot"
+certbot_jail_ip: "192.168.1.9"          # was DHCP under iocage; static here (design D2)
+certbot_jail_cidr: "24"
+certbot_jail_gateway: "192.168.1.1"
+
+certbot_release: "{{ bastille_release | default('15.0-RELEASE') }}"
+bastille_prefix: "{{ bastille_prefix | default('/usr/local/bastille') }}"
+bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
+certbot_jail_root: "{{ bastille_prefix }}/jails/{{ certbot_jail_name }}/root"
+certbot_jail_dir: "{{ bastille_prefix }}/jails/{{ certbot_jail_name }}"
+
+# Package names are python-version-flavored; mimir's default is python 3.11.
+# Adjust the prefix if the FreeBSD 15 default python differs.
+certbot_packages:
+  - py311-certbot
+  - py311-certbot-dns-cloudflare
+
+# Let's Encrypt config directory: staged in Phase 0 (copied from the old jail's
+# /etc/letsencrypt) onto a dataset, then nullfs-mounted at certbot's default path.
+certbot_le_src: "/mnt/Backup/letsencrypt"
+certbot_le_dst: "/etc/letsencrypt"
+
+# Cloudflare API token credential (certbot-dns-cloudflare). Value from vault.
+certbot_cloudflare_cred_path: "/usr/local/etc/certbot_cloudflare.conf"
+certbot_cloudflare_api_token: "{{ vault_certbot_cloudflare_api_token | default('CHANGE_ME_IN_VAULT') }}"
+
+# Weekly renewal via periodic(8) (the packaged mechanism).
+certbot_weekly_enable: "YES"
+# The old iocage jail used renew_hook=/opt/deploy-freenas/deploy_freenas.py to push
+# the cert into the TrueNAS API. That target is RETIRED post-migration -- set a new
+# deploy hook here only if another service needs the renewed cert.
+certbot_deploy_hook: ""
+
+certbot_primary_domain: "mimir.starnix.net"
+certbot_verify: true

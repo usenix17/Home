@@ -1,0 +1,12 @@
+---
+- name: "Restart mongod in jail"
+  ansible.builtin.command: "bastille service {{ graylog_jail_name }} mongod restart"
+  changed_when: true
+
+- name: "Restart opensearch in jail"
+  ansible.builtin.command: "bastille service {{ graylog_jail_name }} opensearch restart"
+  changed_when: true
+
+- name: "Restart graylogd in jail"
+  ansible.builtin.command: "bastille service {{ graylog_jail_name }} graylogd restart"
+  changed_when: true

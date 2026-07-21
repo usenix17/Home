@@ -1,0 +1,4 @@
+---
+- name: "Restart MinIO in jail"
+  ansible.builtin.command: "bastille service {{ minio_jail_name }} minio restart"
+  changed_when: true
