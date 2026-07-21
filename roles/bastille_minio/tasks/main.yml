@@ -26,9 +26,11 @@
     path: "{{ minio_jail_dir }}/jail.conf"
   register: minio_jail_stat
 
+# -B attaches VNET to the EXISTING bridge (-V needs a physical interface and
+# errors on a bridge); -g sets the jail default route so pkg has network.
 - name: "Create the MinIO VNET jail (L2-bridged onto {{ bastille_network_bridge }})"
   ansible.builtin.command: >-
-    bastille create -V {{ minio_jail_name }} {{ minio_release }}
+    bastille create -B -g {{ minio_jail_gateway }} {{ minio_jail_name }} {{ minio_release }}
     {{ minio_jail_ip }}/{{ minio_jail_cidr }} {{ bastille_network_bridge }}
   when: not minio_jail_stat.stat.exists
   changed_when: true
@@ -175,15 +177,17 @@
 - name: "Verify MinIO is serving the expected buckets"
   when: minio_verify_buckets | bool
   block:
-    - name: "Configure a local mc alias in the jail"
+    # The FreeBSD minio-client port installs the binary as `minio-client`
+    # (the `mc` name collides with Midnight Commander), NOT `mc`.
+    - name: "Configure a local minio-client alias in the jail"
       ansible.builtin.command: >-
         bastille cmd {{ minio_jail_name }}
-        mc alias set local http://127.0.0.1:9000 {{ minio_root_user }} {{ minio_root_password }}
+        minio-client alias set local http://127.0.0.1:9000 {{ minio_root_user }} {{ minio_root_password }}
       no_log: true
       changed_when: false
 
     - name: "List buckets"
-      ansible.builtin.command: "bastille cmd {{ minio_jail_name }} mc ls local"
+      ansible.builtin.command: "bastille cmd {{ minio_jail_name }} minio-client ls local"
       register: minio_ls
       changed_when: false
 

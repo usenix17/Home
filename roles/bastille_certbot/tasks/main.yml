@@ -23,9 +23,11 @@
     path: "{{ certbot_jail_dir }}/jail.conf"
   register: certbot_jail_stat
 
+# -B attaches VNET to the EXISTING bridge (-V needs a physical interface);
+# -g sets the jail default route so pkg has network.
 - name: "Create the certbot VNET jail"
   ansible.builtin.command: >-
-    bastille create -V {{ certbot_jail_name }} {{ certbot_release }}
+    bastille create -B -g {{ certbot_jail_gateway }} {{ certbot_jail_name }} {{ certbot_release }}
     {{ certbot_jail_ip }}/{{ certbot_jail_cidr }} {{ bastille_network_bridge }}
   when: not certbot_jail_stat.stat.exists
   changed_when: true
