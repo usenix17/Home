@@ -33,9 +33,11 @@
     path: "{{ graylog_jail_dir }}/jail.conf"
   register: graylog_jail_stat
 
+# -B attaches VNET to the EXISTING bridge (-V needs a physical interface);
+# -g sets the jail default route so pkg has network.
 - name: "Create the graylog VNET jail"
   ansible.builtin.command: >-
-    bastille create -V {{ graylog_jail_name }} {{ graylog_release }}
+    bastille create -B -g {{ graylog_jail_gateway }} {{ graylog_jail_name }} {{ graylog_release }}
     {{ graylog_jail_ip }}/{{ graylog_jail_cidr }} {{ bastille_network_bridge }}
   when: not graylog_jail_stat.stat.exists
   changed_when: true
