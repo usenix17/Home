@@ -62,7 +62,7 @@
 # --- Packages ----------------------------------------------------------------
 
 - name: "Check whether certbot is installed in the jail"
-  ansible.builtin.command: "bastille cmd {{ certbot_jail_name }} pkg -N info -e py311-certbot"
+  ansible.builtin.command: "bastille cmd {{ certbot_jail_name }} pkg -N info -e {{ certbot_py_flavor }}-certbot"
   register: certbot_pkg
   changed_when: false
   failed_when: false

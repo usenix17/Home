@@ -13,11 +13,12 @@ bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
 certbot_jail_root: "{{ bastille_prefix }}/jails/{{ certbot_jail_name }}/root"
 certbot_jail_dir: "{{ bastille_prefix }}/jails/{{ certbot_jail_name }}"
 
-# Package names are python-version-flavored; mimir's default is python 3.11.
-# Adjust the prefix if the FreeBSD 15 default python differs.
+# Package names are python-version-flavored. FreeBSD 15's default flavor for these
+# ports is py312 (verified on 15.0-RELEASE). Bump if a later FreeBSD default shifts.
+certbot_py_flavor: "py312"
 certbot_packages:
-  - py311-certbot
-  - py311-certbot-dns-cloudflare
+  - "{{ certbot_py_flavor }}-certbot"
+  - "{{ certbot_py_flavor }}-certbot-dns-cloudflare"
 
 # Let's Encrypt config directory: staged in Phase 0 (copied from the old jail's
 # /etc/letsencrypt) onto a dataset, then nullfs-mounted at certbot's default path.

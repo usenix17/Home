@@ -14,9 +14,11 @@ bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
 graylog_jail_root: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}/root"
 graylog_jail_dir: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}"
 
-# Package versions to reproduce (data-format parity). NOTE: opensearch210 (2.10)
-# is EOL and may be absent from the FreeBSD 15 repo -- override graylog_opensearch_pkg
-# with the available 2.x build (2.10 indices are read by newer 2.x without reindex).
+# Packages. Verified available on FreeBSD 15.0: opensearch210-2.10.0, mongodb70-7.0.37,
+# openjdk21, and graylog-7.1.5 (repo has 7.1.x, NOT the old jail's 7.0.2 -- a supported
+# in-place 7.0->7.1 upgrade; the service UIDs 855/922/848 are created as asserted).
+# opensearch210 is still EOL-marked (F-J9) -- override graylog_opensearch_pkg if it is
+# ever dropped (2.10 indices are read by newer 2.x without reindex).
 graylog_opensearch_pkg: "opensearch210"
 graylog_java_pkg: "openjdk21"
 graylog_packages:
