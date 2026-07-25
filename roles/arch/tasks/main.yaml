@@ -145,7 +145,6 @@
       - gnuchess
       - go
       - google-chrome
-      - grpcurl-bin
       - grub
       - guvcview
       - hdparm
@@ -171,6 +170,7 @@
       - lagrange
       - lazydocker
       - less
+      - fprintd
       - libfido2
       - libfprint
       - libindi_3rdparty
@@ -182,10 +182,11 @@
       - librewolf-extension-sponsorblock-bin
       - librewolf-extension-trackmenot
       - libva-intel-driver
-      - linux
       - linux-firmware
-      - linux-headers
+      - linux-lts
+      - linux-lts-headers
       - linux-zen
+      - linux-zen-headers
       - meshtastic-python
       - meshwatch-git
       - minicom
@@ -242,7 +243,6 @@
       - python-pywinrm
       - python-requests-oauthlib
       - python-seaborn
-      - python-validity
       - qemu-base
       - qownnotes
       - reflector
@@ -355,6 +355,78 @@
 - name: "Run kernel-purge to clean up accumulated old kernel module directories"
   ansible.builtin.command: /usr/local/bin/kernel-purge 2
   changed_when: true
+
+# kernel-purge (above) removes old module *directories* but leaves the DKMS
+# database still referencing them. Arch's stock 71-dkms-remove.hook only fires
+# on package REMOVAL, so a kernel replaced by an in-place UPGRADE strands its
+# DKMS build. This script + hook reconcile the DKMS db against package-owned
+# kernels (removing entries + orphan dirs for kernels no longer installed).
+- name: "Deploy DKMS stale-build prune script"
+  ansible.builtin.copy:
+    dest: /usr/local/bin/dkms-prune-stale
+    content: |
+      #!/usr/bin/env bash
+      # Prune DKMS builds + module dirs for kernels no longer owned by an
+      # installed package. Any /usr/lib/modules/<ver> whose pkgbase is unowned is
+      # stale. DRY_RUN=1 previews without changing anything.
+      set -uo pipefail
+      DRY_RUN=${DRY_RUN:-0}
+      log(){ printf 'dkms-prune: %s\n' "$*"; }
+      run(){ if [[ "$DRY_RUN" == 1 ]]; then log "[dry-run] $*"; else "$@"; fi; }
+      mapfile -t real < <(
+        for d in /usr/lib/modules/*/; do
+          [[ -e "${d}pkgbase" ]] && pacman -Qo "${d}pkgbase" &>/dev/null && basename "$d"
+        done
+      )
+      (( ${#real[@]} == 0 )) && { log "no package-owned kernels found; skipping (safety)"; exit 0; }
+      is_real(){ local x; for x in "${real[@]}"; do [[ "$x" == "$1" ]] && return 0; done; return 1; }
+      if command -v dkms &>/dev/null; then
+        while IFS= read -r line; do
+          [[ -n "$line" ]] || continue
+          modver=${line%%,*}; modver=${modver// /}
+          rest=${line#*, }; kver=${rest%%,*}
+          [[ -n "$kver" ]] || continue
+          is_real "$kver" && continue
+          log "dkms remove $modver -k $kver"
+          run dkms remove "$modver" -k "$kver"
+        done < <(dkms status 2>/dev/null)
+      fi
+      for d in /usr/lib/modules/*/; do
+        k=$(basename "$d")
+        [[ "$k" == "$(uname -r)" ]] && continue
+        is_real "$k" && continue
+        log "removing orphan module dir $d"
+        run rm -rf "$d"
+      done
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Deploy DKMS stale-build prune pacman hook"
+  ansible.builtin.copy:
+    dest: /etc/pacman.d/hooks/72-dkms-cleanup.hook
+    content: |
+      # Prune DKMS builds for kernels removed via in-place UPGRADE. Runs after
+      # the stock 70/71 dkms hooks so new-kernel modules build first, then sweep.
+      [Trigger]
+      Operation = Install
+      Operation = Upgrade
+      Operation = Remove
+      Type = Path
+      Target = usr/lib/modules/*/pkgbase
+
+      [Action]
+      Description = Prune stale DKMS builds (kernels gone via upgrade)
+      When = PostTransaction
+      Depends = dkms
+      Exec = /usr/local/bin/dkms-prune-stale
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Reconcile any DKMS builds already stranded by past kernel upgrades"
+  ansible.builtin.command: /usr/local/bin/dkms-prune-stale
+  changed_when: false
 
 - name: "Create NFS mount directories"
   ansible.builtin.file:
@@ -512,6 +584,41 @@
   when: arch_grub_has_resume.rc != 0
   notify: rebuild-grub
 
+- name: "Boot the saved GRUB entry (GRUB_DEFAULT=saved)"
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^#?GRUB_DEFAULT='
+    line: 'GRUB_DEFAULT=saved'
+  notify: rebuild-grub
+
+- name: "Remember the last-booted kernel (GRUB_SAVEDEFAULT=true)"
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^#?GRUB_SAVEDEFAULT='
+    line: 'GRUB_SAVEDEFAULT=true'
+    insertafter: '^GRUB_DEFAULT='
+  notify: rebuild-grub
+
+# GRUB reads its theme at menu time -- BEFORE the LUKS root is unlocked -- so the
+# theme must live on the unencrypted /boot, not /usr/share (grub-mkconfig would
+# silently skip a theme it can't read at boot).
+- name: "Deploy Catppuccin Mocha GRUB theme to /boot"
+  ansible.builtin.copy:
+    src: grub-catppuccin-mocha/
+    dest: /boot/grub/themes/catppuccin-mocha/
+    owner: root
+    group: root
+    mode: "0644"
+    directory_mode: "0755"
+  notify: rebuild-grub
+
+- name: "Point GRUB_THEME at the Catppuccin Mocha theme on /boot"
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^#?GRUB_THEME='
+    line: 'GRUB_THEME="/boot/grub/themes/catppuccin-mocha/theme.txt"'
+  notify: rebuild-grub
+
 - name: "Deploy SDDM PAM config with KWallet auto-unlock"
   ansible.builtin.template:
     src: sddm-pam.j2
@@ -598,36 +705,39 @@
     group: root
     mode: "0644"
 
-- name: "Configure KDE powerdevilrc — disable DPMS/dim for all profiles, hibernate on lid (Plasma 6 format)"
+- name: "Configure KDE powerdevilrc — AC blank-only (stay reachable), lid-close sleeps, battery hibernates (Plasma 6)"
   ansible.builtin.copy:
     dest: "/home/{{ arch_aur_user }}/.config/powerdevilrc"
     content: |
       [AC][Display]
-      TurnOffDisplayIdleTimeoutSec=-1
-      TurnOffDisplayWhenIdle=false
       DimDisplayIdleTimeoutSec=-1
       DimDisplayWhenIdle=false
+      TurnOffDisplayIdleTimeoutSec=300
+      TurnOffDisplayWhenIdle=true
 
       [AC][SuspendAndShutdown]
       AutoSuspendAction=0
-      LidAction=0
+      AutoSuspendIdleTimeoutSec=900
+      LidAction=1
+      TriggerLidActionWhenExternalMonitorPresent=false
 
       [Battery][Display]
-      TurnOffDisplayIdleTimeoutSec=-1
-      TurnOffDisplayWhenIdle=false
       DimDisplayIdleTimeoutSec=-1
       DimDisplayWhenIdle=false
+      TurnOffDisplayIdleTimeoutSec=-1
+      TurnOffDisplayWhenIdle=false
 
       [Battery][SuspendAndShutdown]
       AutoSuspendAction=2
       AutoSuspendIdleTimeoutSec=600
-      LidAction=0
+      LidAction=1
+      TriggerLidActionWhenExternalMonitorPresent=false
 
       [LowBattery][Display]
-      TurnOffDisplayIdleTimeoutSec=-1
-      TurnOffDisplayWhenIdle=false
       DimDisplayIdleTimeoutSec=-1
       DimDisplayWhenIdle=false
+      TurnOffDisplayIdleTimeoutSec=-1
+      TurnOffDisplayWhenIdle=false
 
       [LowBattery][SuspendAndShutdown]
       AutoSuspendAction=2
@@ -655,23 +765,11 @@
     enabled: true
     state: started
 
-- name: "Set EFI boot order — GRUB first, FreeBSD second"
-  ansible.builtin.command:
-    cmd: efibootmgr -o 0001,0000,0010,0011,0012,0013,0014,0015,0016,0017,0018,001B,001C,001D,001E,001F,0020,0021,0022,0023,0024,0025,0026,0027,0002
-  changed_when: false
-
-- name: "Add FreeBSD chainloader entry to GRUB custom menu"
+- name: "Remove retired FreeBSD chainloader entry from GRUB custom menu"
   ansible.builtin.blockinfile:
     path: /etc/grub.d/40_custom
     marker: "# {mark} ANSIBLE MANAGED BLOCK - FreeBSD chainloader"
-    block: |
-      menuentry "FreeBSD" --class freebsd --class bsd --class os {
-          insmod part_gpt
-          insmod fat
-          insmod chain
-          search --no-floppy --fs-uuid --set=root 25A2-1DED
-          chainloader /efi/freebsd/loader.efi
-      }
+    state: absent
   notify: rebuild-grub
 
 - name: "Deploy auditd supply-chain / AUR malware file-integrity rules"
