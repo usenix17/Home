@@ -227,3 +227,5 @@ unifi_groups:
     value: 172.16.5.184
   - type: IP_ADDRESS
     value: 172.16.5.96
+  - type: IP_ADDRESS
+    value: 172.16.5.109
