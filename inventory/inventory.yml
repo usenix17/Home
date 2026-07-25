@@ -23,11 +23,6 @@ all:
               ansible_ssh_pass: "{{ sky_pass }}"
               ansible_become_pass: "{{ sky_pass }}"
             virt.starnix.net:
-        storage:
-          hosts:
-            mimir.starnix.net:
-          vars:
-            ansible_python_interpreter: "/usr/local/bin/python3"
 
     macs:
       hosts:
@@ -40,9 +35,17 @@ all:
       hosts:
         beastyboi.starnix.net:
         freebsd15.starnix.net:
+        mimir.starnix.net:
       vars:
         ansible_python_interpreter: "/usr/local/bin/python3"
         ansible_shell_executable: "/bin/sh"
+
+    # mimir is also in `freebsd` above (for the interpreter/shell vars); this
+    # group is what the storage plays (nfs/zfs/smartd/minio/graylog/certbot)
+    # target and what binds group_vars/storage.yml.
+    storage:
+      hosts:
+        mimir.starnix.net:
 
     omnios:
       hosts:
