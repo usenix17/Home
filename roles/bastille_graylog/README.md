@@ -22,7 +22,7 @@ in a single VNET jail at `192.168.1.151`.
 7. Templates `mongodb.conf`, `opensearch.yml`, the JVM heap override, and the key
    `graylog.conf` settings (single, correct `root_password_sha2` -- **not** the
    `sha256("password")` duplicate the old config carried).
-8. Starts services **in order** (mongod -> opensearch -> graylogd) with readiness
+8. Starts services **in order** (mongod -> opensearch -> graylog) with readiness
    waits, then verifies the Graylog API is healthy.
 
 ## Requirements / caveats

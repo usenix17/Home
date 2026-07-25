@@ -69,6 +69,21 @@
   when: graylog_jls.rc != 0
   changed_when: true
 
+# OpenSearch's JVM stats its data dir via getmntinfo(); the Bastille default
+# enforce_statfs=2 hides the nullfs data mount from the jail -> "Mount point not
+# found in fstab" and the node lock fails. Relax to 1 so OpenSearch can start.
+- name: "Allow OpenSearch to see its data mount (enforce_statfs=1)"
+  ansible.builtin.replace:
+    path: "{{ graylog_jail_dir }}/jail.conf"
+    regexp: 'enforce_statfs = 2;'
+    replace: 'enforce_statfs = 1;'
+  register: graylog_statfs
+
+- name: "Restart the jail to apply enforce_statfs"
+  ansible.builtin.command: "bastille restart {{ graylog_jail_name }}"
+  when: graylog_statfs.changed
+  changed_when: true
+
 # --- Packages + service accounts --------------------------------------------
 
 - name: "Check whether graylog is installed in the jail"
@@ -219,6 +234,10 @@
     - { re: '^#?\s*http_publish_uri\s*=', line: "http_publish_uri = {{ graylog_http_publish_uri }}" }
     - { re: '^#?\s*elasticsearch_hosts\s*=', line: "elasticsearch_hosts = {{ graylog_elasticsearch_hosts }}" }
     - { re: '^#?\s*mongodb_uri\s*=', line: "mongodb_uri = {{ graylog_mongodb_uri }}" }
+    # 7.1.x default plugin_dir is the RELATIVE "plugin" -> resolves to /plugin under
+    # the rc.d and never loads graylog-storage-opensearch2 -> empty SearchVersion
+    # Guice map. Force the absolute path.
+    - { re: '^#?\s*plugin_dir\s*=', line: "plugin_dir = /usr/local/share/graylog/plugin" }
   loop_control:
     label: "{{ item.re }}"
   no_log: true
@@ -234,13 +253,13 @@
     - { name: "opensearch_enable", value: "YES" }
     - { name: "opensearch_env", value: "OPENSEARCH_TMPDIR={{ graylog_os_data_dst }}/tmp" }
     - { name: "opensearch_java_home", value: "{{ graylog_os_java_home }}" }
-    - { name: "graylogd_enable", value: "YES" }
+    - { name: "graylog_enable", value: "YES" }
     - { name: "graylog_min_mem", value: "{{ graylog_min_mem }}" }
     - { name: "graylog_max_mem", value: "{{ graylog_max_mem }}" }
   loop_control:
     label: "{{ item.name }}"
 
-# --- Ordered start: mongod -> opensearch -> graylogd -------------------------
+# --- Ordered start: mongod -> opensearch -> graylog -------------------------
 
 - name: "Check mongod status"
   ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service mongod status"
@@ -284,19 +303,20 @@
   delay: 5
   changed_when: false
 
-- name: "Check graylogd status"
-  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd status"
+# The FreeBSD graylog rc.d is named "graylog" (rcvar graylog_enable), NOT graylogd.
+- name: "Check graylog status"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylog status"
   register: graylog_gld_status
   changed_when: false
   failed_when: false
 
-- name: "Start graylogd"
-  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd start"
+- name: "Start graylog"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylog start"
   when: graylog_gld_status.rc != 0
   changed_when: true
 
-- name: "Restart graylogd on config change"
-  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylogd restart"
+- name: "Restart graylog on config change"
+  ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} service graylog restart"
   when: graylog_gld_status.rc == 0 and (graylog_gl_cfg.changed or graylog_nodeid_cfg.changed)
   changed_when: true
 
