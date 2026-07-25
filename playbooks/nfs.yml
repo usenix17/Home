@@ -1,0 +1,7 @@
+---
+# NFS server tuning for the storage host (mimir).
+- name: "NFS server tuning on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "nfs"
