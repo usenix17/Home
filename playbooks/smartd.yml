@@ -1,0 +1,9 @@
+---
+# S.M.A.R.T. disk monitoring with Discord alerts for the storage host (mimir).
+# Requires `vault_smartd_discord_webhook` (ansible-vault) -- see
+# inventory/group_vars/storage.yml. Pairs with nfs.yml and zfs.yml.
+- name: "smartd disk monitoring on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "smartd"

@@ -1,0 +1,20 @@
+#!/bin/sh
+# {{ ansible_managed }}
+# smartd -> Discord. Invoked by smartd (-M exec) with SMARTD_* env set, and
+# runnable by hand for a test. Webhook lives in a root-only sibling file.
+WEBHOOK="$(cat /usr/local/etc/smartd-discord.webhook 2>/dev/null)"
+[ -n "$WEBHOOK" ] || exit 0
+MSG="**smartd on $(hostname -s)** device ${SMARTD_DEVICE:-?}: ${SMARTD_MESSAGE:-alert}"
+/usr/local/bin/python3 -c '
+import sys, json, urllib.request
+url, msg = sys.argv[1], sys.argv[2]
+req = urllib.request.Request(
+    url,
+    data=json.dumps({"content": msg[:1900]}).encode(),
+    headers={"Content-Type": "application/json"},
+)
+try:
+    urllib.request.urlopen(req, timeout=10)
+except Exception:
+    pass
+' "$WEBHOOK" "$MSG"
