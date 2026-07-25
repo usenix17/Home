@@ -1,0 +1,14 @@
+---
+# NFS server tuning for the FreeBSD storage host.
+# ansible.posix.sysctl on FreeBSD persists to /etc/sysctl.conf and applies live.
+
+- name: "Configure NFS server sysctls"
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: true
+  loop: "{{ nfs_sysctls | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

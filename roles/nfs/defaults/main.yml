@@ -1,0 +1,9 @@
+---
+# FreeBSD NFS server tuning sysctls for the storage host (mimir).
+# Extend this dict as more NFS tuning is needed.
+#
+# vfs.nfsd.enable_stringtouid: make the NFSv4 server accept numeric string
+# UID/GIDs from clients (so ownership maps correctly when clients send numeric
+# ids instead of user@domain). Required for the LAN NFSv4 clients.
+nfs_sysctls:
+  vfs.nfsd.enable_stringtouid: "1"
