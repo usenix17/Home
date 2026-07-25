@@ -1,0 +1,26 @@
+---
+# ZFS maintenance for the FreeBSD storage host (mimir). TrueNAS did all of this
+# through its middleware; vanilla FreeBSD 15 does not, so it is managed here.
+
+# zfsd: the ZFS fault-management daemon -- handles disk faults and activates hot
+# spares automatically. Off by default on FreeBSD.
+zfs_zfsd_enable: true
+
+# Periodic scrub via FreeBSD's daily periodic(8): scrub any pool that has not
+# been scrubbed in more than `zfs_scrub_threshold_days` days.
+zfs_scrub_enable: true
+zfs_scrub_threshold_days: 30
+
+# sanoid: automatic ZFS snapshots + pruning. Data pools only -- zroot is covered
+# by boot environments. Applied recursively so child datasets (jails, media,
+# etc.) are snapshotted too.
+zfs_sanoid_enable: true
+zfs_sanoid_datasets:
+  - Backup
+  - Store
+  - Comet
+zfs_sanoid_retention:
+  hourly: 24
+  daily: 30
+  monthly: 3
+  yearly: 0

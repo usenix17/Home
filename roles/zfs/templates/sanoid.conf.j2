@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# Snapshot policy for the storage host's data pools. zroot uses boot environments.
+{% for ds in zfs_sanoid_datasets %}
+[{{ ds }}]
+    use_template = production
+    recursive = yes
+{% endfor %}
+
+[template_production]
+    hourly = {{ zfs_sanoid_retention.hourly }}
+    daily = {{ zfs_sanoid_retention.daily }}
+    monthly = {{ zfs_sanoid_retention.monthly }}
+    yearly = {{ zfs_sanoid_retention.yearly }}
+    autosnap = yes
+    autoprune = yes

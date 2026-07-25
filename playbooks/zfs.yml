@@ -1,0 +1,9 @@
+---
+# ZFS maintenance for the storage host (mimir): fault daemon, periodic scrubs,
+# and sanoid snapshots. Reproduces the TrueNAS middleware behaviour on vanilla
+# FreeBSD 15. Pairs with playbooks/nfs.yml (NFS server tuning on the same host).
+- name: "ZFS maintenance on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "zfs"
