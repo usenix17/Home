@@ -16,7 +16,11 @@
 # concurrent PV mounts and fall back to high ports; with this at 1 the server
 # rejects them and floods syslog with "NFS request from unprivileged port". The
 # reserved-port check adds no real security under AUTH_SYS on a trusted LAN.
+#
+# vfs.nfsd.server_min_nfsvers: 3 = drop ancient NFSv2 (no client uses it). UDP is
+# intentionally left enabled (nfs_server_flags "-u -t") for possible future use.
 nfs_sysctls:
   vfs.nfsd.enable_stringtouid: "1"
   vfs.nfs.enable_uidtostring: "1"
   vfs.nfsd.nfs_privport: "0"
+  vfs.nfsd.server_min_nfsvers: "3"
