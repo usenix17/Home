@@ -3,7 +3,13 @@
 # Extend this dict as more NFS tuning is needed.
 #
 # vfs.nfsd.enable_stringtouid: make the NFSv4 server accept numeric string
-# UID/GIDs from clients (so ownership maps correctly when clients send numeric
-# ids instead of user@domain). Required for the LAN NFSv4 clients.
+# UID/GIDs from clients on input (so a numeric chown maps correctly instead of
+# failing BADOWNER). Required for the LAN NFSv4 clients.
+#
+# vfs.nfs.enable_uidtostring: make the server EMIT numeric owner strings on
+# output instead of user@domain. Without it, Linux clients (numeric idmapping)
+# can't resolve names like cloud/bair and display every file as nobody (65534).
+# The two together give clean numeric NFSv4 ID handling end to end.
 nfs_sysctls:
   vfs.nfsd.enable_stringtouid: "1"
+  vfs.nfs.enable_uidtostring: "1"
