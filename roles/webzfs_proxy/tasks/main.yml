@@ -1,0 +1,66 @@
+---
+# Expose the webzfs dashboard over HTTPS on mimir: a Let's Encrypt cert (Cloudflare
+# DNS-01, so no inbound :80 needed) plus an nginx reverse proxy to the localhost-
+# bound gunicorn app. Renewal runs from the FreeBSD weekly periodic and reloads
+# nginx via the cert's stored deploy hook.
+
+- name: "Install nginx + certbot with the Cloudflare DNS plugin"
+  community.general.pkgng:
+    name:
+      - nginx
+      - py312-certbot
+      - py312-certbot-dns-cloudflare
+    state: present
+
+- name: "Install the Cloudflare API credentials (root-only)"
+  ansible.builtin.copy:
+    content: "dns_cloudflare_api_token = {{ webzfs_proxy_cf_token }}\n"
+    dest: "{{ webzfs_proxy_cf_credentials }}"
+    owner: root
+    group: wheel
+    mode: "0600"
+  no_log: true
+
+# Idempotent via `creates`: issue once; the weekly periodic handles renewals.
+# --deploy-hook is saved into the renewal config so renewals reload nginx.
+- name: "Obtain the Let's Encrypt certificate (Cloudflare DNS-01)"
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/certbot
+      - certonly
+      - --dns-cloudflare
+      - --dns-cloudflare-credentials
+      - "{{ webzfs_proxy_cf_credentials }}"
+      - --dns-cloudflare-propagation-seconds
+      - "{{ webzfs_proxy_dns_propagation_seconds | string }}"
+      - -d
+      - "{{ webzfs_proxy_domain }}"
+      - --agree-tos
+      - -m
+      - "{{ webzfs_proxy_le_email }}"
+      - --non-interactive
+      - --deploy-hook
+      - "service nginx reload"
+    creates: "{{ webzfs_proxy_cert_dir }}/fullchain.pem"
+
+- name: "Configure nginx (reverse proxy + TLS)"
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /usr/local/etc/nginx/nginx.conf
+    owner: root
+    group: wheel
+    mode: "0644"
+    validate: "/usr/local/sbin/nginx -t -c %s"
+  notify: "reload nginx"
+
+- name: "Enable the weekly certbot renewal (FreeBSD periodic)"
+  community.general.sysrc:
+    name: weekly_certbot_enable
+    value: "YES"
+    path: /etc/periodic.conf
+
+- name: "Enable and start nginx"
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started

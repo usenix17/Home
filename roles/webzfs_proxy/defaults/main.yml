@@ -1,0 +1,16 @@
+---
+# TLS reverse proxy (nginx + Let's Encrypt) fronting the webzfs dashboard on the
+# storage host (mimir). webzfs itself (the /opt/webzfs gunicorn app, bound to
+# localhost) is installed by its own upstream installer; this role only exposes
+# it over HTTPS and keeps the cert renewed.
+
+webzfs_proxy_domain: "mimir.starnix.net"
+webzfs_proxy_upstream: "127.0.0.1:26619"   # webzfs gunicorn/uvicorn bind
+
+# Let's Encrypt via Cloudflare DNS-01. The token is a SECRET -- provide
+# vault_certbot_cloudflare_api_token via ansible-vault (group_vars/storage.yml).
+webzfs_proxy_le_email: "sasha@starnix.net"
+webzfs_proxy_cf_token: "{{ vault_certbot_cloudflare_api_token }}"
+webzfs_proxy_cf_credentials: "/usr/local/etc/letsencrypt/cloudflare.ini"
+webzfs_proxy_cert_dir: "/usr/local/etc/letsencrypt/live/{{ webzfs_proxy_domain }}"
+webzfs_proxy_dns_propagation_seconds: 20
