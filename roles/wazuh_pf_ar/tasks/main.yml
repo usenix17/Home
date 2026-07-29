@@ -1,0 +1,45 @@
+---
+# Deploy the pf-based Wazuh Active Response to a FreeBSD Wazuh agent, and
+# (optionally) enable pf. Safe to run with wazuh_pf_enable=false: it stages
+# /etc/pf.conf and the AR script without turning pf on.
+
+- name: "Check this host is a Wazuh agent"
+  ansible.builtin.stat:
+    path: "{{ wazuh_agent_dir }}/active-response/bin"
+  register: wazuh_ar_bin
+
+- name: "Skip: not a Wazuh agent (no {{ wazuh_agent_dir }})"
+  ansible.builtin.meta: end_host
+  when: not wazuh_ar_bin.stat.exists
+
+- name: "Deploy the custom-pf-drop Active Response script"
+  ansible.builtin.copy:
+    src: custom-pf-drop
+    dest: "{{ wazuh_agent_dir }}/active-response/bin/custom-pf-drop"
+    owner: root
+    group: wazuh
+    mode: "0750"
+
+- name: "Template /etc/pf.conf (permissive base + Wazuh block table)"
+  ansible.builtin.template:
+    src: pf.conf.j2
+    dest: /etc/pf.conf
+    owner: root
+    group: wheel
+    mode: "0644"
+    validate: "pfctl -nf %s"
+  notify: "reload pf"
+
+# --- pf enablement: deliberately gated (mimir is the NFS linchpin) -----------
+- name: "Enable and start pf"
+  when: wazuh_pf_enable | bool
+  block:
+    - name: "pf_enable=YES in rc.conf"
+      community.general.sysrc:
+        name: pf_enable
+        value: "YES"
+
+    - name: "Ensure pf is running"
+      ansible.builtin.service:
+        name: pf
+        state: started

@@ -1,0 +1,27 @@
+#!/bin/sh
+# Wazuh custom Active Response: block/unblock a source IP via pf.
+#
+# Wazuh's bundled firewall-drop is iptables-only, so FreeBSD agents cannot
+# enforce a ban with it. This script is the FreeBSD equivalent: it reads the AR
+# JSON message on stdin (wazuh-execd sends one per invocation) and adds/removes
+# the offending source IP in the pf <wazuh_blocklist> table, which /etc/pf.conf
+# drops with `block quick from <wazuh_blocklist>`. Runs as root via execd.
+#
+# Deliberately non-stateful: we read a single message and act. `pfctl -T add`
+# is idempotent, so we skip the check_keys/continue dedup handshake. On `add`
+# we block; execd sends `delete` after the AR timeout to unblock.
+PFCTL=/sbin/pfctl
+TABLE=wazuh_blocklist
+LOG=/var/ossec/logs/active-responses.log
+
+read -r INPUT
+CMD=$(printf '%s' "$INPUT" | sed -n 's/.*"command":"\([a-z_]*\)".*/\1/p')
+IP=$(printf '%s' "$INPUT" | sed -n 's/.*"srcip":"\([0-9.]*\)".*/\1/p')
+
+[ -n "$IP" ] || exit 0
+case "$CMD" in
+  add)    "$PFCTL" -t "$TABLE" -T add    "$IP" 2>>"$LOG" ;;
+  delete) "$PFCTL" -t "$TABLE" -T delete "$IP" 2>>"$LOG" ;;
+  *) exit 0 ;;
+esac
+exit 0

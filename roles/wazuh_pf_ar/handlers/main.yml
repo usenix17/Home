@@ -1,0 +1,7 @@
+---
+# Reload the ruleset only when pf is meant to be running; during staging
+# (wazuh_pf_enable=false) pf is off and there is nothing to reload.
+- name: "reload pf"
+  ansible.builtin.command: "pfctl -f /etc/pf.conf"
+  when: wazuh_pf_enable | bool
+  changed_when: false
