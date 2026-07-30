@@ -1,7 +1,10 @@
 ---
-# Deploy the pf-based Wazuh Active Response to a FreeBSD Wazuh agent, and
-# (optionally) enable pf. Safe to run with wazuh_pf_enable=false: it stages
-# /etc/pf.conf and the AR script without turning pf on.
+# Deploy the pf-based Wazuh Active Response to a FreeBSD Wazuh agent. Works on
+# hosts with an EXISTING hand-maintained pf.conf (beastyboi, freebsd15) as well
+# as ones with none (mimir): it INSERTS the wazuh block-table + rule, and only
+# creates a minimal pf.conf when the host has none. It never overwrites an
+# existing ruleset. Safe to run with wazuh_pf_enable=false (stages without
+# turning pf on).
 
 - name: "Check this host is a Wazuh agent"
   ansible.builtin.stat:
@@ -20,13 +23,39 @@
     group: wazuh
     mode: "0750"
 
-- name: "Template /etc/pf.conf (permissive base + Wazuh block table)"
+- name: "Does the host already have a pf.conf?"
+  ansible.builtin.stat:
+    path: /etc/pf.conf
+  register: pfconf
+
+# Only for hosts with NO pf.conf (e.g. a fresh NAS like mimir): lay down a
+# minimal, permissive base. NEVER touch an existing ruleset.
+- name: "Create a minimal pf.conf (only if absent)"
   ansible.builtin.template:
     src: pf.conf.j2
     dest: /etc/pf.conf
     owner: root
     group: wheel
     mode: "0644"
+  when: not pfconf.stat.exists
+
+# Ensure the Wazuh block-table + rule exist in whatever pf.conf is present.
+# lineinfile is idempotent (matched by regexp) and validated before it sticks.
+- name: "Ensure the wazuh_blocklist table is declared"
+  ansible.builtin.lineinfile:
+    path: /etc/pf.conf
+    regexp: '^table <{{ wazuh_pf_block_table }}>'
+    line: "table <{{ wazuh_pf_block_table }}> persist   # Wazuh Active Response auto-ban (custom-pf-drop)"
+    insertbefore: '{{ wazuh_pf_table_insertbefore }}'
+    validate: "pfctl -nf %s"
+  notify: "reload pf"
+
+- name: "Ensure the wazuh_blocklist block rule exists (early, quick)"
+  ansible.builtin.lineinfile:
+    path: /etc/pf.conf
+    regexp: '^block .*<{{ wazuh_pf_block_table }}>'
+    line: "block drop quick from <{{ wazuh_pf_block_table }}>   # Wazuh auto-ban (early, quick)"
+    insertafter: '{{ wazuh_pf_block_insertafter }}'
     validate: "pfctl -nf %s"
   notify: "reload pf"
 
