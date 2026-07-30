@@ -1,0 +1,9 @@
+---
+# Arch: wazuh-agent comes from the AUR. Build it as the unprivileged AUR user
+# with yay -- the same mechanism the `arch` role uses for other AUR packages
+# (that role provisions the build user + yay, so run it first).
+- name: "Install wazuh-agent from the AUR (yay, as {{ arch_aur_user }})"
+  ansible.builtin.command:
+    cmd: "sudo -u {{ arch_aur_user }} yay -S --noconfirm --needed {{ wazuh_agent_aur_pkg }}"
+  register: wazuh_aur
+  changed_when: "'there is nothing to do' not in wazuh_aur.stdout"

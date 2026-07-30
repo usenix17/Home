@@ -1,0 +1,25 @@
+---
+# Install + register the Wazuh agent and point it at the manager. Non-disruptive
+# by design: it installs the package, ensures the manager address, and registers
+# ONLY if the host is not already enrolled -- it never rewrites a working agent's
+# ossec.conf. Supports FreeBSD (pkg), Debian/Ubuntu (Wazuh APT repo), and Arch
+# (AUR via yay). Other OSes are skipped by the guard in tasks/main.yml.
+
+wazuh_manager: "wazuh.starnix.net"
+wazuh_manager_port: 1514
+wazuh_agent_dir: "/var/ossec"
+wazuh_agent_conf: "/var/ossec/etc/ossec.conf"
+wazuh_agent_service: "wazuh-agent"
+
+# Group requested at (password-less) registration. Defaults to the per-OS shared
+# agent.conf group so the agent picks up the right FIM/SCA/log config.
+wazuh_agent_group: "{{ {'FreeBSD': 'freebsd', 'Debian': 'debian', 'Archlinux': 'arch'}[ansible_os_family] | default('default') }}"
+
+# Debian/Ubuntu: Wazuh 4.x APT repo.
+wazuh_apt_key_url: "https://packages.wazuh.com/key/GPG-KEY-WAZUH"
+wazuh_apt_keyring: "/usr/share/keyrings/wazuh.gpg"
+wazuh_apt_repo: "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main"
+
+# Arch: AUR package name + the build user the `arch` role already provisions.
+wazuh_agent_aur_pkg: "wazuh-agent"
+arch_aur_user: "aur"

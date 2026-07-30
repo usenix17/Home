@@ -47,6 +47,19 @@ all:
       hosts:
         mimir.starnix.net:
 
+    # Hosts running the Wazuh agent that the wazuh_agent role manages
+    # (FreeBSD/Debian/Arch). macOS, OmniOS, and the router run agents too but are
+    # not yet covered by the role, so they stay hand-managed and are omitted here.
+    wazuh_agents:
+      hosts:
+        mimir.starnix.net:
+        beastyboi.starnix.net:
+        freebsd15.starnix.net:
+        bork.starnix.net:
+        hecate.starnix.net:
+        vault.starnix.net:
+        selene.starnix.net:
+
     omnios:
       hosts:
         omnios.starnix.net:
