@@ -3,7 +3,7 @@
 # by design: it installs the package, ensures the manager address, and registers
 # ONLY if the host is not already enrolled -- it never rewrites a working agent's
 # ossec.conf. Supports FreeBSD (pkg), Debian/Ubuntu (Wazuh APT repo), and Arch
-# (AUR via yay). Other OSes are skipped by the guard in tasks/main.yml.
+# (aur-mirror pacman repo). Other OSes are skipped by the guard in tasks/main.yml.
 
 wazuh_manager: "wazuh.starnix.net"
 wazuh_manager_port: 1514
