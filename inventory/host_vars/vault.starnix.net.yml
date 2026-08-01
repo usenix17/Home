@@ -1,0 +1,8 @@
+---
+# vault.starnix.net runs the OpenBao server + a Wazuh agent. Enroll it into BOTH
+# the base OS group (debian) and the additive 'openbao' group so it also gets the
+# /var/log/vault_audit.log collector (shared/openbao/agent.conf in the ArgoCD repo)
+# without adding that localfile to every Debian host. agent-auth -G takes a
+# comma-separated multigroup. Only affects a FRESH enrollment (client.keys absent);
+# an already-enrolled agent is assigned via `agent_groups -a -i <id> -g openbao`.
+wazuh_agent_group: "debian,openbao"
