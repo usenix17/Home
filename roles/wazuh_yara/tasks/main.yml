@@ -1,0 +1,70 @@
+---
+# Deploy YARA + the yara.sh Active Response to a Wazuh agent. Skips non-agents
+# and unsupported OSes. Never disrupts a running agent -- only adds the binary,
+# script, and rules; the manager already carries the <command>/<active-response>.
+
+- name: "Check this host is a Wazuh agent"
+  ansible.builtin.stat:
+    path: "{{ wazuh_agent_dir }}/active-response/bin"
+  register: wazuh_ar_bin
+
+- name: "Skip: not a Wazuh agent"
+  ansible.builtin.meta: end_host
+  when: not wazuh_ar_bin.stat.exists
+
+# --- install the yara binary (per OS) ---
+- name: "Install yara (FreeBSD)"
+  community.general.pkgng:
+    name: "{{ wazuh_yara_pkg }}"
+    state: present
+  when: ansible_os_family == 'FreeBSD'
+
+- name: "Install yara (Debian/Ubuntu)"
+  ansible.builtin.apt:
+    name: "{{ wazuh_yara_pkg }}"
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: "Install yara (Arch)"
+  community.general.pacman:
+    name: "{{ wazuh_yara_pkg }}"
+    state: present
+  when: ansible_os_family == 'Archlinux'
+
+- name: "Skip: unsupported OS for yara"
+  ansible.builtin.meta: end_host
+  when: ansible_os_family not in ['FreeBSD', 'Debian', 'Archlinux']
+
+# --- rules + quarantine dirs ---
+- name: "Create YARA rules directory"
+  ansible.builtin.file:
+    path: "{{ wazuh_yara_rules_dir }}"
+    state: directory
+    owner: root
+    group: wazuh
+    mode: "0750"
+
+- name: "Create quarantine directory (root-only)"
+  ansible.builtin.file:
+    path: "{{ wazuh_yara_quarantine_dir }}"
+    state: directory
+    owner: root
+    group: wazuh
+    mode: "0700"
+
+- name: "Deploy YARA rules"
+  ansible.builtin.copy:
+    src: wazuh_rules.yar
+    dest: "{{ wazuh_yara_rules_dir }}/wazuh_rules.yar"
+    owner: root
+    group: wazuh
+    mode: "0640"
+
+# --- the Active Response script ---
+- name: "Deploy the yara.sh Active Response script"
+  ansible.builtin.copy:
+    src: yara.sh
+    dest: "{{ wazuh_agent_dir }}/active-response/bin/yara.sh"
+    owner: root
+    group: wazuh
+    mode: "0750"
