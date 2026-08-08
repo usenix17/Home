@@ -7,9 +7,10 @@
 zfs_zfsd_enable: true
 
 # Periodic scrub via FreeBSD's daily periodic(8): scrub any pool that has not
-# been scrubbed in more than `zfs_scrub_threshold_days` days.
+# been scrubbed in more than `zfs_scrub_threshold_days` days. 14 matches the
+# prior TrueNAS ~bi-weekly cadence.
 zfs_scrub_enable: true
-zfs_scrub_threshold_days: 30
+zfs_scrub_threshold_days: 14
 
 # sanoid: automatic ZFS snapshots + pruning. Data pools only -- zroot is covered
 # by boot environments. Applied recursively so child datasets (jails, media,
