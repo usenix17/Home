@@ -1,0 +1,9 @@
+---
+# Install + register the Wazuh agent on the FreeBSD/Debian/Arch fleet. The role
+# is non-disruptive (installs if missing, registers only if unenrolled) and
+# skips unsupported OSes, so it is safe to re-run against the whole group.
+- name: "Wazuh agent install + enrollment"
+  hosts: "wazuh_agents"
+  become: true
+  roles:
+    - role: "wazuh_agent"

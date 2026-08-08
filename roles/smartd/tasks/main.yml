@@ -1,0 +1,41 @@
+---
+# S.M.A.R.T. disk monitoring for the storage host (mimir) with Discord alerts.
+# TrueNAS did this via its middleware; on vanilla FreeBSD 15 we run smartd
+# directly and have it POST to Discord instead of mailing root.
+
+- name: "Install smartmontools"
+  community.general.pkgng:
+    name: smartmontools
+    state: present
+
+- name: "Install the webhook secret (root-only)"
+  ansible.builtin.copy:
+    content: "{{ smartd_discord_webhook }}"
+    dest: /usr/local/etc/smartd-discord.webhook
+    owner: root
+    group: wheel
+    mode: "0600"
+  no_log: true
+
+- name: "Install the Discord alert script"
+  ansible.builtin.template:
+    src: smartd-discord.sh.j2
+    dest: /usr/local/etc/smartd-discord.sh
+    owner: root
+    group: wheel
+    mode: "0700"
+
+- name: "Write smartd.conf"
+  ansible.builtin.template:
+    src: smartd.conf.j2
+    dest: /usr/local/etc/smartd.conf
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "restart smartd"
+
+- name: "Enable and start smartd"
+  ansible.builtin.service:
+    name: smartd
+    enabled: true
+    state: started

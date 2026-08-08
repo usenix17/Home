@@ -1,0 +1,35 @@
+#!/bin/sh
+# Wazuh custom Active Response: block/unblock a source IP via pf.
+#
+# Wazuh's bundled firewall-drop is iptables-only, so FreeBSD agents cannot
+# enforce a ban with it. This is the FreeBSD equivalent: it adds/removes the
+# offending source IP in the pf <wazuh_blocklist> table, which /etc/pf.conf
+# drops with `block quick from <wazuh_blocklist>`. Runs as root via execd.
+#
+# It MUST implement the stateful AR handshake: on `add`, reply with a check_keys
+# message and wait for execd's `continue`/`abort`. That handshake is how execd
+# registers the response and later sends the timeout-driven `delete` -- without
+# it, execd never schedules the unban and bans become permanent. `pfctl -T add`
+# is idempotent, and `abort` (key already active) is handled by exiting early.
+PFCTL=/sbin/pfctl
+TABLE=wazuh_blocklist
+
+read -r INPUT
+CMD=$(printf '%s' "$INPUT" | sed -n 's/.*"command":"\([a-z_]*\)".*/\1/p')
+IP=$(printf '%s' "$INPUT" | sed -n 's/.*"srcip":"\([0-9.]*\)".*/\1/p')
+[ -n "$IP" ] || exit 0
+
+case "$CMD" in
+  add)
+    # Announce the key so execd can dedup and track this response for timeout.
+    printf '{"version":1,"origin":{"name":"custom-pf-drop","module":"active-response"},"command":"check_keys","parameters":{"keys":["%s"]}}\n' "$IP"
+    read -r REPLY
+    RCMD=$(printf '%s' "$REPLY" | sed -n 's/.*"command":"\([a-z_]*\)".*/\1/p')
+    [ "$RCMD" = "continue" ] || exit 0    # 'abort' -> key already active
+    "$PFCTL" -t "$TABLE" -T add "$IP"
+    ;;
+  delete)
+    "$PFCTL" -t "$TABLE" -T delete "$IP"
+    ;;
+esac
+exit 0

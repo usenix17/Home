@@ -1,0 +1,64 @@
+---
+# ZFS maintenance for the FreeBSD storage host (mimir): fault daemon, periodic
+# scrubs, and sanoid snapshots. Reproduces what TrueNAS did automatically before
+# the migration to vanilla FreeBSD 15 (all three are silent-failure gaps -- a
+# missing scrub or unmonitored fault goes unnoticed until data loss).
+
+# --- zfsd: fault-management daemon -------------------------------------------
+- name: "Enable and start zfsd (fault handling / hot-spare activation)"
+  when: zfs_zfsd_enable | bool
+  block:
+    - name: "Enable zfsd in rc.conf"
+      community.general.sysrc:
+        name: zfsd_enable
+        value: "YES"
+
+    - name: "Ensure zfsd is running"
+      ansible.builtin.service:
+        name: zfsd
+        state: started
+
+# --- Periodic ZFS scrub ------------------------------------------------------
+# FreeBSD's daily periodic(8) run scrubs any pool not scrubbed in > threshold
+# days. Written to /etc/periodic.conf, not /etc/rc.conf.
+- name: "Enable the daily ZFS scrub (periodic.conf)"
+  when: zfs_scrub_enable | bool
+  block:
+    - name: "daily_scrub_zfs_enable=YES in /etc/periodic.conf"
+      community.general.sysrc:
+        name: daily_scrub_zfs_enable
+        value: "YES"
+        path: /etc/periodic.conf
+
+    - name: "Set the scrub age threshold (days)"
+      community.general.sysrc:
+        name: daily_scrub_zfs_default_threshold
+        value: "{{ zfs_scrub_threshold_days | string }}"
+        path: /etc/periodic.conf
+
+# --- sanoid: snapshots + pruning ---------------------------------------------
+- name: "Configure sanoid snapshots"
+  when: zfs_sanoid_enable | bool
+  block:
+    - name: "Install sanoid"
+      community.general.pkgng:
+        name: sanoid
+        state: present
+
+    - name: "Write sanoid.conf"
+      ansible.builtin.template:
+        src: sanoid.conf.j2
+        dest: /usr/local/etc/sanoid/sanoid.conf
+        owner: root
+        group: wheel
+        mode: "0644"
+
+    # FreeBSD base cron does NOT read /etc/cron.d, so schedule via the system
+    # crontab (which carries a user field). `sanoid --cron` is lightweight and
+    # decides per-policy when to snapshot/prune, so run it every minute.
+    - name: "Schedule sanoid --cron in /etc/crontab"
+      ansible.builtin.lineinfile:
+        path: /etc/crontab
+        regexp: 'sanoid --cron'
+        line: "* * * * *  root  /usr/local/bin/sanoid --cron"
+        state: present

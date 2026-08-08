@@ -15,6 +15,42 @@
     state: present
   when: ansible_os_family == 'Debian'
 
+# Some Debian hosts moved from sssd/FreeIPA to nsscache (accounts sync to local
+# NSS, auth via pam_unix); others are still live FreeIPA clients (e.g. the
+# playbook-runner). This playbook targets `all`, so detect which kind this host
+# is: if sssd is actually running, treat it as a live client and DO NOT touch its
+# sssd/pam_sss wiring. This fact guards every destructive step below so even a
+# bare run can't break a real FreeIPA host.
+- name: "Detect live sssd (protect real FreeIPA clients from cleanup)"
+  ansible.builtin.command: "systemctl is-active --quiet sssd"
+  register: nsscache_sssd_active
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family == 'Debian'
+
+# Where sssd is NOT in use, its leftover packages only leave pam_sss.so references
+# dangling -> "PAM unable to dlopen(pam_sss.so)" on every auth. Remove them.
+- name: "Remove superseded sssd stack (only where sssd is not in use)"
+  ansible.builtin.apt:
+    name:
+      - sssd
+      - sssd-common
+      - libpam-sss
+      - libsss-idmap0
+    state: absent
+    purge: true
+  when:
+    - ansible_os_family == 'Debian'
+    - nsscache_sssd_active.rc | default(1) != 0
+
+# Harmless everywhere: make sure pam_pwquality.so (referenced by common-password)
+# is actually installed so it never dangles the same way pam_sss did.
+- name: "Ensure libpam-pwquality is present (common-password references it)"
+  ansible.builtin.apt:
+    name: libpam-pwquality
+    state: present
+  when: ansible_os_family == 'Debian'
+
 # --- nsscache configuration ---
 
 - name: "Configure nsscache"
@@ -46,6 +82,41 @@
     mode: "0755"
 
 # --- PAM ---
+
+# Strip leftover pam_sss.so from the shared PAM stacks. These are remnants of the
+# old FreeIPA/sssd enrollment (hand-added, not from a pam-auth-update profile, so
+# package removal never cleaned them). The two [success=N] control lines must drop
+# their offset by one when pam_sss leaves the stack, so collapse the
+# pam_unix+pam_sss pair in a single replace (offset-safe and idempotent).
+- name: "common-auth: drop leftover pam_sss and fix pam_unix jump offset"
+  ansible.builtin.replace:
+    path: /etc/pam.d/common-auth
+    regexp: '^auth\s+\[success=2 default=ignore\]\s+pam_unix\.so(.*)\n\s*auth\s+\[success=1 default=ignore\]\s+pam_sss\.so.*$'
+    replace: "auth\t[success=1 default=ignore]\tpam_unix.so\\1"
+  when:
+    - ansible_os_family == 'Debian'
+    - nsscache_sssd_active.rc | default(1) != 0
+
+- name: "common-password: drop leftover pam_sss and fix pam_unix jump offset"
+  ansible.builtin.replace:
+    path: /etc/pam.d/common-password
+    regexp: '^password\s+\[success=2 default=ignore\]\s+pam_unix\.so(.*)\n\s*password\s+sufficient\s+pam_sss\.so.*$'
+    replace: "password\t[success=1 default=ignore]\tpam_unix.so\\1"
+  when:
+    - ansible_os_family == 'Debian'
+    - nsscache_sssd_active.rc | default(1) != 0
+
+- name: "common-session/common-account: remove leftover pam_sss lines"
+  ansible.builtin.replace:
+    path: "/etc/pam.d/{{ item }}"
+    regexp: '^\s*#?\s*(session|account)\s+.*pam_sss\.so.*\n'
+    replace: ''
+  loop:
+    - common-session
+    - common-account
+  when:
+    - ansible_os_family == 'Debian'
+    - nsscache_sssd_active.rc | default(1) != 0
 
 - name: "Add PAM account rule for nsscache users in sshd"
   ansible.builtin.lineinfile:

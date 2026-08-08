@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+# Minimal, permissive pf ruleset whose ONLY job is to drop hosts that Wazuh
+# auto-bans. mimir is the NFS linchpin, so this must not filter legitimate
+# traffic: `pass all no state` passes everything both directions with no state
+# table (no NFS-breaking state limits), and only the Wazuh block-list drops.
+#
+# The <{{ wazuh_pf_block_table }}> table is populated at runtime by the
+# custom-pf-drop Active Response (pfctl -t {{ wazuh_pf_block_table }} -T add/delete).
+table <{{ wazuh_pf_block_table }}> persist
+block drop quick from <{{ wazuh_pf_block_table }}>
+pass all no state

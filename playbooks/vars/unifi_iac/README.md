@@ -20,21 +20,21 @@ the current controller is a **no-op**. Edit the values to change config.
 
 ## How references work (no UUIDs)
 
-The vars are **name-based** -- there are no UUIDs. Resources are matched by their
-(unique) names, and every cross-reference is written as a name and resolved at
-play time. The playbook first queries the controller and builds four maps --
-`zone_ids`, `list_ids`, `network_ids`, `policy_ids` (name to id) -- so a policy
-reads, for example:
+The vars are **name-based** -- there are no UUIDs. Every cross-reference is
+written as a plain name, and `unifi_reconcile` resolves it to an id at run time
+(it fetches each collection once anyway, so it builds the name->id maps for
+free; a value that is already a UUID passes through). A policy reads, for
+example:
 
 ```yaml
 - name: Allow all nebula (Internal->Internal)
   source:
-    zoneId: "{{ zone_ids['Internal'] }}"
+    zoneId: Internal
     trafficFilter:
       type: IP_ADDRESS
       ipAddressFilter:
         type: TRAFFIC_MATCHING_LIST
-        trafficMatchingListId: "{{ list_ids['Nebula'] }}"
+        trafficMatchingListId: Nebula
 ```
 
 Because policies are matched by name, every policy name must be unique. The v1
@@ -52,6 +52,11 @@ ansible-playbook playbooks/unifi_iac.yml --check --diff   # preview (safe)
 ansible-playbook playbooks/unifi_iac.yml                   # enforce
 ```
 
+The play is a single `starnix.unifi.unifi_reconcile` call: it fetches each
+collection once, resolves the name references, diffs in memory, and writes only
+the drift. A full run is ~7s, versus the minutes it would take looping the
+per-resource modules once per resource.
+
 ## Regenerating the vars from the live controller
 
 ```bash
@@ -59,10 +64,9 @@ UNIFI_API_KEY=... OUT=playbooks/vars/unifi_iac \
   python3 playbooks/vars/unifi_iac/discover_unifi_iac.py
 ```
 
-## Relationship to the v2 reconciler
+## The v2 reconciler is retired
 
-`roles/unifi_firewall` (the tag-based v2 reconciler) manages the same firewall
-policies through a different API. Treat **one** of them as the source of truth
--- this collection-based playbook is the migration path off the reconciler.
-Running both in enforce mode with divergent desired states would have them
-fight; check-mode here never writes and is always safe.
+This playbook replaced the old tag-based v2 reconciler (`roles/unifi_firewall`),
+which has been removed -- it is now the sole source of truth for the firewall.
+See [RETIREMENT.md](RETIREMENT.md) for the cutover steps (Semaphore template +
+making the collection installable on the runner).

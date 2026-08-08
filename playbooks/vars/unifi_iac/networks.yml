@@ -1,44 +1,44 @@
 # networks.yml -- generated from the live controller by discover_unifi_iac.py.
-# Names only; cross-references resolve at play time via the *_ids maps
-# that unifi_iac.yml builds. Matched by name -- edit values freely.
+# Names only; unifi_reconcile resolves every cross-reference to an id
+# at run time. Matched by name -- edit values freely.
 unifi_networks:
 - name: Management
   management: GATEWAY
   enabled: true
   vlan_id: 1
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: Wireless
   management: GATEWAY
   enabled: true
   vlan_id: 4
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: Aux
   management: GATEWAY
   enabled: true
   vlan_id: 5
-  zone_id: '{{ zone_ids[''Restricted''] }}'
+  zone_id: Restricted
 - name: Wired
   management: GATEWAY
   enabled: true
   vlan_id: 2
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: Guest
   management: GATEWAY
   enabled: true
   vlan_id: 69
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: Osa-test_nomap
   management: GATEWAY
   enabled: true
   vlan_id: 3
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: Omega
   management: GATEWAY
   enabled: true
   vlan_id: 6
-  zone_id: '{{ zone_ids[''Internal''] }}'
+  zone_id: Internal
 - name: DMZ
   management: GATEWAY
   enabled: true
   vlan_id: 7
-  zone_id: '{{ zone_ids[''Dmz''] }}'
+  zone_id: Dmz

@@ -1,0 +1,12 @@
+---
+# pf-based Wazuh Active Response for the FreeBSD Wazuh agents, so SSH auto-ban
+# works on them (the bundled firewall-drop is iptables-only). Runs on the whole
+# freebsd group; the role skips any host that is not a Wazuh agent and never
+# overwrites an existing pf.conf (it inserts the wazuh block-table + rule).
+# Stages config by default; run with -e wazuh_pf_enable=true to turn pf on
+# (mimir's pf is already enabled from the initial rollout).
+- name: "Wazuh pf Active Response on FreeBSD agents"
+  hosts: "freebsd"
+  become: true
+  roles:
+    - role: "wazuh_pf_ar"

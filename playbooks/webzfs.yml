@@ -1,0 +1,11 @@
+---
+# HTTPS reverse proxy (nginx + Let's Encrypt via Cloudflare DNS-01) fronting the
+# webzfs dashboard on the storage host (mimir), at https://mimir.starnix.net.
+# The webzfs app itself is installed by its upstream installer; this only exposes
+# it. Requires vault_certbot_cloudflare_api_token (ansible-vault) -- see
+# inventory/group_vars/storage.yml.
+- name: "webzfs HTTPS reverse proxy on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "webzfs_proxy"

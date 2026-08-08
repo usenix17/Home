@@ -1,0 +1,14 @@
+---
+# S.M.A.R.T. disk monitoring for the FreeBSD storage host (mimir). Alerts are
+# pushed to Discord (smartd runs the alert script instead of sending mail).
+
+# The Discord webhook is a SECRET -- do NOT put the real value here. Provide
+# `vault_smartd_discord_webhook` via ansible-vault (see group_vars/storage.yml).
+smartd_discord_webhook: "{{ vault_smartd_discord_webhook }}"
+
+# smartd DEVICESCAN directive. -M exec runs the Discord script in place of mail
+# (so no MTA is needed); -m is required syntactically. Short self-test daily at
+# 02:00, long self-test Saturday 03:00; temperature 4C delta / 45C info / 55C crit.
+smartd_devicescan: >-
+  DEVICESCAN -a -o on -S on -n standby,q -s (S/../.././02|L/../../6/03)
+  -W 4,45,55 -m root -M exec /usr/local/etc/smartd-discord.sh

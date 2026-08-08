@@ -1,0 +1,6 @@
+---
+# FreeBSD ships wazuh-agent in the standard pkg repo (security/wazuh-agent).
+- name: "Install wazuh-agent (pkg)"
+  community.general.pkgng:
+    name: wazuh-agent
+    state: present

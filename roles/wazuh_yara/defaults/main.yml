@@ -1,0 +1,14 @@
+---
+# YARA malware scanning as a Wazuh Active Response: on a FIM (syscheck) event the
+# manager triggers yara.sh on the agent, which scans the changed file and moves
+# matches to quarantine. This role installs the yara binary + deploys the script
+# and rules to each agent. The <command>/<active-response> that trigger it live
+# on the manager (applications/wazuh/wazuh-manager.yaml). Non-disruptive: skips
+# any host that is not a Wazuh agent.
+wazuh_agent_dir: "/var/ossec"
+wazuh_yara_rules_dir: "/var/ossec/ruleset/yara/rules"
+wazuh_yara_quarantine_dir: "/var/ossec/quarantine"
+
+# yara binary package per OS family. FreeBSD security/yara, Debian yara (main),
+# Arch extra/yara (no AUR needed).
+wazuh_yara_pkg: "yara"

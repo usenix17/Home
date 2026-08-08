@@ -1,0 +1,43 @@
+---
+# Guard: only FreeBSD / Debian / Arch are supported. Skip anything else
+# (macOS, OmniOS, routers) cleanly so the play can target a broad host set.
+- name: "Skip: unsupported OS family ({{ ansible_os_family }})"
+  ansible.builtin.meta: end_host
+  when: ansible_os_family not in ['FreeBSD', 'Debian', 'Archlinux']
+
+- name: "Install the wazuh-agent package ({{ ansible_os_family }})"
+  ansible.builtin.include_tasks: "install-{{ ansible_os_family }}.yml"
+
+- name: "Point the agent at the manager (idempotent)"
+  ansible.builtin.replace:
+    path: "{{ wazuh_agent_conf }}"
+    regexp: '(<address>)[^<]*(</address>)'
+    replace: '\g<1>{{ wazuh_manager }}\g<2>'
+  notify: "restart wazuh-agent"
+
+- name: "Check whether the agent is already registered"
+  ansible.builtin.stat:
+    path: "{{ wazuh_agent_dir }}/etc/client.keys"
+  register: wazuh_client_keys
+
+# Password-less registration (the manager runs auth with use_password=no).
+# Guarded on client.keys so already-enrolled agents are never re-registered.
+- name: "Register with the manager (agent-auth) if not yet enrolled"
+  ansible.builtin.command:
+    argv:
+      - "{{ wazuh_agent_dir }}/bin/agent-auth"
+      - "-m"
+      - "{{ wazuh_manager }}"
+      - "-A"
+      - "{{ inventory_hostname }}"
+      - "-G"
+      - "{{ wazuh_agent_group }}"
+  when: not wazuh_client_keys.stat.exists or wazuh_client_keys.stat.size == 0
+  changed_when: true
+  notify: "restart wazuh-agent"
+
+- name: "Enable and start the wazuh-agent service"
+  ansible.builtin.service:
+    name: "{{ wazuh_agent_service }}"
+    enabled: true
+    state: started

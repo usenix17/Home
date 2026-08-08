@@ -1,0 +1,10 @@
+---
+# Arch: wazuh-agent is served prebuilt by the aur-mirror pacman repo
+# (aur.starnix.net, configured by the `arch` role) from a GPG-verified hardened
+# recipe (usenix17/wazuh-agent). Install straight from pacman -- do NOT build the
+# public-AUR recipe on the host, which would bypass that hardening.
+- name: "Install wazuh-agent (aur-mirror pacman repo)"
+  community.general.pacman:
+    name: "{{ wazuh_agent_aur_pkg }}"
+    state: present
+    update_cache: true

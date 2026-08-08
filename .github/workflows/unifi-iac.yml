@@ -1,0 +1,61 @@
+---
+name: UniFi as code via Semaphore
+
+# Enforces the UniFi firewall/networks/DHCP from playbooks/unifi_iac.yml by
+# running a SemaphoreUI task (Semaphore reaches the UDM over the LAN; GitHub
+# runners cannot). Replaces the retired v2 reconciler workflow.
+#
+# PREREQUISITES (one-time, see playbooks/vars/unifi_iac/RETIREMENT.md):
+#   - a Semaphore template that runs playbooks/unifi_iac.yml, with the
+#     starnix.unifi collection installed (requirements.yml) and UNIFI_API_KEY
+#     in its environment;
+#   - repo variable UNIFI_IAC_TEMPLATE_ID set to that template's id;
+#   - repo secret SEMAPHORE_TOKEN (already present from the old workflow).
+'on':
+  push:
+    branches: [main]
+    paths:
+      - 'playbooks/unifi_iac.yml'
+      - 'playbooks/vars/unifi_iac/**'
+      - 'requirements.yml'
+      - '.github/workflows/unifi-iac.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: unifi-iac-semaphore
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and wait for the Semaphore task
+        env:
+          TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
+          TEMPLATE: ${{ vars.UNIFI_IAC_TEMPLATE_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TEMPLATE:-}" ]; then
+            echo "::error::Set the UNIFI_IAC_TEMPLATE_ID repo variable to the"\
+                 "Semaphore template that runs playbooks/unifi_iac.yml."
+            exit 1
+          fi
+          API="https://semaphore.starnix.net/api/project/1"
+          echo "Starting Semaphore template ${TEMPLATE} (UniFi as code)..."
+          resp=$(curl -sfS -X POST "$API/tasks" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"template_id\": ${TEMPLATE}}")
+          id=$(echo "$resp" | jq -r '.id')
+          echo "Started task #$id"
+          for i in $(seq 1 90); do
+            sleep 10
+            status=$(curl -sfS "$API/tasks/$id" \
+              -H "Authorization: Bearer $TOKEN" | jq -r '.status')
+            echo "  task #$id: $status"
+            case "$status" in
+              success)              exit 0 ;;
+              error|stopped|failed) echo "::error::task #$id: $status"; exit 1 ;;
+            esac
+          done
+          echo "::error::timed out waiting for task #$id"; exit 1

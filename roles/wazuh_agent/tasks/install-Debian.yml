@@ -1,0 +1,28 @@
+---
+# Debian/Ubuntu: install from the Wazuh 4.x APT repository.
+- name: "Fetch the Wazuh APT signing key"
+  ansible.builtin.get_url:
+    url: "{{ wazuh_apt_key_url }}"
+    dest: /tmp/wazuh-apt-key.asc
+    mode: "0644"
+
+- name: "Install the dearmored keyring"
+  ansible.builtin.command:
+    cmd: "gpg --batch --yes --dearmor -o {{ wazuh_apt_keyring }} /tmp/wazuh-apt-key.asc"
+    creates: "{{ wazuh_apt_keyring }}"
+
+- name: "Add the Wazuh APT repository"
+  ansible.builtin.apt_repository:
+    repo: "{{ wazuh_apt_repo }}"
+    filename: wazuh
+    state: present
+    update_cache: true
+
+# WAZUH_MANAGER pre-seeds the manager address in the package postinst; the
+# replace task in main.yml then keeps it correct/idempotent.
+- name: "Install wazuh-agent"
+  ansible.builtin.apt:
+    name: wazuh-agent
+    state: present
+  environment:
+    WAZUH_MANAGER: "{{ wazuh_manager }}"

@@ -1,0 +1,20 @@
+---
+# pf-based Wazuh Active Response for FreeBSD agents (custom-pf-drop), giving them
+# the SSH auto-ban that the iptables-only firewall-drop cannot provide.
+
+wazuh_pf_block_table: "wazuh_blocklist"
+
+# Where to insert the wazuh lines into an existing pf.conf. Both anchors match
+# the standard default-deny line present on the FreeBSD hosts; overridable per
+# host if a ruleset differs. Ignored when the line already exists (idempotent).
+wazuh_pf_table_insertbefore: '^block in all'
+wazuh_pf_block_insertafter: '^block in all'
+
+# Actually enabling/starting pf is a DELIBERATE step (mimir is the NFS linchpin).
+# Default off: running the role stages /etc/pf.conf + the AR script without
+# turning pf on. Flip to true (e.g. -e wazuh_pf_enable=true) once you've verified
+# the ruleset, to `sysrc pf_enable=YES` + start pf.
+wazuh_pf_enable: false
+
+# Wazuh agent install prefix on FreeBSD (where the AR bin lives).
+wazuh_agent_dir: "/var/ossec"

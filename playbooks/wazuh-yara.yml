@@ -1,0 +1,12 @@
+---
+# YARA malware scanning on the Wazuh agents. Installs the yara binary + the
+# yara.sh Active Response + baseline rules on each agent. The manager already
+# carries the <command>/<active-response> that trigger it on FIM events, and the
+# broadened FIM directories (/tmp, /var/tmp, /home) are pushed via the shared
+# agent.conf. The role skips any host that is not a Wazuh agent or whose OS is
+# unsupported (macOS/OmniOS/router stay hand-managed).
+- name: "YARA Active Response on Wazuh agents"
+  hosts: "wazuh_agents"
+  become: true
+  roles:
+    - role: "wazuh_yara"
