@@ -36,3 +36,4 @@
   roles:
     - role: "freebsd"
     - role: "syslog"
+    - role: "zfs"
