@@ -1,7 +1,8 @@
 ---
 # graylog jail (Bastille, VNET) -- reproduces the monolithic iocage `graylog` jail:
-# Graylog + MongoDB + OpenSearch in one jail. Data is PRE-STAGED on datasets in
-# Phase 0 and nullfs-mounted; this role never moves the ~764 GB OpenSearch tree.
+# Graylog + MongoDB + OpenSearch in one jail. OpenSearch runs on its own SSD
+# dataset (zroot/opensearch) created by this role and starts fresh; MongoDB +
+# graylog data are PRE-STAGED on Store datasets in Phase 0 and nullfs-mounted.
 
 graylog_jail_name: "graylog"
 graylog_jail_ip: "192.168.1.151"
@@ -37,9 +38,17 @@ graylog_mongodb_gid: 922
 graylog_graylog_uid: 848
 graylog_graylog_gid: 848
 
-# Pre-staged data (nullfs). Stage these from the STOPPED old jail in Phase 0.
-graylog_os_data_src: "/mnt/Store/graylog-opensearch"   # ~764 GB
+# OpenSearch data lives on the SSD boot mirror (zroot), NOT the Store HDD mirror:
+# log indexing is write-heavy and saturated Store (txg-sync stalls -> the sanoid
+# zfs-destroy hangs). The dataset below is quota-fenced so it can never fill the
+# OS pool, and OpenSearch starts FRESH (history was intentionally not carried).
+# Retention is capped at 500 GiB in the Graylog index set (16 GiB x 31), which
+# persists in the carried MongoDB, so it survives a jail rebuild.
+graylog_os_dataset: "zroot/opensearch"
+graylog_os_dataset_quota: "550G"                       # hard fence on the boot pool
+graylog_os_data_src: "/mnt/opensearch-ssd"             # zroot/opensearch mountpoint
 graylog_os_data_dst: "/var/db/opensearch"
+# MongoDB + graylog data stay on Store (small, latency-tolerant); stage in Phase 0.
 graylog_mongo_data_src: "/mnt/Store/graylog-mongodb"   # ~207 MB
 graylog_mongo_data_dst: "/var/db/mongodb"
 graylog_data_src: "/mnt/Store/graylog-data"            # ~26 MB (message journal etc.)

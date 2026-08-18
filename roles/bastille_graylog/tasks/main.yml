@@ -1,7 +1,30 @@
 ---
 # Build/converge the monolithic graylog Bastille jail (Graylog + MongoDB +
-# OpenSearch) on FreeBSD 15. Data is PRE-STAGED on datasets in Phase 0 and
-# nullfs-mounted here -- this role never copies the ~764 GB OpenSearch tree.
+# OpenSearch) on FreeBSD 15. OpenSearch runs on a dedicated SSD dataset created
+# here (write-heavy -> kept off the Store HDD mirror); MongoDB + graylog data are
+# PRE-STAGED on Store datasets in Phase 0 and nullfs-mounted -- never copied here.
+
+# --- OpenSearch storage (SSD) ------------------------------------------------
+# OpenSearch's indexing saturated the Store HDD mirror (asyncq queueing -> txg
+# sync stalls -> the sanoid `zfs destroy` hangs). Give it its own dataset on the
+# SSD boot mirror, quota-fenced so it can never fill the OS pool. Idempotent.
+- name: "Create the OpenSearch SSD dataset (quota-fenced, off Store)"
+  community.general.zfs:
+    name: "{{ graylog_os_dataset }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: "{{ graylog_os_data_src }}"
+      quota: "{{ graylog_os_dataset_quota }}"
+      atime: "off"
+      compression: lz4
+
+- name: "Own the OpenSearch SSD dataset by the opensearch service account"
+  ansible.builtin.file:
+    path: "{{ graylog_os_data_src }}"
+    state: directory
+    owner: "{{ graylog_opensearch_uid }}"
+    group: "{{ graylog_opensearch_gid }}"
+    mode: "0755"
 
 # --- Preconditions -----------------------------------------------------------
 
@@ -10,7 +33,6 @@
     path: "{{ item }}"
   register: graylog_src_stat
   loop:
-    - "{{ graylog_os_data_src }}"
     - "{{ graylog_mongo_data_src }}"
     - "{{ graylog_data_src }}"
 
@@ -18,9 +40,9 @@
   ansible.builtin.assert:
     that: item.stat.exists and item.stat.isdir
     fail_msg: >-
-      {{ item.item }} not found. Stage the graylog data (OpenSearch, MongoDB,
-      graylog data_dir) onto datasets from the STOPPED old jail in Phase 0 before
-      running this role.
+      {{ item.item }} not found. Stage the MongoDB + graylog data onto datasets
+      from the STOPPED old jail in Phase 0 before running this role (OpenSearch
+      needs no staging -- its SSD dataset is created fresh above).
     quiet: true
   loop: "{{ graylog_src_stat.results }}"
   loop_control:
