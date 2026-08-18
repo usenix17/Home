@@ -1,0 +1,19 @@
+---
+# fork_storm_guard -- see this role's README.md and defaults/main.yml.
+# Idempotent and safe to run against a healthy host. Every part is guarded by a
+# toggle and tagged so it can be applied in isolation (e.g. --tags rctl).
+
+- name: "Part 1 | sanoid lockf mutual-exclusion wrapper"
+  ansible.builtin.include_tasks: sanoid_lock.yml
+  when: fork_storm_guard_sanoid_wrapper | bool
+  tags: ["fork_storm_guard", "sanoid", "sanoid_lock"]
+
+- name: "Part 2 | rctl process ceilings (RACCT)"
+  ansible.builtin.include_tasks: rctl.yml
+  when: fork_storm_guard_rctl | bool
+  tags: ["fork_storm_guard", "rctl"]
+
+- name: "Part 3 | detection (netdata health alarms)"
+  ansible.builtin.include_tasks: detection.yml
+  when: fork_storm_guard_detection | bool
+  tags: ["fork_storm_guard", "detection"]

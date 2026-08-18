@@ -1,0 +1,9 @@
+---
+
+- name: reload-netdata-health
+  ansible.builtin.shell:
+    cmd: >-
+      netdatacli reload-health 2>/dev/null
+      || killall -USR2 netdata 2>/dev/null || true
+  changed_when: false
+  when: fork_storm_guard_netdata_reload | bool

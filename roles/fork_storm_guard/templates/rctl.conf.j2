@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+# Managed by the fork_storm_guard role. Do NOT hand-edit -- changes are
+# overwritten. Loaded at boot by rctl_enable="YES" / rctl_rules in rc.conf, and
+# applied live by the role when RACCT is already active.
+#
+# Layered ceiling on root's process count (see README -- SAFETY):
+#   log    -- early syslog signal at a level normal operation never reaches
+#   devctl -- devd event that can drive alerting before anything is denied
+#   deny   -- hard backstop; root cannot fork(2) past this. The role refuses to
+#             write a deny below {{ fork_storm_guard_baseline_multiple }}x the
+#             baselined steady-state process count and always keeps it well
+#             under kern.maxproc.
+user:root:maxproc:log={{ fork_storm_guard_root_maxproc_log }}
+user:root:maxproc:devctl={{ fork_storm_guard_root_maxproc_devctl }}
+user:root:maxproc:deny={{ fork_storm_guard_root_maxproc_deny }}
+{% if fsg_jail_names | length > 0 %}
+
+# Per-jail process ceilings so a runaway inside a jail cannot consume the
+# host's process table. Jails enumerated dynamically via `jls -N`. maxproc
+# counts PROCESSES, not threads -- MinIO/OpenSearch JVM thread counts are
+# unaffected; raise a specific jail via fork_storm_guard_jail_maxproc_overrides.
+{% for jail in fsg_jail_names %}
+jail:{{ jail }}:maxproc:deny={{ fork_storm_guard_jail_maxproc_overrides[jail] | default(fork_storm_guard_jail_maxproc_default) }}
+{% endfor %}
+{% endif %}
