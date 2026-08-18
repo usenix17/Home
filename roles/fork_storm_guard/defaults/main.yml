@@ -74,7 +74,7 @@ fork_storm_guard_netdata_reload: true
 fork_storm_guard_chart_processes: "system.processes"
 fork_storm_guard_dim_blocked: "blocked"
 fork_storm_guard_chart_active_processes: "system.active_processes"
-fork_storm_guard_chart_swap: "system.swap"
+fork_storm_guard_chart_swap: "mem.swap"
 # Alarm thresholds.
 fork_storm_guard_alarm_dstate_warn: 20     # sustained D-state count
 fork_storm_guard_alarm_dstate_crit: 100
