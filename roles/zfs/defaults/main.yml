@@ -20,8 +20,18 @@ zfs_sanoid_datasets:
   - Backup
   - Store
   - Comet
+  - Vault
 zfs_sanoid_retention:
   hourly: 24
   daily: 30
   monthly: 3
   yearly: 0
+
+# NFS exports via the ZFS `sharenfs` property (writes /etc/zfs/exports, which
+# mountd reads alongside the legacy /etc/exports). Only datasets listed here are
+# managed by this role; the pre-existing pools (Store/Backup/Comet) keep the
+# sharenfs they carried over from TrueNAS and are intentionally left untouched.
+# Value is the raw export option string: `-alldirs` permits submount, and
+# `-maproot=root` keeps client root un-squashed -- matching the existing shares.
+zfs_sharenfs:
+  Vault: "-alldirs -maproot=root"
