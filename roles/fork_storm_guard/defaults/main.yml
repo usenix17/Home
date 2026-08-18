@@ -1,0 +1,90 @@
+---
+# fork_storm_guard: stop a single hung operation from compounding into a
+# system-wide outage. Three controls, deliberately layered:
+#   1. a lockf mutual-exclusion wrapper around `sanoid --cron` -- addresses the
+#      specific 2026-08-14 cause (a wedged `zfs snapshot` let cron stack ~4,400
+#      runs and exhaust memory);
+#   2. rctl(8) process ceilings -- addresses the class (any fork storm hits a
+#      wall long before it exhausts the process table);
+#   3. netdata health alarms on D-state / total procs / swap -- the missing
+#      alarm that let it run for three days unseen.
+# See README.md.
+
+# Master toggles (all default on; flip off to stage parts independently).
+fork_storm_guard_sanoid_wrapper: true
+fork_storm_guard_rctl: true
+fork_storm_guard_detection: true
+
+# --- Part 1: sanoid lockf wrapper -------------------------------------------
+fork_storm_guard_sanoid_bin: /usr/local/bin/sanoid
+fork_storm_guard_wrapper_path: /usr/local/sbin/sanoid-cron-wrapper.sh
+fork_storm_guard_lock_path: /var/run/sanoid-cron.lock
+fork_storm_guard_skip_state_path: /var/run/sanoid-cron.skipped
+# sanoid --cron is designed to run every minute (it decides per-policy when to
+# actually snapshot/prune), matching the entry previously owned by the zfs
+# role. Exposed as a variable so the cadence is not silently hard-assumed.
+fork_storm_guard_sanoid_schedule: "* * * * *"
+# Consecutive lock-contention skips before the wrapper escalates its syslog
+# level from daemon.warning to daemon.err (which trips the Wazuh agent / syslog
+# alerting path). 15 == a run has been stuck ~15 minutes.
+fork_storm_guard_skip_escalation_threshold: 15
+# Prometheus Pushgateway for the wrapper's metrics. NOTE: mimir is OUTSIDE the
+# Omega k8s cluster, so the in-cluster ClusterIP below is NOT reachable from
+# it. Set this to an externally-reachable Pushgateway route (ingress or MetalLB
+# LB) for the metrics to land. The push is best-effort: unreachable/absent ->
+# silent no-op, snapshots still run. Set to "" to disable the push entirely.
+fork_storm_guard_pushgateway_url: >-
+  http://prometheus-pushgateway.monitoring.svc.cluster.local:9091
+fork_storm_guard_pushgateway_job: "sanoid_cron"
+fork_storm_guard_pushgateway_timeout: 5
+
+# --- Part 2: rctl process ceilings ------------------------------------------
+fork_storm_guard_rctl_conf: /etc/rctl.conf
+# Layered actions on the root maxproc limit:
+#   log    -> early syslog signal at a level normal operation never reaches
+#   devctl -> devd event that can drive alerting before anything is denied
+#   deny   -> hard backstop (root cannot fork past this -- see README SAFETY)
+fork_storm_guard_root_maxproc_log: 500
+fork_storm_guard_root_maxproc_devctl: 1500
+fork_storm_guard_root_maxproc_deny: 2000
+# SAFETY GATE: the play refuses to write a deny that is not comfortably above
+# observed steady state. deny must be >= this multiple of the baselined
+# process count, and always well below kern.maxproc.
+fork_storm_guard_baseline_multiple: 4
+# Per-jail maxproc ceiling. Jails are enumerated dynamically (jls -N); this is
+# the default, with per-jail overrides below. maxproc counts PROCESSES, not
+# threads -- MinIO / OpenSearch JVM thread counts do not consume it.
+fork_storm_guard_jail_maxproc_default: 500
+fork_storm_guard_jail_maxproc_overrides: {}
+#   minio: 800
+#   graylog: 800
+
+# --- Part 3: detection (netdata health alarms) ------------------------------
+fork_storm_guard_netdata_health_dir: /usr/local/etc/netdata/health.d
+fork_storm_guard_netdata_notify_conf: >-
+  /usr/local/etc/netdata/health_alarm_notify.conf
+# Reload health config without a full restart (netdata reloads on SIGUSR2 /
+# `netdatacli reload-health`).
+fork_storm_guard_netdata_reload: true
+# netdata chart IDs/dimensions the alarms watch. These reuse netdata's existing
+# collection (no new proc sweep -- a `ps ax | wc -l` cron is itself O(n) under
+# the allproc lock and becomes part of a fork storm). VERIFY the exact IDs on
+# the healthy host post-reboot with:  curl -s localhost:19999/api/v1/charts
+# The blocked-processes dimension is the strongest leading indicator (D-state).
+fork_storm_guard_chart_processes: "system.processes"
+fork_storm_guard_dim_blocked: "blocked"
+fork_storm_guard_chart_active_processes: "system.active_processes"
+fork_storm_guard_chart_swap: "system.swap"
+# Alarm thresholds.
+fork_storm_guard_alarm_dstate_warn: 20     # sustained D-state count
+fork_storm_guard_alarm_dstate_crit: 100
+fork_storm_guard_alarm_procs_warn: 2000    # total processes
+fork_storm_guard_alarm_procs_crit: 6000
+fork_storm_guard_alarm_swap_warn: 60       # swap % used
+fork_storm_guard_alarm_swap_crit: 85
+# How long a condition must persist before the alarm raises (kills flapping and
+# ignores momentary spikes). D-state uses a multi-interval sustained lookup.
+fork_storm_guard_alarm_dstate_window: "5m"
+# netdata recipient role. Delivery to PagerDuty rides the pagerduty role's
+# health_alarm_notify.conf (SEND_PD=YES, DEFAULT_RECIPIENT_PD set). See README.
+fork_storm_guard_alarm_recipient: "sysadmin"

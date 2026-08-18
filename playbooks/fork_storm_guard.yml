@@ -1,0 +1,15 @@
+---
+# fork_storm_guard: stop a single hung operation from compounding into a
+# system-wide outage on the storage host (mimir). Three layered controls --
+# a lockf mutual-exclusion wrapper around `sanoid --cron`, rctl(8) process
+# ceilings (RACCT), and netdata detection alarms. See
+# roles/fork_storm_guard/README.md and the 2026-08-14 mimir fork-storm incident.
+#
+# Pairs with playbooks/zfs.yml, which still owns sanoid installation and
+# sanoid.conf; the sanoid *schedule* moved into this role so the lock and
+# metrics live with the execution path.
+- name: "Fork-storm guardrails on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "fork_storm_guard"

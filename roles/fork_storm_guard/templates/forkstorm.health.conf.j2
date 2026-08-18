@@ -1,0 +1,67 @@
+# {{ ansible_managed }}
+# fork_storm_guard detection alarms (netdata health). These reuse netdata's
+# EXISTING process/swap collection -- they add no new proc sweep (a
+# `ps ax | wc -l` cron is itself O(n) under the allproc lock and becomes part
+# of a fork storm). Delivery to PagerDuty rides health_alarm_notify.conf.
+#
+# Chart IDs are role variables: verify them on the healthy host with
+#   curl -s localhost:19999/api/v1/charts | tr ',' '\n' | grep processes
+# and override in the role vars if this FreeBSD netdata build names them
+# differently.
+
+# --- D-state (uninterruptible sleep) processes -------------------------------
+# THE strongest leading indicator. A persistently non-zero blocked count would
+# have caught the 2026-08-14 ZFS tq_drain wedge within the hour -- three days
+# before it caused the outage. "average over a window" => sustained, not a spike.
+   template: forkstorm_dstate_processes
+         on: {{ fork_storm_guard_chart_processes }}
+      class: Workload
+       type: System
+  component: Processes
+     lookup: average -{{ fork_storm_guard_alarm_dstate_window }} unaligned of {{ fork_storm_guard_dim_blocked }}
+      units: processes
+      every: 30s
+       warn: $this > {{ fork_storm_guard_alarm_dstate_warn }}
+       crit: $this > {{ fork_storm_guard_alarm_dstate_crit }}
+      delay: up 2m down 5m
+    summary: Sustained D-state processes on ${label:_hostname}
+       info: Processes stuck in uninterruptible sleep (e.g. a ZFS taskqueue wedge). \
+             Leading indicator of a fork storm / kernel wedge; investigate before \
+             it compounds.
+         to: {{ fork_storm_guard_alarm_recipient }}
+
+# --- Total processes ---------------------------------------------------------
+# A ceiling well below a fork storm (which reached 17,787). Pairs with, and is
+# redundant to, the rctl deny backstop.
+   template: forkstorm_total_processes
+         on: {{ fork_storm_guard_chart_active_processes }}
+      class: Workload
+       type: System
+  component: Processes
+     lookup: max -1m unaligned
+      units: processes
+      every: 30s
+       warn: $this > {{ fork_storm_guard_alarm_procs_warn }}
+       crit: $this > {{ fork_storm_guard_alarm_procs_crit }}
+      delay: up 1m down 5m
+    summary: High process count on ${label:_hostname}
+       info: Total active processes. A fork storm pushes this into the thousands.
+         to: {{ fork_storm_guard_alarm_recipient }}
+
+# --- Swap utilisation --------------------------------------------------------
+# The incident exhausted the 2G swap partition, after which the pagedaemon
+# entered a scan treadmill and NFS/MinIO collapsed.
+   template: forkstorm_swap_used
+         on: {{ fork_storm_guard_chart_swap }}
+      class: Utilization
+       type: System
+  component: Memory
+     lookup: average -1m unaligned percentage of used
+      units: %
+      every: 30s
+       warn: $this > {{ fork_storm_guard_alarm_swap_warn }}
+       crit: $this > {{ fork_storm_guard_alarm_swap_crit }}
+      delay: up 1m down 15m
+    summary: High swap utilisation on ${label:_hostname}
+       info: Swap in use. Sustained high swap preceded the memory collapse.
+         to: {{ fork_storm_guard_alarm_recipient }}
