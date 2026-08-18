@@ -37,6 +37,11 @@
         path: /etc/periodic.conf
 
 # --- sanoid: snapshots + pruning ---------------------------------------------
+# This role owns sanoid install + sanoid.conf ONLY. Scheduling moved to the
+# fork_storm_guard role, which runs sanoid through a lockf wrapper so a hung
+# `zfs snapshot` blocks the next run instead of stacking (the 2026-08-14
+# fork-storm). Two roles must not both manage that /etc/crontab line, so it
+# lives there -- see playbooks/fork_storm_guard.yml.
 - name: "Configure sanoid snapshots"
   when: zfs_sanoid_enable | bool
   block:
@@ -52,13 +57,3 @@
         owner: root
         group: wheel
         mode: "0644"
-
-    # FreeBSD base cron does NOT read /etc/cron.d, so schedule via the system
-    # crontab (which carries a user field). `sanoid --cron` is lightweight and
-    # decides per-policy when to snapshot/prune, so run it every minute.
-    - name: "Schedule sanoid --cron in /etc/crontab"
-      ansible.builtin.lineinfile:
-        path: /etc/crontab
-        regexp: 'sanoid --cron'
-        line: "* * * * *  root  /usr/local/bin/sanoid --cron"
-        state: present

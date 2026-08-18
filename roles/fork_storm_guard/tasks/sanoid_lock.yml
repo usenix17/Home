@@ -1,0 +1,57 @@
+---
+# Part 1: lockf wrapper around `sanoid --cron`. Serialises runs so a hung
+# snapshot BLOCKS the next invocation instead of stacking beside it.
+#
+# The zfs role still owns sanoid installation + sanoid.conf; scheduling moved
+# here so the lock + escalation + metrics live with the execution path. The zfs
+# role's own crontab task was removed (see roles/zfs/tasks/main.yml) to avoid
+# two roles fighting over the same /etc/crontab line.
+
+- name: "Install the sanoid cron wrapper"
+  ansible.builtin.template:
+    src: sanoid-cron-wrapper.sh.j2
+    dest: "{{ fork_storm_guard_wrapper_path }}"
+    owner: root
+    group: wheel
+    mode: "0755"
+
+# Honour the requirement to preserve the LIVE schedule rather than assume it:
+# read the current sanoid entry (commented or not) from /etc/crontab and reuse
+# its first five fields; fall back to the role default only if none exists.
+- name: "Read the current sanoid schedule from /etc/crontab"
+  ansible.builtin.shell:
+    cmd: >-
+      grep -E 'root[[:space:]].*sanoid' /etc/crontab | head -1
+      | sed -E 's/^#?[[:space:]]*//' | awk '{print $1, $2, $3, $4, $5}'
+  register: fsg_sanoid_sched_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "Resolve the schedule (live value if present, else default)"
+  ansible.builtin.set_fact:
+    fsg_sanoid_schedule: >-
+      {{ (fsg_sanoid_sched_raw.stdout | default('') | trim)
+         or fork_storm_guard_sanoid_schedule }}
+
+- name: "Compose the crontab line"
+  ansible.builtin.set_fact:
+    fsg_cron_line: >-
+      {{ fsg_sanoid_schedule }} root {{ fork_storm_guard_wrapper_path }}
+
+# /etc/crontab (system crontab, with a user field) is where sanoid was
+# scheduled -- NOT root's per-user crontab -- so the ansible cron module (which
+# manages user crontabs) is the wrong tool; a lineinfile on /etc/crontab matches
+# both the prevailing convention and the actual location. The broad regexp
+# matches any prior sanoid line -- bare, wrapper, or an incident-containment
+# comment -- and rewrites it in place to invoke the wrapper.
+- name: "Point the sanoid cron entry at the wrapper (idempotent)"
+  ansible.builtin.lineinfile:
+    path: /etc/crontab
+    regexp: '^#?.*\sroot\s.*sanoid.*$'
+    line: "{{ fsg_cron_line }}"
+    insertafter: EOF
+    state: present
+    owner: root
+    group: wheel
+    mode: "0644"

@@ -1,0 +1,150 @@
+---
+# Part 2: rctl(8) process ceilings, backed by RACCT.
+#
+# loginclass tradeoff (required call-out): a loginclass: rule would be a safer,
+# narrower subject than user:root, BUT cron and its children run as root under
+# the "default" login class (/etc/login.conf) -- there is no dedicated class
+# for cron-invoked work. Scoping just cron would mean either changing root's
+# login class globally (affects every root session) or wrapping each cron entry
+# in `su -l -c <class>` (fragile, and the incident's sanoid runs as root
+# regardless). So a loginclass: rule cannot cleanly scope only cron work; we use
+# user:root with layered log/devctl/deny plus the safety gate below and per-jail
+# ceilings. Stated explicitly rather than silently defaulted.
+
+# --- Enable RACCT (reboot required to activate) ------------------------------
+- name: "Enable RACCT in /boot/loader.conf (takes effect on reboot)"
+  ansible.builtin.lineinfile:
+    path: /boot/loader.conf
+    regexp: '^kern\.racct\.enable='
+    line: 'kern.racct.enable="1"'
+    create: true
+    owner: root
+    group: wheel
+    mode: "0644"
+
+- name: "Enable rctl in rc.conf"
+  community.general.sysrc:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+  loop:
+    - name: "rctl_enable"
+      value: "YES"
+    - name: "rctl_rules"
+      value: "{{ fork_storm_guard_rctl_conf }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Detect whether RACCT is currently active"
+  ansible.builtin.command: "sysctl -n kern.racct.enable"
+  register: fsg_racct
+  changed_when: false
+  check_mode: false
+
+- name: "Record RACCT active state"
+  ansible.builtin.set_fact:
+    fsg_racct_active: "{{ (fsg_racct.stdout | trim) == '1' }}"
+
+# --- SAFETY GATE: baseline steady state, refuse an unsafe deny ---------------
+# A one-shot process count at play time (NOT a recurring monitor -- Part 3 uses
+# netdata's existing collection). FreeBSD exposes no live nproc sysctl, so a
+# single ps pass is the cheapest correct baseline source.
+- name: "Baseline the steady-state process count"
+  ansible.builtin.shell:
+    cmd: "ps -axo pid= | wc -l | tr -d ' '"
+  register: fsg_baseline
+  changed_when: false
+  check_mode: false
+
+- name: "Read kern.maxproc"
+  ansible.builtin.command: "sysctl -n kern.maxproc"
+  register: fsg_maxproc
+  changed_when: false
+  check_mode: false
+
+- name: "Compute the minimum safe deny (baseline x multiple)"
+  ansible.builtin.set_fact:
+    fsg_deny_floor: >-
+      {{ (fsg_baseline.stdout | int)
+         * (fork_storm_guard_baseline_multiple | int) }}
+
+- name: "SAFETY: refuse a root maxproc deny that could lock the host out"
+  ansible.builtin.assert:
+    that:
+      - "fork_storm_guard_root_maxproc_log | int
+         < fork_storm_guard_root_maxproc_devctl | int"
+      - "fork_storm_guard_root_maxproc_devctl | int
+         < fork_storm_guard_root_maxproc_deny | int"
+      - "fork_storm_guard_root_maxproc_deny | int >= fsg_deny_floor | int"
+      - "fork_storm_guard_root_maxproc_deny | int < fsg_maxproc.stdout | int"
+    fail_msg: >-
+      REFUSING to apply rctl: root maxproc deny of
+      {{ fork_storm_guard_root_maxproc_deny }} is unsafe. It must be
+      log<devctl<deny, and >= {{ fsg_deny_floor }}
+      ({{ fork_storm_guard_baseline_multiple }}x the
+      {{ fsg_baseline.stdout }}-process baseline), and < kern.maxproc
+      ({{ fsg_maxproc.stdout }}). A too-low root deny stops root from fork(2)ing
+      -- no new SSH/su/sudo -- and needs console/reboot recovery (see README).
+      If the baseline itself looks abnormally high, the host is not healthy:
+      fix that before applying ceilings.
+    success_msg: >-
+      rctl safe: deny={{ fork_storm_guard_root_maxproc_deny }} (floor
+      {{ fsg_deny_floor }}, maxproc {{ fsg_maxproc.stdout }}).
+
+# --- Enumerate jails dynamically for per-jail ceilings -----------------------
+- name: "Enumerate running jails (jls -N)"
+  ansible.builtin.command: "jls -N name"
+  register: fsg_jls
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "Build the jail-name list"
+  ansible.builtin.set_fact:
+    fsg_jail_names: "{{ fsg_jls.stdout_lines | map('trim') | select | list }}"
+
+# --- Write /etc/rctl.conf (authoritative; applied at boot) -------------------
+- name: "Write {{ fork_storm_guard_rctl_conf }}"
+  ansible.builtin.template:
+    src: rctl.conf.j2
+    dest: "{{ fork_storm_guard_rctl_conf }}"
+    owner: root
+    group: wheel
+    mode: "0644"
+
+# --- Apply live only when RACCT is active ------------------------------------
+# Source rules from the rendered rctl.conf (single source of truth, per-jail
+# overrides already resolved) and add only those not already present. `rctl`
+# lists rules in the same subject:resource:action=amount format, so the
+# membership test is exact. Nothing is removed -- an existing deny is never
+# momentarily lifted.
+- name: "Apply rctl rules live (RACCT active)"
+  when: fsg_racct_active
+  block:
+    - name: "Read desired rules from the rendered rctl.conf"
+      ansible.builtin.command: >-
+        grep -vE '^[[:space:]]*(#|$)' {{ fork_storm_guard_rctl_conf }}
+      register: fsg_rules_file
+      changed_when: false
+
+    - name: "Read current rctl rules"
+      ansible.builtin.command: "rctl"
+      register: fsg_rctl_current
+      changed_when: false
+
+    - name: "Add any missing rctl rules"
+      ansible.builtin.command: "rctl -a {{ item }}"
+      loop: "{{ fsg_rules_file.stdout_lines | map('trim') | select | list }}"
+      loop_control:
+        label: "{{ item }}"
+      when: item not in fsg_rctl_current.stdout_lines
+      changed_when: true
+
+# --- Surface pending-reboot (do NOT fail, do NOT reboot) --------------------
+- name: "Surface pending-reboot state"
+  ansible.builtin.debug:
+    msg: >-
+      RACCT is not active (kern.racct.enable=0). loader.conf, rc.conf and
+      {{ fork_storm_guard_rctl_conf }} are staged; a REBOOT is required for the
+      ceilings to take effect. Not rebooting. Verify afterwards with:
+      sysctl kern.racct.enable && rctl -l user:root
+  when: not fsg_racct_active

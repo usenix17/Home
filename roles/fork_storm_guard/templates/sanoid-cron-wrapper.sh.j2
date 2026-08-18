@@ -1,0 +1,114 @@
+#!/bin/sh
+# {{ ansible_managed }}
+#
+# sanoid-cron-wrapper.sh -- mutual-exclusion + observability wrapper around
+# `sanoid --cron`. Managed by the fork_storm_guard Ansible role. Do NOT edit
+# on the host.
+#
+# WHY: on 2026-08-14 a `zfs snapshot` wedged in tq_drain (unkillable, D-state).
+# sanoid --cron runs every minute from /etc/crontab; with nothing serialising
+# them, ~4,400 invocations stacked over ~73h (8,800+ perl, 4,400 unkillable
+# zfs, 17,787 procs total) and exhausted memory + swap. This wrapper makes a
+# hung run BLOCK the next one instead of stacking beside it.
+#
+# BEHAVIOUR:
+#   - lockf -t 0 -k : acquire an exclusive lock without waiting (-t 0), keeping
+#     the lock file across runs (-k). If the lock is HELD, do nothing: no
+#     sanoid run, no stdout/stderr (cron mails on ANY output -- the incident
+#     would have generated ~4,300 mails), and exit 0. Log via logger instead,
+#     and escalate the syslog level once a run has been stuck past a threshold.
+#   - On ACQUIRE: reset the consecutive-skip counter and exec sanoid --cron,
+#     preserving its exit status.
+#   - Emit best-effort Prometheus Pushgateway metrics on every invocation. A
+#     Pushgateway outage must never block snapshots or cause a non-zero exit.
+#
+# CRITICAL: lockf uses flock(2); the lock releases automatically when the
+# HOLDER DIES. That is correct here -- the hung zfs children were unkillable,
+# but their perl parents held the lock legitimately for as long as they lived.
+# There is deliberately NO stale-lock breaking by age or PID liveness: a held
+# lock is a TRUE signal that a prior run is still alive. Breaking it would
+# re-enable the exact stacking this exists to prevent.
+
+set -u
+
+LOCK="{{ fork_storm_guard_lock_path }}"
+SKIP_STATE="{{ fork_storm_guard_skip_state_path }}"
+SANOID="{{ fork_storm_guard_sanoid_bin }}"
+ESCALATE_AT={{ fork_storm_guard_skip_escalation_threshold }}
+PG_URL="{{ fork_storm_guard_pushgateway_url }}"
+PG_JOB="{{ fork_storm_guard_pushgateway_job }}"
+PG_TIMEOUT={{ fork_storm_guard_pushgateway_timeout }}
+TAG="sanoid-cron"
+
+# --- best-effort Pushgateway push -------------------------------------------
+# Never fatal, never noisy. Skips silently if curl is unavailable (base FreeBSD
+# has no curl; fetch(1) cannot POST a stdin body to the Pushgateway) or if the
+# endpoint is unreachable. $1 = consecutive skip count; $2 = last-success epoch
+# ("" to leave that series untouched).
+push_metrics() {
+    [ -n "$PG_URL" ] || return 0
+    command -v curl >/dev/null 2>&1 || return 0
+    _skipped="$1"
+    _last="$2"
+    _payload="# TYPE sanoid_cron_skipped_consecutive gauge
+sanoid_cron_skipped_consecutive ${_skipped}
+"
+    if [ -n "$_last" ]; then
+        _payload="${_payload}# TYPE sanoid_cron_last_success_timestamp_seconds gauge
+sanoid_cron_last_success_timestamp_seconds ${_last}
+"
+    fi
+    printf '%s' "$_payload" | curl -s -m "$PG_TIMEOUT" --data-binary @- \
+        "${PG_URL%/}/metrics/job/${PG_JOB}/instance/$(hostname -s)" \
+        >/dev/null 2>&1 || true
+    return 0
+}
+
+read_skips() {
+    if [ -f "$SKIP_STATE" ]; then
+        _n=$(cat "$SKIP_STATE" 2>/dev/null)
+        case "$_n" in
+            ''|*[!0-9]*) echo 0 ;;
+            *)           echo "$_n" ;;
+        esac
+    else
+        echo 0
+    fi
+}
+
+# --- work path: only reached when lockf HELD the lock and re-ran us ----------
+if [ "${1:-}" = "--locked" ]; then
+    # We hold the lock. A successful acquisition means the previous run already
+    # completed and released it, so treat "now" as the last successful start.
+    rm -f "$SKIP_STATE" 2>/dev/null
+    push_metrics 0 "$(date +%s)"
+    exec "$SANOID" --cron
+    # exec only returns on failure to launch sanoid:
+    logger -t "$TAG" -p daemon.err "failed to exec ${SANOID}"
+    exit 127
+fi
+
+# --- lock path: non-blocking acquire ----------------------------------------
+lockf -t 0 -k "$LOCK" "$0" --locked
+rc=$?
+
+if [ "$rc" -eq 75 ]; then
+    # EX_TEMPFAIL: the lock is held -> a prior run is still alive. Skip quietly.
+    skips=$(read_skips)
+    skips=$((skips + 1))
+    echo "$skips" > "$SKIP_STATE" 2>/dev/null || true
+    if [ "$skips" -ge "$ESCALATE_AT" ]; then
+        logger -t "$TAG" -p daemon.err \
+          "sanoid --cron STUCK: prior run has held ${LOCK} for ${skips} consecutive minutes; snapshots are not running"
+    else
+        logger -t "$TAG" -p daemon.warning \
+          "sanoid --cron skipped: prior run still active (consecutive skips: ${skips})"
+    fi
+    push_metrics "$skips" ""
+    exit 0
+fi
+
+# Any other status is sanoid's own exit code (preserved for cron). A real
+# sanoid failure SHOULD surface via cron mail; that is a distinct signal from
+# lock contention.
+exit "$rc"
