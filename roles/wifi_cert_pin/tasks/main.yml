@@ -1,0 +1,43 @@
+---
+- name: "Require wifi_identity and wifi_password"
+  ansible.builtin.assert:
+    that:
+      - wifi_identity | length > 0
+      - wifi_password | length > 0
+    fail_msg: >-
+      Set wifi_identity and wifi_password (per host, via host_vars + Ansible
+      Vault, e.g. wifi_password: "{{ '{{' }} vault_wifi_password {{ '}}' }}").
+      See roles/wifi_cert_pin/README.md.
+    quiet: true
+
+- name: "Confirm NetworkManager (nmcli) is present"
+  ansible.builtin.command: nmcli --version
+  register: _wifi_nmcli
+  changed_when: false
+
+- name: "Create the NM certificate directory"
+  ansible.builtin.file:
+    path: "{{ wifi_ca_cert_dest | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Install the FreeIPA CA as the connection trust anchor"
+  ansible.builtin.copy:
+    src: "{{ wifi_ca_cert_src }}"
+    dest: "{{ wifi_ca_cert_dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload networkmanager connections
+
+- name: "Deploy the pinned WPA-Enterprise connection profile"
+  ansible.builtin.template:
+    src: starnix-wifi.nmconnection.j2
+    dest: "{{ wifi_keyfile_dir }}/{{ wifi_conn_name }}.nmconnection"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: reload networkmanager connections

@@ -1,0 +1,7 @@
+---
+- name: Pin WPA-Enterprise WiFi clients to the FreeIPA RADIUS cert
+  hosts: "{{ wifi_target_hosts | default('desktops') }}"
+  become: true
+  roles:
+    - role: wifi_cert_pin
+      tags: wifi_cert_pin
