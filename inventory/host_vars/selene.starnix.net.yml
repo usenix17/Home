@@ -1,0 +1,6 @@
+---
+# WPA-Enterprise WiFi, pinned to the FreeIPA RADIUS cert (radius.starnix.net).
+# Password is agent-owned: NetworkManager prompts on first connect and caches
+# it in the keyring, so no secret is stored here.
+wifi_ssid: "Osa_nomap"
+wifi_identity: "sasha"

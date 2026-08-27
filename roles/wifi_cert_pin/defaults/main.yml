@@ -21,9 +21,11 @@ wifi_phase2_auth: "mschapv2"
 # --- THE PIN: the RADIUS server certificate name (CN/SAN) ---
 wifi_radius_server_domain: "radius.starnix.net"
 
-# --- Per-host identity (supply via host_vars + Ansible Vault) ---
+# --- Per-host identity (supply via host_vars) ---
 wifi_identity: ""              # FreeIPA uid of a wifi-group member
-wifi_password: ""                            # e.g. "{{ vault_wifi_password }}"
+# Optional: leave empty for NetworkManager to prompt on connect (agent-owned),
+# or supply from Vault, e.g. "{{ vault_wifi_password }}".
+wifi_password: ""
 
 # --- Trust anchor (bundled with the role) ---
 wifi_ca_cert_src: "starnix-ipa-ca.pem"

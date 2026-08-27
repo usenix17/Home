@@ -1,13 +1,12 @@
 ---
-- name: "Require wifi_identity and wifi_password"
+- name: "Require wifi_identity"
   ansible.builtin.assert:
     that:
       - wifi_identity | length > 0
-      - wifi_password | length > 0
     fail_msg: >-
-      Set wifi_identity and wifi_password (per host, via host_vars + Ansible
-      Vault, e.g. wifi_password: "{{ '{{' }} vault_wifi_password {{ '}}' }}").
-      See roles/wifi_cert_pin/README.md.
+      Set wifi_identity (the FreeIPA uid) per host via host_vars. wifi_password
+      is optional: leave it empty for NetworkManager to prompt on connect, or
+      supply it from Ansible Vault. See roles/wifi_cert_pin/README.md.
     quiet: true
 
 - name: "Confirm NetworkManager (nmcli) is present"

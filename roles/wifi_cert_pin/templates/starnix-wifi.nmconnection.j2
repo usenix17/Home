@@ -19,15 +19,20 @@ key-mgmt=wpa-eap
 eap={{ wifi_eap_method }};
 phase2-auth={{ wifi_phase2_auth }}
 identity={{ wifi_identity }}
+{% if wifi_password | length > 0 %}
 password={{ wifi_password }}
 password-flags=0
+{% else %}
+# No password stored: agent-owned. NetworkManager prompts the logged-in
+# user on first connect and caches it in the keyring.
+password-flags=1
+{% endif %}
 # Trust anchor: this CA only (not the system trust store).
 ca-cert={{ wifi_ca_cert_dest }}
 # The pin: refuse to authenticate unless the server cert name matches. Without
 # this a rogue AP with any CA-trusted cert could tunnel and capture the inner
 # credentials.
 domain-suffix-match={{ wifi_radius_server_domain }}
-altsubject-match=DNS:{{ wifi_radius_server_domain }}
 
 [ipv4]
 method=auto
