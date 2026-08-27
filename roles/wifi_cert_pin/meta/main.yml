@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: wifi_cert_pin
+  author: starnix
+  description: >-
+    Join Linux/NetworkManager clients to a WPA-Enterprise SSID with the
+    FreeIPA-issued RADIUS server certificate pinned (trust-only-this-CA plus
+    server-name match) to prevent evil-twin credential capture.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Archlinux
+    - name: EL
+      versions:
+        - "9"
+    - name: Debian
+  galaxy_tags:
+    - wifi
+    - 8021x
+    - radius
+    - freeipa
+    - networkmanager
+dependencies: []

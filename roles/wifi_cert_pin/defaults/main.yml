@@ -1,0 +1,33 @@
+---
+# wifi_cert_pin: join a WPA-Enterprise (802.1X) SSID with the RADIUS server
+# certificate PINNED. The "pin" is two controls that together stop an
+# evil-twin AP from harvesting credentials:
+#   1. trust ONLY the FreeIPA CA (a dedicated file, not the system store)
+#   2. require the server cert name to match wifi_radius_server_domain
+# See roles/wifi_cert_pin/README.md.
+
+# --- Network ---
+wifi_ssid: "Starnix-Secure"                 # your real WPA-Enterprise SSID
+wifi_conn_name: "starnix-wpa-enterprise"     # NM connection id / keyfile name
+wifi_autoconnect: true
+wifi_hidden: false
+
+# --- EAP method + inner auth ---
+# peap + mschapv2  (Windows/Android/Linux; inner -> ipaNTHash)
+# ttls + pap       (macOS/iOS/Linux;      inner -> LDAP bind)
+wifi_eap_method: "peap"
+wifi_phase2_auth: "mschapv2"
+
+# --- THE PIN: the RADIUS server certificate name (CN/SAN) ---
+wifi_radius_server_domain: "radius.starnix.net"
+
+# --- Per-host identity (supply via host_vars + Ansible Vault) ---
+wifi_identity: ""              # FreeIPA uid of a wifi-group member
+wifi_password: ""                            # e.g. "{{ vault_wifi_password }}"
+
+# --- Trust anchor (bundled with the role) ---
+wifi_ca_cert_src: "starnix-ipa-ca.pem"
+wifi_ca_cert_dest: "/etc/NetworkManager/certs/starnix-ipa-ca.pem"
+
+# --- NetworkManager keyfile location ---
+wifi_keyfile_dir: "/etc/NetworkManager/system-connections"

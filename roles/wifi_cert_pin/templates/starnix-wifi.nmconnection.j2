@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+# WPA-Enterprise profile with the RADIUS server certificate pinned.
+[connection]
+id={{ wifi_conn_name }}
+type=wifi
+autoconnect={{ 'true' if wifi_autoconnect else 'false' }}
+
+[wifi]
+mode=infrastructure
+ssid={{ wifi_ssid }}
+{% if wifi_hidden %}
+hidden=true
+{% endif %}
+
+[wifi-security]
+key-mgmt=wpa-eap
+
+[802-1x]
+eap={{ wifi_eap_method }};
+phase2-auth={{ wifi_phase2_auth }}
+identity={{ wifi_identity }}
+password={{ wifi_password }}
+password-flags=0
+# Trust anchor: this CA only (not the system trust store).
+ca-cert={{ wifi_ca_cert_dest }}
+# The pin: refuse to authenticate unless the server cert name matches. Without
+# this a rogue AP with any CA-trusted cert could tunnel and capture the inner
+# credentials.
+domain-suffix-match={{ wifi_radius_server_domain }}
+altsubject-match=DNS:{{ wifi_radius_server_domain }}
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
