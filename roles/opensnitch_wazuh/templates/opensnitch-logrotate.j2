@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# copytruncate: the bridge holds the file open in append mode, so truncate in
+# place rather than renaming (which would leave it writing to the rotated file).
+{{ opensnitch_wazuh_output }} {
+    daily
+    rotate 7
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+}

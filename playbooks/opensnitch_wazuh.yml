@@ -1,0 +1,6 @@
+---
+- name: "OpenSnitch -> Wazuh event bridge"
+  hosts: "selene.starnix.net"
+  become: true
+  roles:
+    - role: "opensnitch_wazuh"

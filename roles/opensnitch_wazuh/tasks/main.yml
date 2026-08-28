@@ -1,0 +1,96 @@
+---
+- name: "Deploy the OpenSnitch -> Wazuh bridge script"
+  ansible.builtin.copy:
+    src: opensnitch_wazuh_bridge.py
+    dest: "{{ opensnitch_wazuh_bin }}"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: restart-opensnitch-bridge
+
+- name: "Install the bridge systemd unit"
+  ansible.builtin.template:
+    src: opensnitch-wazuh-bridge.service.j2
+    dest: /etc/systemd/system/opensnitch-wazuh-bridge.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - daemon-reload
+    - restart-opensnitch-bridge
+
+- name: "Rotate the bridge event log"
+  ansible.builtin.template:
+    src: opensnitch-logrotate.j2
+    dest: /etc/logrotate.d/opensnitch
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Enable and start the bridge"
+  ansible.builtin.systemd:
+    name: opensnitch-wazuh-bridge
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# OpenSnitch is hand-managed, so patch only Server.Loggers and preserve every
+# other key. combine is idempotent; to_nice_json reformats (sorts) the file on
+# first apply. If the daemon config is absent, skip -- nothing to export.
+- name: "Check for the OpenSnitch daemon config"
+  ansible.builtin.stat:
+    path: "{{ opensnitch_config }}"
+  register: opensnitch_cfg
+
+- name: "Enable OpenSnitch's JSON SIEM logger to the bridge"
+  when: opensnitch_cfg.stat.exists
+  block:
+    - name: "Read the current OpenSnitch daemon config"
+      ansible.builtin.slurp:
+        src: "{{ opensnitch_config }}"
+      register: opensnitch_cfg_raw
+
+    - name: "Set Server.Loggers to the bridge endpoint (idempotent merge)"
+      ansible.builtin.copy:
+        dest: "{{ opensnitch_config }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: >-
+          {{ (opensnitch_cfg_raw.content | b64decode | from_json)
+             | combine({'Server': {'Loggers': [_opensnitch_logger]}},
+                       recursive=true)
+             | to_nice_json(indent=4) }}
+      vars:
+        _opensnitch_logger:
+          Name: "remote_syslog"
+          Server: "{{ opensnitch_wazuh_listen_host }}:{{ opensnitch_wazuh_listen_port }}"
+          Protocol: "udp"
+          Format: "json"
+          Tag: "opensnitchd"
+          WriteTimeout: "5s"
+          Workers: 4
+      notify: restart-opensnitchd
+
+# Host-local Wazuh wiring, same pattern as the arch role's Falco block: append
+# a json localfile so the agent ships the bridge output. OpenSnitch is
+# selene-specific, so this stays host-local rather than in the shared arch
+# group agent.conf.
+- name: "Check for the Wazuh agent"
+  ansible.builtin.stat:
+    path: "{{ wazuh_agent_conf }}"
+  register: opensnitch_wazuh_ossec
+
+- name: "Ship OpenSnitch events to the Wazuh agent (localfile)"
+  when: opensnitch_wazuh_ossec.stat.exists
+  ansible.builtin.blockinfile:
+    path: "{{ wazuh_agent_conf }}"
+    marker: "<!-- {mark} ANSIBLE MANAGED: opensnitch -->"
+    block: |
+      <ossec_config>
+        <localfile>
+          <log_format>json</log_format>
+          <location>{{ opensnitch_wazuh_output }}</location>
+        </localfile>
+      </ossec_config>
+  notify: restart-wazuh-agent

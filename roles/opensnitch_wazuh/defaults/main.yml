@@ -1,0 +1,18 @@
+---
+# OpenSnitch's SIEM logger emits every connection decision (including a large,
+# secret-bearing process_env) as JSON over UDP. The bridge receives it on
+# loopback, drops process_env, forwards only denies + first-seen (process,dst)
+# pairs, and writes ndjson for a Wazuh json localfile to collect.
+opensnitch_wazuh_listen_host: "127.0.0.1"
+opensnitch_wazuh_listen_port: 5140
+
+opensnitch_wazuh_log_dir: "/var/log/opensnitch"
+opensnitch_wazuh_output: "{{ opensnitch_wazuh_log_dir }}/events.json"
+
+# Re-surface a (process,dst) pair after this many seconds; cap the tracking set.
+opensnitch_wazuh_dedup_ttl: 86400
+opensnitch_wazuh_dedup_max: 100000
+
+opensnitch_wazuh_bin: "/usr/local/bin/opensnitch-wazuh-bridge"
+opensnitch_config: "/etc/opensnitchd/default-config.json"
+wazuh_agent_conf: "/var/ossec/etc/ossec.conf"

@@ -1,0 +1,40 @@
+# {{ ansible_managed }}
+[Unit]
+Description=OpenSnitch -> Wazuh event bridge
+Documentation=https://github.com/evilsocket/opensnitch/wiki/SIEM-integration
+After=network.target opensnitchd.service
+Wants=opensnitchd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 {{ opensnitch_wazuh_bin }} \
+  --host {{ opensnitch_wazuh_listen_host }} \
+  --port {{ opensnitch_wazuh_listen_port }} \
+  --output {{ opensnitch_wazuh_output }} \
+  --dedup-ttl {{ opensnitch_wazuh_dedup_ttl }} \
+  --dedup-max {{ opensnitch_wazuh_dedup_max }}
+Restart=on-failure
+RestartSec=2
+
+# The bridge needs only a loopback UDP socket and its own log file. Run it as
+# a throwaway user with the log dir created for it; lock everything else down.
+DynamicUser=yes
+LogsDirectory={{ opensnitch_wazuh_log_dir | basename }}
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

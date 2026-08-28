@@ -1,0 +1,19 @@
+---
+- name: daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart-opensnitch-bridge
+  ansible.builtin.systemd:
+    name: opensnitch-wazuh-bridge
+    state: restarted
+
+- name: restart-opensnitchd
+  ansible.builtin.systemd:
+    name: opensnitchd
+    state: restarted
+
+- name: restart-wazuh-agent
+  ansible.builtin.systemd:
+    name: wazuh-agent
+    state: restarted
