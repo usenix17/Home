@@ -772,6 +772,11 @@
     state: absent
   notify: rebuild-grub
 
+# These audit keys are consumed by Wazuh: the arch group's agent.conf (ArgoCD
+# repo, applications/wazuh) ships /var/log/audit/audit.log, and manager rules
+# 100730-100735 give exec_shm/exec_tmp/persist_* their severity. Keep the key
+# names (exec_shm, exec_tmp, persist_systemd/user_systemd/shellrc/cron) in sync
+# with those rules when editing either side.
 - name: "Deploy auditd supply-chain / AUR malware file-integrity rules"
   ansible.builtin.copy:
     dest: /etc/audit/rules.d/supplychain.rules
