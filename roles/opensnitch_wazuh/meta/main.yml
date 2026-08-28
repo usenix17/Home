@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: opensnitch_wazuh
+  author: starnix
+  description: >-
+    Ship OpenSnitch connection events to Wazuh via a slim UDP->ndjson bridge
+    (drops process_env, forwards denies + first-seen egress).
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Archlinux
+  galaxy_tags:
+    - opensnitch
+    - wazuh
+    - siem
+    - firewall
+dependencies: []
