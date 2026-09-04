@@ -1,0 +1,70 @@
+---
+# UniFi WLANs (SSIDs) as code.
+#
+# The starnix.unifi collection manages firewall/networks/DHCP but not WLANs,
+# and the WLAN settings we care about (multicast enhancement, 802.11r/v,
+# min-rate, bands, ...) live on the legacy rest/wlanconf endpoint. That
+# endpoint accepts the same UNIFI_API_KEY as the rest of the IaC (X-API-KEY),
+# so no separate username/password is needed.
+#
+# Only the fields listed per SSID in vars/unifi_iac/wlans.yml are enforced;
+# every other wlanconf field (including the passphrase) is read from the live
+# object and preserved untouched. Idempotent, name-based, --check/--diff safe.
+#
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_wlan.yml --check --diff
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_wlan.yml
+- name: UniFi WLANs as code
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars:
+    unifi_host: 192.168.1.1
+    unifi_api_key: "{{ lookup('env', 'UNIFI_API_KEY') }}"
+    unifi_base: "https://{{ unifi_host }}/proxy/network/api/s/default"
+    unifi_headers:
+      X-API-KEY: "{{ unifi_api_key }}"
+      Content-Type: application/json
+  vars_files:
+    - vars/unifi_iac/wlans.yml
+  tasks:
+    - name: Fetch live networks (for name -> id resolution)
+      ansible.builtin.uri:
+        url: "{{ unifi_base }}/rest/networkconf"
+        method: GET
+        headers: "{{ unifi_headers }}"
+        validate_certs: false
+        return_content: true
+      check_mode: false
+      register: unifi_networks_live
+
+    - name: Parse live networks
+      ansible.builtin.set_fact:
+        unifi_networks_data: "{{ (unifi_networks_live.content | from_json).data }}"
+
+    - name: Build network name -> id map
+      ansible.builtin.set_fact:
+        unifi_net_ids: >-
+          {{ dict(unifi_networks_data | map(attribute='name')
+                  | zip(unifi_networks_data | map(attribute='_id'))) }}
+
+    - name: Fetch live WLANs
+      ansible.builtin.uri:
+        url: "{{ unifi_base }}/rest/wlanconf"
+        method: GET
+        headers: "{{ unifi_headers }}"
+        validate_certs: false
+        return_content: true
+      check_mode: false
+      register: unifi_wlans_live
+
+    - name: Parse live WLANs
+      ansible.builtin.set_fact:
+        unifi_wlans_data: "{{ (unifi_wlans_live.content | from_json).data }}"
+
+    - name: Reconcile each SSID
+      ansible.builtin.include_tasks: tasks/reconcile_wlan.yml
+      loop: "{{ unifi_wlans }}"
+      loop_control:
+        loop_var: want
+        label: "{{ want.name }}"

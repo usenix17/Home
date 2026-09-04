@@ -22,6 +22,28 @@ CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
 
+# WLAN fields the IaC manages (playbooks/unifi_wlan.yml enforces these). Secrets
+# (x_passphrase, x_iapp_key, *_preshared_keys), ids, and per-controller refs are
+# deliberately excluded -- never codify a Wi-Fi passphrase into the repo.
+MANAGED_WLAN = [
+    "enabled", "security", "wpa_mode", "wpa_enc",
+    "wpa3_support", "wpa3_transition", "wpa3_fast_roaming", "wpa3_enhanced_192",
+    "pmf_mode", "pmf_cipher",
+    "wlan_band", "wlan_bands",
+    "hide_ssid", "is_guest", "l2_isolation", "proxy_arp",
+    "mac_filter_enabled", "mac_filter_policy", "mac_filter_list",
+    "mcastenhance_enabled", "bc_filter_enabled", "bc_filter_list",
+    "fast_roaming_enabled", "bss_transition", "uapsd_enabled", "group_rekey",
+    "dtim_mode", "dtim_ng", "dtim_na", "dtim_6e",
+    "minrate_ng_enabled", "minrate_ng_data_rate_kbps",
+    "minrate_ng_advertising_rates", "minrate_na_enabled",
+    "minrate_na_data_rate_kbps", "minrate_na_advertising_rates",
+    "minrate_setting_preference",
+    "no2ghz_oui", "optimize_iot_wifi_connectivity", "enhanced_iot",
+    "roaming_assistant_na_enabled", "roaming_assistant_na_rssi",
+    "roaming_assistant_6e_enabled", "roaming_assistant_6e_rssi",
+]
+
 
 def get(base, path):
     req = urllib.request.Request(base + path)
@@ -179,6 +201,19 @@ def main():
         if has:
             dhcp.append(entry)
     dump("dhcp.yml", "unifi_dhcp", dhcp)
+
+    legacy_nets = {n["_id"]: n["name"]
+                   for n in get(CLASSIC, "/rest/networkconf")["data"]}
+    wlans = []
+    for wlan in get(CLASSIC, "/rest/wlanconf")["data"]:
+        entry = {"name": wlan["name"]}
+        if wlan.get("networkconf_id") in legacy_nets:
+            entry["network"] = legacy_nets[wlan["networkconf_id"]]
+        for field in MANAGED_WLAN:
+            if field in wlan:
+                entry[field] = wlan[field]
+        wlans.append(entry)
+    dump("wlans.yml", "unifi_wlans", wlans)
 
 
 if __name__ == "__main__":

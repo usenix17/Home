@@ -1,0 +1,64 @@
+---
+# Reconcile one SSID (var `want` from wlans.yml) against the live controller.
+# Enforces only the fields declared for that SSID; PUTs the full live object
+# with those fields overlaid so unmanaged fields (passphrase, ids, ...) survive.
+- name: "{{ want.name }} -- locate live SSID"
+  ansible.builtin.set_fact:
+    wlan_live: >-
+      {{ (unifi_wlans_data
+          | selectattr('name', 'equalto', want.name) | list | first)
+         | default({}, true) }}
+
+- name: "{{ want.name }} -- fail if the SSID does not exist on the controller"
+  ansible.builtin.fail:
+    msg: >-
+      SSID '{{ want.name }}' is in wlans.yml but not on the controller.
+      Create the SSID in the UI first; this playbook enforces settings, it
+      does not create WLANs.
+  when: not wlan_live
+
+- name: "{{ want.name }} -- build desired field set (network name -> id)"
+  ansible.builtin.set_fact:
+    wlan_desired: >-
+      {{ (want | dict2items | rejectattr('key', 'in', ['name', 'network'])
+          | items2dict)
+         | combine({'networkconf_id': unifi_net_ids[want.network]}
+                   if want.network is defined else {}) }}
+
+- name: "{{ want.name }} -- extract the same fields from the live object"
+  ansible.builtin.set_fact:
+    wlan_live_subset: >-
+      {{ dict(wlan_desired.keys() | list
+              | zip(wlan_desired.keys() | list | map('extract', wlan_live)
+                    | list)) }}
+
+- name: "{{ want.name }} -- compute drift"
+  ansible.builtin.set_fact:
+    wlan_changed: >-
+      {{ (wlan_desired | dict2items)
+         | difference(wlan_live_subset | dict2items) }}
+
+- name: "{{ want.name }} -- report drift"
+  ansible.builtin.debug:
+    msg:
+      ssid: "{{ want.name }}"
+      changes: >-
+        {{ dict(wlan_changed | map(attribute='key') | list
+                | zip(wlan_changed | map(attribute='key') | list
+                      | map('extract', wlan_live_subset) | list
+                      | zip(wlan_changed | map(attribute='value') | list))) }}
+  when: wlan_changed | length > 0
+
+- name: "{{ want.name }} -- apply changed settings"
+  ansible.builtin.uri:
+    url: "{{ unifi_base }}/rest/wlanconf/{{ wlan_live._id }}"
+    method: PUT
+    headers: "{{ unifi_headers }}"
+    body_format: json
+    body: "{{ wlan_live | combine(wlan_desired) }}"
+    validate_certs: false
+    status_code: 200
+  changed_when: true
+  when:
+    - wlan_changed | length > 0
+    - not ansible_check_mode
