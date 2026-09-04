@@ -1,0 +1,11 @@
+---
+# The full UniFi as-code surface in one run, for a single Semaphore task:
+#   1. firewall / networks / DHCP  -- unifi_iac.yml (starnix.unifi collection)
+#   2. WLAN / SSID settings        -- unifi_wlan.yml (legacy wlanconf API)
+# Both authenticate with UNIFI_API_KEY, so no extra credentials are needed.
+# Check-mode (--check) never writes and is always safe.
+#
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_all.yml --check --diff
+#   UNIFI_API_KEY=... ansible-playbook playbooks/unifi_all.yml
+- ansible.builtin.import_playbook: unifi_iac.yml
+- ansible.builtin.import_playbook: unifi_wlan.yml

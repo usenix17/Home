@@ -6,17 +6,19 @@ name: UniFi as code via Semaphore
 # runners cannot). Replaces the retired v2 reconciler workflow.
 #
 # PREREQUISITES (one-time, see playbooks/vars/unifi_iac/RETIREMENT.md):
-#   - a Semaphore template that runs playbooks/unifi_iac.yml, with the
-#     starnix.unifi collection installed (collections/requirements.yml) and
-#     UNIFI_API_KEY
-#     in its environment;
+#   - a Semaphore template that runs playbooks/unifi_all.yml (firewall +
+#     WLANs), with the starnix.unifi collection installed
+#     (collections/requirements.yml) and UNIFI_API_KEY in its environment;
 #   - repo variable UNIFI_IAC_TEMPLATE_ID set to that template's id;
 #   - repo secret SEMAPHORE_TOKEN (already present from the old workflow).
 'on':
   push:
     branches: [main]
     paths:
+      - 'playbooks/unifi_all.yml'
       - 'playbooks/unifi_iac.yml'
+      - 'playbooks/unifi_wlan.yml'
+      - 'playbooks/tasks/**'
       - 'playbooks/vars/unifi_iac/**'
       - 'collections/requirements.yml'
       - '.github/workflows/unifi-iac.yml'
