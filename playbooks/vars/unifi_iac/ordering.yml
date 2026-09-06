@@ -46,6 +46,7 @@ unifi_ordering:
 - source_zone: Internal
   destination_zone: External
   before_system_defined:
+  - Block Finn Devices (Internal->External)
   - Block TikTok
   - Allow all nebula (Internal->External)
   - Allow All to Windows (Internal->External)
@@ -96,6 +97,7 @@ unifi_ordering:
 - source_zone: Restricted
   destination_zone: External
   before_system_defined:
+  - Block Finn Devices (Restricted->External)
   - Block Traffic from 172.16.5.245 to 128.116.95.3
   - Block Traffic from 172.16.5.245 to 128.116.48.3
   - Block Traffic from 172.16.5.245 to 128.116.127.3
