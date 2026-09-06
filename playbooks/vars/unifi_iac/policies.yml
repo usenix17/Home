@@ -2257,8 +2257,6 @@ unifi_policies:
         - type: IP_ADDRESS
           value: 172.16.5.16
         - type: IP_ADDRESS
-          value: 172.16.5.206
-        - type: IP_ADDRESS
           value: 172.16.5.240
   destination:
     zoneId: External
