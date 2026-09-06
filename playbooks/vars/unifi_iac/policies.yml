@@ -2219,3 +2219,49 @@ unifi_policies:
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
+- name: Block Finn Devices (Internal->External)
+  enabled: true
+  description: iac:block-finn-devices-internal-external
+  action:
+    type: BLOCK
+  source:
+    zoneId: Internal
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 192.168.1.15
+  destination:
+    zoneId: External
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
+- name: Block Finn Devices (Restricted->External)
+  enabled: true
+  description: iac:block-finn-devices-restricted-external
+  action:
+    type: BLOCK
+  source:
+    zoneId: Restricted
+    trafficFilter:
+      type: IP_ADDRESS
+      ipAddressFilter:
+        type: IP_ADDRESSES
+        matchOpposite: false
+        items:
+        - type: IP_ADDRESS
+          value: 172.16.5.148
+        - type: IP_ADDRESS
+          value: 172.16.5.16
+        - type: IP_ADDRESS
+          value: 172.16.5.206
+        - type: IP_ADDRESS
+          value: 172.16.5.240
+  destination:
+    zoneId: External
+  ip_protocol_scope:
+    ipVersion: IPV4_AND_IPV6
+  logging_enabled: false
