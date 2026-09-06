@@ -24,7 +24,12 @@ collections:
   - name: kubernetes.core
   - name: kewlfft.aur
   - name: google.cloud
-  # UniFi zone-firewall + networks + DHCP as code (see playbooks/unifi_iac.yml)
+  # UniFi zone-firewall + networks + DHCP as code (see playbooks/unifi_iac.yml).
+  # NOTE: Semaphore only runs `ansible-galaxy install` when this file changes; if
+  # the runner loses its installed collections (ephemeral/rebuilt runner), a run
+  # fails with "No module named 'ansible_collections.starnix'". Touch this file
+  # (bump the comment below) to force a reinstall.
+  # galaxy-reinstall-nonce: 2026-09-05.1
   - name: https://github.com/usenix17/starnix.unifi.git
     type: git
     version: main
