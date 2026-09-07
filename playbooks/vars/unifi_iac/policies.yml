@@ -2024,7 +2024,7 @@ unifi_policies:
         matchOpposite: false
         items:
         - type: IP_ADDRESS
-          value: 192.168.1.24
+          value: 192.168.1.26
   ip_protocol_scope:
     ipVersion: IPV4
   logging_enabled: false
