@@ -111,6 +111,13 @@
       - consul
       - cups
       - cups-browsed
+      # Driverless network printing (IPP/AirPrint) + eSCL scanning, e.g. the
+      # Brother MFC-L2820DW. avahi + nss-mdns make `.local` names resolve.
+      - avahi
+      - nss-mdns
+      - sane
+      - sane-airscan
+      - skanpage
       - dbeaver
       - dhclient
       - dillo
@@ -1001,3 +1008,24 @@
       </ossec_config>
   when: arch_wazuh_ossec_conf.stat.exists
   notify: restart-wazuh-agent
+
+# --- Driverless printing + scanning (mDNS) ----------------------------------
+# Resolve `.local` (mDNS) names for network printers/scanners (e.g. the Brother
+# MFC-L2820DW) and bring up CUPS + Avahi. Relies on avahi/nss-mdns installed
+# above. Without the nsswitch entry, adding a printer by BRWxxxx.local fails
+# with "Name or service not known".
+- name: "Enable mDNS (.local) resolution in nsswitch.conf"
+  ansible.builtin.replace:
+    path: /etc/nsswitch.conf
+    regexp: '^(hosts:\s+)(?!.*\bmdns_minimal\b)(.*)$'
+    replace: '\1mdns_minimal [NOTFOUND=return] \2'
+
+- name: "Enable and start CUPS + Avahi (driverless print/scan)"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - avahi-daemon.service
+    - cups.socket
+    - cups-browsed.service
