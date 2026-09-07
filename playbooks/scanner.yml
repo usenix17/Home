@@ -1,0 +1,12 @@
+---
+# Expose the USB HP LaserJet Pro MFP M127fw on print.starnix.net to the LAN as a
+# network scanner: saned (SANE net) + AirSane (eSCL/AirScan, native for
+# macOS/iOS/Windows via mDNS). See roles/scanner.
+#
+#   ansible-playbook playbooks/scanner.yml --check --diff   # preview
+#   ansible-playbook playbooks/scanner.yml                  # apply
+- name: "Network scanner on print.starnix.net"
+  hosts: "print.starnix.net"
+  become: true
+  roles:
+    - role: "scanner"

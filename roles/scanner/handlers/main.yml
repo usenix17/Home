@@ -1,0 +1,22 @@
+---
+- name: "reload udev and retrigger"
+  ansible.builtin.shell: "udevadm control --reload-rules && udevadm trigger"
+  changed_when: true
+
+- name: "restart saned"
+  ansible.builtin.systemd:
+    name: saned.socket
+    state: restarted
+
+# Defined before "restart airsaned" so avahi comes back first, then airsaned
+# re-announces cleanly over the new (IPv4-only) avahi.
+- name: "restart avahi-daemon"
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    state: restarted
+
+- name: "restart airsaned"
+  ansible.builtin.systemd:
+    name: airsaned
+    state: restarted
+    daemon_reload: true
