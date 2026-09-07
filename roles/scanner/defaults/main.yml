@@ -3,9 +3,10 @@
 # LAN via saned (SANE net) and AirSane (eSCL/AirScan). See playbooks/scanner.yml.
 
 # Client subnets allowed to reach the scanner (used for both saned.conf and the
-# AirSane access.conf). Keep to trusted LANs.
+# AirSane access.conf). Set to allow any client -- the scanner is only reachable
+# from the LAN (no WAN port-forward), and clients connect from several VLANs.
 scanner_allowed_subnets:
-  - 192.168.1.0/24
+  - 0.0.0.0/0
 
 # AirSane (built from source -- not packaged in Debian).
 scanner_airsane_repo: "https://github.com/SimulPiscator/AirSane.git"
