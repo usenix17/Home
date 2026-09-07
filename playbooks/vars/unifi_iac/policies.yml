@@ -2220,7 +2220,7 @@ unifi_policies:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
 - name: Block Finn Devices (Internal->External)
-  enabled: true
+  enabled: false
   description: iac:block-finn-devices-internal-external
   action:
     type: BLOCK
@@ -2240,7 +2240,7 @@ unifi_policies:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
 - name: Block Finn Devices (Restricted->External)
-  enabled: true
+  enabled: false
   description: iac:block-finn-devices-restricted-external
   action:
     type: BLOCK
