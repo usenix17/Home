@@ -1,5 +1,0 @@
-# {{ ansible_managed }}
-# Client subnets/hosts allowed to use saned (SANE net protocol, TCP 6566).
-{% for net in scanner_allowed_subnets %}
-{{ net }}
-{% endfor %}

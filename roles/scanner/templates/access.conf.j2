@@ -1,6 +1,0 @@
-# {{ ansible_managed }}
-# AirSane client access, matched top-to-bottom; first match wins, default Deny.
-allow local on *
-{% for net in scanner_allowed_subnets %}
-allow {{ net }}
-{% endfor %}
