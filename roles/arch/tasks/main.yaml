@@ -372,7 +372,7 @@
   ansible.builtin.copy:
     dest: /usr/local/bin/dkms-prune-stale
     content: |
-      #!/usr/bin/env bash
+      {% raw %}#!/usr/bin/env bash
       # Prune DKMS builds + module dirs for kernels no longer owned by an
       # installed package. Any /usr/lib/modules/<ver> whose pkgbase is unowned is
       # stale. DRY_RUN=1 previews without changing anything.
@@ -405,6 +405,7 @@
         log "removing orphan module dir $d"
         run rm -rf "$d"
       done
+      {% endraw %}
     owner: root
     group: root
     mode: "0755"

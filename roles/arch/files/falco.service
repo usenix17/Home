@@ -3,6 +3,12 @@ Description=Falco: Container Native Runtime Security (modern eBPF)
 Documentation=https://falco.org/docs/
 After=network-online.target
 Wants=network-online.target
+# Bound auto-restart: recover from a transient crash, but give up after 5 tries
+# in 30 min so a persistent failure (e.g. a kernel-vs-libscap event-parse crash)
+# lands cleanly in 'failed' instead of crash-looping forever. The Falco
+# dead-sensor watchdog (Wazuh CronJob) then alerts to Discord within the hour.
+StartLimitIntervalSec=1800
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -17,9 +23,14 @@ ExecReload=/bin/kill -HUP $MAINPID
 RuntimeDirectory=falco
 UMask=0077
 TimeoutStopSec=30
+# Restart on any failure (crash OR the exit-1 the parser throws on an
+# unparseable event), spaced by RestartSec. The StartLimit* in [Unit] caps the
+# retries so a bad config or a kernel/libscap mismatch fails cleanly rather than
+# staying silently dead (the 2026 selene incident: Falco exit 1 +
+# RestartPreventExitStatus=1 -> dark for weeks). Silent death is now caught two
+# ways: bounded restart here, and the dead-sensor watchdog.
 Restart=on-failure
-# Falco exits 1 on config/rule errors; don't crash-loop on a bad config.
-RestartPreventExitStatus=1
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
