@@ -1,0 +1,26 @@
+---
+
+- name: "Deploy pve-deadman script"
+  ansible.builtin.template:
+    src: "pve-deadman.sh.j2"
+    dest: "/usr/local/sbin/pve-deadman.sh"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: restart-pve-deadman
+
+- name: "Deploy pve-deadman systemd unit"
+  ansible.builtin.copy:
+    src: "pve-deadman.service"
+    dest: "/etc/systemd/system/pve-deadman.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart-pve-deadman
+
+- name: "Enable and start pve-deadman"
+  ansible.builtin.systemd:
+    name: pve-deadman.service
+    enabled: true
+    state: started
+    daemon_reload: true

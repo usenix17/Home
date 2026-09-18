@@ -1,0 +1,32 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Deadman for the Minisforum freeze mode: storage+NICs drop off the PCIe bus
+# while the CPU stays alive (iTCO stays petted, never fires -- pve2 2026-09-16,
+# 28h dark). Resident daemon: every {{ pve_deadman_interval }}s O_DIRECT-read
+# the root disk (bypasses page cache -- hits the real device) + ping two
+# targets; {{ pve_deadman_strikes }} consecutive both-dead strikes -> SysRq-B
+# emergency reboot (kernel-memory only, needs no storage or network). Either
+# subsystem alive => counter resets. Everything stays resident so a dead root
+# disk cannot stop the loop itself.
+DISK=$(findmnt -n -o SOURCE / 2>/dev/null || echo /dev/mapper/pve-root)
+T1={{ pve_deadman_gateway }}
+T2={{ pve_deadman_siblings | reject('equalto', ansible_host | default(inventory_hostname)) | list | first }}
+FAILS=0
+echo 1 > /proc/sys/kernel/sysrq
+while true; do
+  ok=0
+  timeout 10 dd if=$DISK of=/dev/null bs=4096 count=1 iflag=direct >/dev/null 2>&1 && ok=1
+  if [ $ok -eq 0 ]; then
+    (ping -c1 -W3 $T1 >/dev/null 2>&1 || ping -c1 -W3 $T2 >/dev/null 2>&1) && ok=1
+  fi
+  if [ $ok -eq 1 ]; then
+    FAILS=0
+  else
+    FAILS=$((FAILS+1))
+    logger -t pve-deadman "disk+net both dead, strike $FAILS/{{ pve_deadman_strikes }}" 2>/dev/null
+    if [ $FAILS -ge {{ pve_deadman_strikes }} ]; then
+      echo b > /proc/sysrq-trigger
+    fi
+  fi
+  sleep {{ pve_deadman_interval }}
+done

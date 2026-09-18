@@ -1,0 +1,20 @@
+---
+# Deadman self-reset for the Minisforum freeze mode (pve2 2026-09-16: storage
+# + NICs drop off the PCIe bus while the CPU stays alive, so the iTCO watchdog
+# keeps getting petted and never fires; box sat dark 28h). The daemon reboots
+# the node via SysRq-B (~3 min of proven-dead) instead.
+
+# Primary liveness target (gateway on the pve VLAN).
+pve_deadman_gateway: "192.168.7.1"
+
+# Sibling pve nodes; each host pings the first sibling that is not itself
+# (pinging your own IP goes via loopback and would mask a dead NIC).
+pve_deadman_siblings:
+  - "192.168.7.101"
+  - "192.168.7.102"
+
+# Consecutive both-dead strikes (30s apart) before SysRq-B fires.
+pve_deadman_strikes: 6
+
+# Seconds between checks.
+pve_deadman_interval: 30

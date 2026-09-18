@@ -76,11 +76,21 @@ all:
 
     proxmox:
       hosts:
+        # pveN names are not in DNS; reach by IP. PVE hosts only run root (the
+        # 'cloud' user does not exist there), so no become needed.
         pve1.starnix.net:
+          ansible_host: 192.168.7.101
         pve2.starnix.net:
+          ansible_host: 192.168.7.102
         pve3.starnix.net:
+          ansible_host: 192.168.7.103
         pve4.starnix.net:
+          ansible_host: 192.168.7.104
         pve5.starnix.net:
+          ansible_host: 192.168.7.105
+      vars:
+        ansible_user: "root"
+        ansible_become: false
 
     iron:
       hosts:

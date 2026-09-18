@@ -3,6 +3,7 @@
   hosts: proxmox
   roles:
     - arp_ignore
+    - pve_deadman
 
 - name: "hecate baseline"
   hosts: hecate.starnix.net

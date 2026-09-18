@@ -1,0 +1,8 @@
+---
+
+# Was missing entirely: the template task notifies apply-sysctl, which blew up
+# the play the first time the sysctl file actually changed on a host
+# (found 2026-09-18 running proxmox.yml against pve1-5).
+- name: "apply-sysctl"
+  ansible.builtin.command: "sysctl --system"
+  changed_when: true

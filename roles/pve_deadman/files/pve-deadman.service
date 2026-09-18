@@ -1,0 +1,11 @@
+[Unit]
+Description=Deadman reboot when storage+network both die (Minisforum freeze mode)
+
+[Service]
+ExecStart=/usr/local/sbin/pve-deadman.sh
+Restart=always
+RestartSec=10
+OOMScoreAdjust=-1000
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+---
+
+- name: "restart-pve-deadman"
+  ansible.builtin.systemd:
+    name: pve-deadman.service
+    state: restarted
+    daemon_reload: true
