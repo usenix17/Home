@@ -1,0 +1,6 @@
+---
+
+- name: "Deploy shared vimrc fleet-wide"
+  hosts: all
+  roles:
+    - vimrc

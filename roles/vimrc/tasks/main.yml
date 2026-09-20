@@ -1,0 +1,38 @@
+---
+# Deploy the shared vimrc (vim-plug + auto-bootstrap, so plugins self-install
+# on first vim launch -- needs curl+git at runtime, both fleet-standard).
+# Three targets because login identity varies across the fleet: the connection
+# user (cloud/root/astro), root (for become sessions), and sasha where that
+# account exists (e.g. selene). NOTE: facts are gathered under become, so
+# ansible_env.HOME is /root everywhere -- use "~" (expanded per-task) instead.
+
+- name: "Deploy vimrc for the login user"
+  ansible.builtin.copy:
+    src: "vimrc"
+    dest: "~/.vimrc"
+    mode: "0644"
+  become: false
+
+- name: "Check whether a sasha account exists"
+  ansible.builtin.getent:
+    database: passwd
+    key: sasha
+  register: vimrc_sasha
+  failed_when: false
+
+- name: "Deploy vimrc for sasha"
+  ansible.builtin.copy:
+    src: "vimrc"
+    dest: "{{ vimrc_sasha.ansible_facts.getent_passwd['sasha'][4] }}/.vimrc"
+    owner: sasha
+    mode: "0644"
+  when:
+    - vimrc_sasha.ansible_facts.getent_passwd is defined
+    - vimrc_sasha.ansible_facts.getent_passwd['sasha'] is defined
+
+- name: "Deploy vimrc for root"
+  ansible.builtin.copy:
+    src: "vimrc"
+    dest: "/root/.vimrc"
+    mode: "0644"
+  when: ansible_os_family != 'Darwin'
