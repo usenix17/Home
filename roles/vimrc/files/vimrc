@@ -50,7 +50,16 @@ set title			" Set the title
 " ---------------------------------------------
 " Theme / Color Scheme
 " ---------------------------------------------
-colorscheme default
+if has('nvim')
+  " nvim 0.10+'s redesigned 'default' scheme paints a real background
+  " (white under background=light) and auto-enables true color. The
+  " bundled 'vim' scheme + cterm colors restore classic terminal
+  " rendering: the terminal's own (dark) background shows through.
+  set notermguicolors
+  colorscheme vim
+else
+  colorscheme default
+endif
 set background=light            " Light background is best
 hi Comment ctermfg=63		" Brighten up comment colors
 hi Search ctermbg=LightYellow	" Search color
