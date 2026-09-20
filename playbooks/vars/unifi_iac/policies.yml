@@ -1919,13 +1919,13 @@ unifi_policies:
     ipVersion: IPV4_AND_IPV6
   logging_enabled: false
 - name: Allow MQTT
-  enabled: false
+  enabled: true
   description: iac:allow-mqtt
   action:
     type: ALLOW
     allowReturnTraffic: true
   source:
-    zoneId: Dmz
+    zoneId: Restricted
   destination:
     zoneId: Internal
     trafficFilter:
@@ -1935,7 +1935,7 @@ unifi_policies:
         matchOpposite: false
         items:
         - type: IP_ADDRESS
-          value: 192.168.1.203
+          value: 192.168.1.52
       portFilter:
         type: PORTS
         matchOpposite: false
