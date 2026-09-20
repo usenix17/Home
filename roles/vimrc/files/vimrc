@@ -170,11 +170,18 @@ let g:rust_recommended_style = 1
 
 " -- configure ale
 
+" clangd refuses to start without a project root (compile_commands.json /
+" .git); fall back to the file's own directory so single-file C works.
+let g:ale_root = {
+\  'clangd': {b -> !empty(ale#c#FindProjectRoot(b)) ? ale#c#FindProjectRoot(b) : fnamemodify(bufname(b), ':p:h')},
+\}
+
 " explicit linter set: LSPs for nav (gd/K) + the house style checkers
 let g:ale_linters = {
 \  'bash': [],
 \  'sh': [],
-\  'c': [],
+\  'c': ['clangd'],
+\  'cpp': ['clangd'],
 \  'rust': ['analyzer'],
 \  'python': ['pyright', 'pylint', 'pycodestyle'],
 \  'go': ['gopls'],
@@ -203,11 +210,11 @@ let g:ale_virtualtext_cursor = 0
 " ---------------------------------------------
 " Key Binds
 " ---------------------------------------------
-autocmd FileType rust,python,go nnoremap gd :ALEGoToDefinition<CR>
-autocmd FileType rust,python,go nnoremap <silent> K :ALEHover<CR>
+autocmd FileType rust,python,go,c,cpp nnoremap gd :ALEGoToDefinition<CR>
+autocmd FileType rust,python,go,c,cpp nnoremap <silent> K :ALEHover<CR>
 " manual LSP completion on Ctrl-X Ctrl-O (ftplugins otherwise override
 " omnifunc with vim's builtin non-LSP completers)
-autocmd FileType rust,python,go setlocal omnifunc=ale#completion#OmniFunc
+autocmd FileType rust,python,go,c,cpp setlocal omnifunc=ale#completion#OmniFunc
 
 " ---------------------------------------------
 " Source local config
