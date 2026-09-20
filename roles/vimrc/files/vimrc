@@ -205,6 +205,9 @@ let g:ale_virtualtext_cursor = 0
 " ---------------------------------------------
 autocmd FileType rust,python,go nnoremap gd :ALEGoToDefinition<CR>
 autocmd FileType rust,python,go nnoremap <silent> K :ALEHover<CR>
+" manual LSP completion on Ctrl-X Ctrl-O (ftplugins otherwise override
+" omnifunc with vim's builtin non-LSP completers)
+autocmd FileType rust,python,go setlocal omnifunc=ale#completion#OmniFunc
 
 " ---------------------------------------------
 " Source local config
