@@ -60,7 +60,7 @@ if has('nvim')
 else
   colorscheme default
 endif
-set background=light            " Light background is best
+set background=dark             " Dark background is best
 hi Comment ctermfg=63		" Brighten up comment colors
 hi Search ctermbg=LightYellow	" Search color
 
