@@ -94,6 +94,7 @@ unifi_ordering:
   before_system_defined:
   - Allow Restricted to Ingress
   - Allow Restricted to internal DNS
+  - Allow MQTT
 - source_zone: Restricted
   destination_zone: External
   before_system_defined:
@@ -159,7 +160,6 @@ unifi_ordering:
   before_system_defined:
   - Allow to nomad
   - Allow Plex (Dmz->Internal)
-  - Allow MQTT
   - DHCP test
   - Allow all to rocket
   - DHCP
