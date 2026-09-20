@@ -185,10 +185,12 @@ let g:ale_completion_enabled = 1
 " popup menu: show but never insert/select until I pick (ALE-recommended)
 set completeopt=menu,menuone,popup,noselect,noinsert
 
-" only run lint when file is saved
+" only run lint when file is saved -- EXCEPT on_enter must stay on: ALE only
+" launches LSP servers via lint events, so with it off no server runs until
+" the first :w and completion has nothing to complete from.
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
-let g:ale_lint_on_enter = 0
+let g:ale_lint_on_enter = 1
 
 " configure preview window
 let g:ale_floating_preview = 1
