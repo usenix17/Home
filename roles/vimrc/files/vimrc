@@ -179,7 +179,11 @@ let g:ale_linters = {
 \  'python': ['pyright', 'pylint', 'pycodestyle'],
 \  'go': ['gopls'],
 \}
-let g:ale_completion_enabled = 0
+" LSP autocomplete as-you-type (rust-analyzer/pyright/gopls). Must be set
+" before ALE loads, i.e. here in the vimrc, not at runtime.
+let g:ale_completion_enabled = 1
+" popup menu: show but never insert/select until I pick (ALE-recommended)
+set completeopt=menu,menuone,popup,noselect,noinsert
 
 " only run lint when file is saved
 let g:ale_lint_on_text_changed = 'never'
