@@ -144,6 +144,8 @@ unifi_groups:
   - type: IP_ADDRESS
     value: 192.168.1.53
   - type: IP_ADDRESS
+    value: 192.168.1.54
+  - type: IP_ADDRESS
     value: 10.17.89.53
 - name: DNS
   type: PORTS

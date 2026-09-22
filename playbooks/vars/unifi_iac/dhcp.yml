@@ -5,18 +5,22 @@ unifi_dhcp:
 - name: Management
   dns_servers:
   - 192.168.1.53
+  - 192.168.1.54
 - name: Wireless
   dns_servers:
   - 192.168.1.53
+  - 192.168.1.54
   ntp_servers:
   - 162.159.200.123
   - 216.239.35.0
 - name: Aux
   dns_servers:
   - 192.168.1.53
+  - 192.168.1.54
 - name: Wired
   dns_servers:
   - 192.168.1.53
+  - 192.168.1.54
   ntp_servers:
   - 162.159.200.123
   - 216.239.35.0
@@ -27,3 +31,4 @@ unifi_dhcp:
 - name: Omega
   dns_servers:
   - 192.168.1.53
+  - 192.168.1.54
