@@ -1941,8 +1941,6 @@ unifi_policies:
         matchOpposite: false
         items:
         - type: PORT_NUMBER
-          value: 1883
-        - type: PORT_NUMBER
           value: 8883
   ip_protocol_scope:
     ipVersion: IPV4_AND_IPV6
