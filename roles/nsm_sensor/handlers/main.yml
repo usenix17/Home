@@ -1,0 +1,21 @@
+---
+- name: "restart ntopng"
+  ansible.builtin.service:
+    name: ntopng
+    state: restarted
+
+# Restart (not reload): enabling threshold-file the first time is only picked up
+# at startup, so a reload-rules would miss it.
+- name: "restart suricata"
+  ansible.builtin.service:
+    name: suricata
+    state: restarted
+
+- name: "deploy zeek"
+  ansible.builtin.command: "zeekctl deploy"
+  changed_when: true
+
+- name: "restart fluent-bit"
+  ansible.builtin.service:
+    name: fluent-bit
+    state: restarted

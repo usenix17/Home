@@ -1,0 +1,73 @@
+# {{ ansible_managed }}
+[SERVICE]
+    Flush        5
+    Daemon       Off
+    Log_Level    info
+    Parsers_File parsers.conf
+
+[INPUT]
+    Name              tail
+    Path              /var/log/zeek/current/*.log
+    Exclude_Path      /var/log/zeek/current/conn.log,/var/log/zeek/current/*.*.log,/var/log/zeek/current/stderr.log,/var/log/zeek/current/stdout.log
+    Parser            json
+    Tag               zeek
+    Path_Key          logpath
+    Refresh_Interval  5
+    Read_from_Head    false
+
+[FILTER]
+    Name    modify
+    Match   zeek
+    Add     host {{ nsm_gelf_source }}
+    Add     source zeek
+    Add     short_message zeek-flow
+
+[OUTPUT]
+    Name                    gelf
+    Match                   zeek
+    Host                    {{ nsm_graylog_host }}
+    Port                    {{ nsm_graylog_gelf_port }}
+    Mode                    udp
+    Gelf_Short_Message_Key  short_message
+    Gelf_Host_Key           host
+
+# --- Suricata EVE -> Graylog (additive; Wazuh still tails eve.json separately) ---
+[INPUT]
+    Name              tail
+    Path              /var/log/suricata/eve.json
+    Parser            json
+    Tag               suricata
+    Path_Key          logpath
+    Refresh_Interval  5
+    Read_from_Head    false
+    Skip_Long_Lines   On
+    Buffer_Chunk_Size 512k
+    Buffer_Max_Size   4M
+    Mem_Buf_Limit     64M
+
+[FILTER]
+    Name    grep
+    Match   suricata
+    Regex   event_type ^(alert|dns|http|tls)$
+
+[FILTER]
+    Name    lua
+    Match   suricata
+    script  /usr/local/etc/fluent-bit/suricata_dns.lua
+    call    extract_dns
+
+[FILTER]
+    Name    modify
+    Match   suricata
+    Add     host {{ nsm_gelf_source }}
+    Add     source suricata
+    Add     short_message suricata-eve
+
+[OUTPUT]
+    Name                    gelf
+    Match                   suricata
+    Host                    {{ nsm_graylog_host }}
+    Port                    {{ nsm_graylog_gelf_port }}
+    Mode                    udp
+    Gelf_Short_Message_Key  short_message
+    Gelf_Host_Key           host

@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: nsm_sensor
+  author: starnix
+  description: >-
+    Passive NSM tap appliance (ntopng + Suricata + Zeek + fluent-bit) on a
+    FreeBSD host mirroring switch uplinks.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: FreeBSD
+      versions:
+        - "15"
+dependencies: []

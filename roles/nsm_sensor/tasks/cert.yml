@@ -1,0 +1,65 @@
+---
+# ntopng HTTPS cert via certbot + Cloudflare DNS-01 (matches webzfs_proxy /
+# bastille_certbot; reuses the shared vault_certbot_cloudflare_api_token).
+# Replaces the previous acme.sh dns_cf setup. The deploy-hook rebuilds ntopng's
+# combined PEM (key + fullchain) at the fixed path ntopng reads, then restarts it.
+- name: "Install certbot + Cloudflare DNS plugin"
+  community.general.pkgng:
+    name:
+      - py312-certbot
+      - py312-certbot-dns-cloudflare
+    state: present
+
+- name: "letsencrypt config dir"
+  ansible.builtin.file:
+    path: "{{ nsm_letsencrypt_dir }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: "0755"
+
+- name: "Cloudflare API credentials for certbot"
+  ansible.builtin.template:
+    src: cloudflare.ini.j2
+    dest: "{{ nsm_letsencrypt_dir }}/cloudflare.ini"
+    owner: root
+    group: wheel
+    mode: "0600"
+  no_log: true
+
+- name: "ntopng cert deploy hook"
+  ansible.builtin.template:
+    src: deploy-ntopng-cert.sh.j2
+    dest: /usr/local/etc/ntopng/deploy-cert.sh
+    owner: root
+    group: wheel
+    mode: "0755"
+
+- name: "Issue the ntopng cert (Cloudflare DNS-01, ECDSA)"
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --register-unsafely-without-email
+      - --key-type
+      - ecdsa
+      - --dns-cloudflare
+      - --dns-cloudflare-credentials
+      - "{{ nsm_letsencrypt_dir }}/cloudflare.ini"
+      - --dns-cloudflare-propagation-seconds
+      - "30"
+      - -d
+      - "{{ ntopng_domain }}"
+      - --deploy-hook
+      - /usr/local/etc/ntopng/deploy-cert.sh
+    creates: "{{ nsm_letsencrypt_dir }}/live/{{ ntopng_domain }}/fullchain.pem"
+  no_log: true
+
+- name: "Enable weekly certbot renewal (periodic)"
+  community.general.sysrc:
+    name: weekly_certbot_enable
+    value: "YES"
+    path: /etc/periodic.conf
+    state: present

@@ -1,0 +1,48 @@
+# Custom nDPI applications for the starnix.net environment (ntopng -p).
+# Format: <matcher>@<AppName>   matchers: host:"substr" (SNI/DNS/HTTP), ip:CIDR, tcp/udp:port
+# Broad catch-all: any internal service by DNS/SNI
+host:"starnix.net"@Starnix
+
+# Media stack (bork: sonarr/radarr/lidarr/sabnzbd/jellyfin)
+ip:192.168.1.86/32@StarnixMedia
+host:"media.starnix.net"@StarnixMedia
+host:"gellyfin.starnix.net"@StarnixMedia
+
+# Storage / NAS (mimir, omnios, zfs box, NAS)
+ip:192.168.1.75/32@StarnixStorage
+ip:192.168.1.76/32@StarnixStorage
+ip:192.168.1.57/32@StarnixStorage
+
+# DNS resolvers (beastyboi unbound, unbound2, knot ns1)
+ip:192.168.1.53/32@StarnixDNS
+ip:192.168.1.54/32@StarnixDNS
+ip:192.168.7.211/32@StarnixDNS
+
+# Auth (FreeIPA ipa9/ipa2)
+ip:192.168.1.26/32@StarnixAuth
+ip:192.168.1.25/32@StarnixAuth
+
+# Monitoring / security (graylog, huginn tap, openvas, otel)
+ip:192.168.1.151/32@StarnixMonitoring
+ip:192.168.1.182/32@StarnixMonitoring
+ip:192.168.1.59/32@StarnixMonitoring
+ip:192.168.7.205/32@StarnixMonitoring
+
+# Bastion (warpgate)
+ip:192.168.1.58/32@StarnixBastion
+tcp:6922@StarnixBastion
+host:"warp.starnix.net"@StarnixBastion
+
+# Kubernetes / Omega subnet + ingress
+ip:192.168.7.0/24@StarnixK8s
+
+# Proxmox mgmt
+ip:192.168.1.181/32@StarnixProxmox
+
+# External: NextDNS (resolver upstream)
+host:"nextdns.io"@NextDNS
+ip:45.90.28.0/32@NextDNS
+ip:45.90.30.0/32@NextDNS
+
+# Nebula mesh (defined.net)
+host:"defined.net"@Nebula

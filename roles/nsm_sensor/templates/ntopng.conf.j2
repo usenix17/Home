@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+# ntopng -- network tap appliance (mirrors of both switch uplinks)
+{% for iface in nsm_mirror_interfaces %}
+-i={{ iface }}
+{% endfor %}
+--http-port=0
+--redis=127.0.0.1:6379
+--data-dir={{ ntopng_data_dir }}
+--local-networks={{ ntopng_local_networks }}
+--community
+--dns-mode=1
+--https-port={{ ntopng_https_port }}
+--ndpi-protocols={{ ntopng_protos }}

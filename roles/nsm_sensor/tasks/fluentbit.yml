@@ -1,0 +1,35 @@
+---
+- name: "Install fluent-bit"
+  community.general.pkgng:
+    name: fluent-bit
+    state: present
+
+- name: "fluent-bit config (Zeek + Suricata -> Graylog GELF)"
+  ansible.builtin.template:
+    src: fluent-bit.conf.j2
+    dest: /usr/local/etc/fluent-bit/fluent-bit.conf
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "restart fluent-bit"
+
+- name: "fluent-bit Suricata DNS extractor (lua)"
+  ansible.builtin.copy:
+    src: suricata_dns.lua
+    dest: /usr/local/etc/fluent-bit/suricata_dns.lua
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "restart fluent-bit"
+
+- name: "Enable fluent-bit at boot"
+  community.general.sysrc:
+    name: fluent_bit_enable
+    value: "YES"
+    state: present
+
+- name: "fluent-bit service"
+  ansible.builtin.service:
+    name: fluent-bit
+    enabled: true
+    state: started

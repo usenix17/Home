@@ -1,0 +1,19 @@
+---
+# Mirror-port sensor host tuning. The SPAN receive NICs run promiscuous with all
+# offloads OFF so capture sees real packet boundaries and true checksums. This
+# only writes rc.conf -- it does NOT bounce netif (that would drop live capture);
+# the settings take effect on boot, or apply by hand with `ifconfig <if> ...`.
+- name: "Mirror NIC promisc + offload-off in rc.conf"
+  community.general.sysrc:
+    name: "ifconfig_{{ item }}"
+    value: "up promisc -lro -tso -rxcsum -txcsum"
+    state: present
+  loop: "{{ nsm_mirror_interfaces }}"
+
+- name: "Lower reserved-high port range so ntopng can bind 443"
+  ansible.posix.sysctl:
+    name: net.inet.ip.portrange.reservedhigh
+    value: "0"
+    sysctl_file: /etc/sysctl.conf
+    state: present
+    reload: true

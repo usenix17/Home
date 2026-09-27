@@ -1,0 +1,9 @@
+#!/bin/sh
+# {{ ansible_managed }}
+# certbot --deploy-hook: rebuild ntopng's combined PEM (key + fullchain) at the
+# fixed path ntopng reads from, then restart ntopng. ntopng has no cert-path flag.
+set -e
+LIVE="{{ nsm_letsencrypt_dir }}/live/{{ ntopng_domain }}"
+cat "${LIVE}/privkey.pem" "${LIVE}/fullchain.pem" > "{{ ntopng_cert_path }}"
+chmod 644 "{{ ntopng_cert_path }}"
+service ntopng restart

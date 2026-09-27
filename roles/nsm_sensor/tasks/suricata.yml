@@ -1,0 +1,77 @@
+---
+- name: "Install Suricata"
+  community.general.pkgng:
+    name: suricata
+    state: present
+
+- name: "Enable Suricata at boot on the mirror interfaces"
+  community.general.sysrc:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { name: "suricata_enable", value: "YES" }
+    - { name: "suricata_interface", value: "{{ nsm_mirror_interfaces | join(' ') }}" }
+
+# Mirror ports carry VLAN-tagged frames with offload-cleared checksums; capture
+# on 'default' and skip checksum validation. Idempotent: only matches the stock
+# `- interface: eth0` capture stanzas (pcap/af-packet/netmap).
+- name: "suricata.yaml: capture on 'default' iface, checksum-checks off (mirror)"
+  ansible.builtin.replace:
+    path: "{{ suricata_yaml }}"
+    regexp: '^  - interface: eth0$'
+    replace: "  - interface: default\n    checksum-checks: no"
+  notify: "restart suricata"
+
+- name: "suricata.yaml: enable the threshold file"
+  ansible.builtin.replace:
+    path: "{{ suricata_yaml }}"
+    regexp: '^# threshold-file: {{ suricata_threshold_conf | regex_escape }}$'
+    replace: "threshold-file: {{ suricata_threshold_conf }}"
+  notify: "restart suricata"
+
+# SPAN/mirror decoder+stream+app-layer events are capture artifacts, not real
+# detections -- suppress (rules stay loaded, just silenced). Reversible.
+- name: "Suppress mirror-noise SIDs (threshold.config)"
+  ansible.builtin.blockinfile:
+    path: "{{ suricata_threshold_conf }}"
+    marker: "# {mark} ANSIBLE nsm_sensor mirror-noise suppression"
+    block: |
+      {% for sid in suricata_suppress %}
+      suppress gen_id 1, sig_id {{ sid }}
+      {% endfor %}
+  notify: "restart suricata"
+
+- name: "Suricata log rotation (newsyslog)"
+  ansible.builtin.copy:
+    src: newsyslog-suricata.conf
+    dest: /usr/local/etc/newsyslog.conf.d/suricata.conf
+    owner: root
+    group: wheel
+    mode: "0644"
+
+- name: "Fetch the ET Open ruleset if absent"
+  ansible.builtin.command: suricata-update
+  args:
+    creates: "{{ suricata_rules_file }}"
+  changed_when: true
+
+# eve.json (0644) lives in a dir suricata creates 0700; make the dir traversable
+# so fluent-bit's `nobody` user can open the known path (it cannot list the dir).
+- name: "eve.json dir traversable by fluent-bit (nobody)"
+  ansible.builtin.file:
+    path: /var/log/suricata
+    state: directory
+    owner: root
+    group: wheel
+    mode: "0751"
+
+- name: "Validate Suricata config"
+  ansible.builtin.command: "suricata -T -c {{ suricata_yaml }}"
+  changed_when: false
+
+- name: "Enable + start Suricata"
+  ansible.builtin.service:
+    name: suricata
+    enabled: true
+    state: started

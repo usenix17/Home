@@ -58,6 +58,12 @@ all:
         mimir.starnix.net:
         beastyboi.starnix.net:
 
+    # Passive NSM tap appliance(s): ntopng + Suricata + Zeek + fluent-bit on
+    # switch-mirror interfaces. Targeted by the nsm_sensor role.
+    nsm:
+      hosts:
+        huginn.starnix.net:
+
     # Hosts running the Wazuh agent that the wazuh_agent role manages
     # (FreeBSD/Debian/Arch). macOS, OmniOS, and the router run agents too but are
     # not yet covered by the role, so they stay hand-managed and are omitted here.

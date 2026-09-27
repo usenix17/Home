@@ -1,0 +1,47 @@
+---
+# Each component is a tagged include so a single analyzer can be (re)configured
+# with e.g. `--tags suricata`. Order matters: ntopng service comes up before its
+# cert is issued (the cert deploy-hook restarts it), and Suricata rules/dirs
+# exist before fluent-bit starts tailing eve.json.
+
+- name: "Base host tuning (mirror NICs + sysctl)"
+  ansible.builtin.include_tasks:
+    file: base.yml
+    apply:
+      tags: ["base"]
+  tags: ["base"]
+
+- name: "ntopng"
+  ansible.builtin.include_tasks:
+    file: ntopng.yml
+    apply:
+      tags: ["ntopng"]
+  tags: ["ntopng"]
+
+- name: "ntopng TLS cert (certbot dns-cloudflare)"
+  ansible.builtin.include_tasks:
+    file: cert.yml
+    apply:
+      tags: ["ntopng", "cert"]
+  tags: ["ntopng", "cert"]
+
+- name: "Suricata IDS"
+  ansible.builtin.include_tasks:
+    file: suricata.yml
+    apply:
+      tags: ["suricata"]
+  tags: ["suricata"]
+
+- name: "Zeek NSM"
+  ansible.builtin.include_tasks:
+    file: zeek.yml
+    apply:
+      tags: ["zeek"]
+  tags: ["zeek"]
+
+- name: "fluent-bit shipping to Graylog"
+  ansible.builtin.include_tasks:
+    file: fluentbit.yml
+    apply:
+      tags: ["fluentbit"]
+  tags: ["fluentbit"]

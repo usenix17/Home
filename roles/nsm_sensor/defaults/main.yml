@@ -1,0 +1,47 @@
+---
+# nsm_sensor -- passive NSM tap appliance (ntopng + Suricata + Zeek + fluent-bit)
+# on a FreeBSD host mirroring switch uplinks. See README.md.
+
+# --- capture: the switch-mirror (SPAN) receive interfaces ---
+nsm_mirror_interfaces:
+  - igb0
+  - igb1
+
+# --- shipping to Graylog (GELF) ---
+nsm_graylog_host: "graylog.starnix.net"
+nsm_graylog_gelf_port: 12201
+nsm_gelf_source: "{{ inventory_hostname }}"
+
+# --- ntopng ---
+ntopng_https_port: 443
+ntopng_local_networks: "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8"
+ntopng_data_dir: "/var/db/ntopng"
+ntopng_conf: "/usr/local/etc/ntopng/ntopng.conf"
+ntopng_protos: "/usr/local/etc/ntopng/protos.txt"
+ntopng_cert_path: "/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem"
+ntopng_cert_stage_dir: "/var/db/ntopng/ssl"
+
+# --- ntopng TLS cert (certbot dns-cloudflare) ---
+ntopng_domain: "ntop.starnix.net"
+nsm_letsencrypt_dir: "/usr/local/etc/letsencrypt"
+# Reuses the shared Cloudflare token already in vault for certbot roles.
+nsm_cf_api_token: "{{ vault_certbot_cloudflare_api_token | default('CHANGE_ME_IN_VAULT') }}"
+
+# --- Suricata ---
+suricata_yaml: "/usr/local/etc/suricata/suricata.yaml"
+suricata_threshold_conf: "/usr/local/etc/suricata/threshold.config"
+suricata_rules_file: "/var/lib/suricata/rules/suricata.rules"
+# gid 1 decoder/stream/app-layer mirror-noise SIDs to suppress (see README).
+suricata_suppress:
+  - 2200121   # SURICATA Ethertype unknown
+  - 2200067   # SURICATA VLAN unknown type
+  - 2231001   # SURICATA QUIC error on data
+  - 2221010   # SURICATA HTTP unable to match response to request
+  - 2210044   # SURICATA STREAM Packet with invalid timestamp
+
+# --- Zeek ---
+zeek_nodecfg: "/usr/local/etc/node.cfg"
+zeek_site_local: "/usr/local/share/zeek/site/local.zeek"
+# Install the zeekctl housekeeping cron (crash recovery + log archival). Not
+# present on the hand-built host today; on by default as a reliability fix.
+nsm_zeek_cron: true

@@ -1,0 +1,9 @@
+---
+# Configure the passive NSM tap appliance (ntopng + Suricata + Zeek + fluent-bit)
+# on the `nsm` host group (huginn). Run a single component with e.g.
+# `--tags suricata`. Needs vault_certbot_cloudflare_api_token for the ntopng cert.
+- name: "Configure the NSM tap appliance"
+  hosts: "nsm"
+  become: true
+  roles:
+    - role: "nsm_sensor"

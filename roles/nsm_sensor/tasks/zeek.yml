@@ -1,0 +1,48 @@
+---
+- name: "Install Zeek"
+  community.general.pkgng:
+    name: zeek
+    state: present
+
+# zeek_enable is NOT set by the port and was missing on the hand-built host, so
+# Zeek did not survive a reboot -- set it.
+- name: "Enable Zeek at boot"
+  community.general.sysrc:
+    name: zeek_enable
+    value: "YES"
+    state: present
+
+- name: "Zeek cluster node.cfg (one worker per mirror interface)"
+  ansible.builtin.template:
+    src: node.cfg.j2
+    dest: "{{ zeek_nodecfg }}"
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "deploy zeek"
+
+# Append tap-appliance tuning to the stock port local.zeek (marker-guarded so the
+# default @load lines are preserved).
+- name: "Zeek tap-appliance tuning in local.zeek"
+  ansible.builtin.blockinfile:
+    path: "{{ zeek_site_local }}"
+    marker: "# {mark} ANSIBLE nsm_sensor tap additions"
+    block: |
+      redef ignore_checksums = T;
+      redef LogAscii::use_json = T;
+      @load policy/protocols/conn/community-id-logging
+  notify: "deploy zeek"
+
+- name: "Enable + start Zeek"
+  ansible.builtin.service:
+    name: zeek
+    enabled: true
+    state: started
+
+- name: "Zeek housekeeping cron (crash recovery + log archival)"
+  ansible.builtin.cron:
+    name: "zeekctl cron"
+    minute: "*/5"
+    job: "/usr/local/bin/zeekctl cron"
+    user: root
+  when: nsm_zeek_cron

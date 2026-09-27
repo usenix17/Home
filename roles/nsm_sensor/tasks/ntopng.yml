@@ -1,0 +1,60 @@
+---
+- name: "Install ntopng + redis"
+  community.general.pkgng:
+    name:
+      - ntopng
+      - redis
+    state: present
+
+- name: "Enable redis (ntopng backend)"
+  community.general.sysrc:
+    name: redis_enable
+    value: "YES"
+    state: present
+
+- name: "redis service"
+  ansible.builtin.service:
+    name: redis
+    enabled: true
+    state: started
+
+- name: "ntopng config"
+  ansible.builtin.template:
+    src: ntopng.conf.j2
+    dest: "{{ ntopng_conf }}"
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "restart ntopng"
+
+- name: "ntopng custom nDPI applications"
+  ansible.builtin.copy:
+    src: protos.txt
+    dest: "{{ ntopng_protos }}"
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "restart ntopng"
+
+- name: "ntopng cert staging dir"
+  ansible.builtin.file:
+    path: "{{ ntopng_cert_stage_dir }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: "0755"
+
+- name: "Enable ntopng at boot"
+  community.general.sysrc:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { name: "ntopng_enable", value: "YES" }
+    - { name: "ntopng_flags", value: "{{ ntopng_conf }}" }
+
+- name: "ntopng service"
+  ansible.builtin.service:
+    name: ntopng
+    enabled: true
+    state: started
