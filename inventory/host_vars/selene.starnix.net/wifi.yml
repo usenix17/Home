@@ -1,0 +1,10 @@
+---
+# WPA-Enterprise (802.1X) identity for the wifi_cert_pin role.
+# vault.yml holds a DUMMY vault_wifi_password so the role's guard passes and the
+# structure is committable. Do NOT commit the real secret. For an actual run,
+# override at runtime (the real WiFi password == the Ansible Vault passphrase):
+#   ansible-playbook ... playbooks/wifi_cert_pin.yml -l selene.starnix.net \
+#     -e wifi_password="$(cat ~/.ansible_vault)"
+wifi_ssid: "Osa_nomap"
+wifi_identity: "sasha"
+wifi_password: "{{ vault_wifi_password }}"
