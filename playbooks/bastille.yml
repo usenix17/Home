@@ -1,0 +1,9 @@
+---
+# Install/configure Bastille on the bastille hosts (mimir, beastyboi).
+# Full run needs the bastille_zfs_* vars (group/host_vars). For just the VNET
+# checksum-offload template fix, run with: --tags bastille_vnet_csum
+- name: "Configure Bastille"
+  hosts: "bastille"
+  become: true
+  roles:
+    - role: "bastille"

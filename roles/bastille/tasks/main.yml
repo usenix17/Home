@@ -39,3 +39,25 @@
   ansible.builtin.command: "bastille bootstrap {{ bastille_release }}"
   when: not bastille_release_stat.stat.exists
   changed_when: true
+
+# --- VNET jail NIC checksum offload ---
+# On a host that ALSO runs bhyve VMs, a jail's vnet0 (an epair) has TX checksum
+# offload on, so outbound TCP checksums are deferred ("hardware will fill them").
+# For traffic to a LOCAL bhyve VM (epair -> if_bridge -> bhyve tap -> virtio) no
+# physical NIC is ever in the path, so the checksum is never computed and the VM
+# silently drops the packets (TcpInCsumErrors): ping works, ALL TCP fails. Bake
+# the offload-off flags into the VNET template so every NEW VNET jail is immune.
+# Idempotent: the regexp only matches the un-patched IFCONFIG line.
+- name: "Check for the VNET jail template"
+  ansible.builtin.stat:
+    path: "{{ bastille_prefix }}/templates/default/vnet/Bastillefile"
+  register: bastille_vnet_template
+  tags: ["bastille_vnet_csum"]
+
+- name: "VNET template: disable TX checksum offload on jail vnet0 (jail<->local bhyve VM fix)"
+  ansible.builtin.replace:
+    path: "{{ bastille_prefix }}/templates/default/vnet/Bastillefile"
+    regexp: '^(SYSRC ifconfig_\$\{VNET\}="\$\{IFCONFIG\})"\s*$'
+    replace: '\1 -txcsum -txcsum6 -tso -lro"'
+  when: bastille_vnet_template.stat.exists
+  tags: ["bastille_vnet_csum"]
