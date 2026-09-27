@@ -60,8 +60,11 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  when: ansible_os_family == 'Debian'
 
 # --- nsswitch ---
+# Debian-only: RPM/FreeIPA hosts (e.g. ipa9) use SSSD-managed nsswitch; clobbering
+# it here would break directory-server name resolution.
 
 - name: "Configure nsswitch for cache lookups"
   ansible.builtin.copy:
@@ -70,6 +73,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  when: ansible_os_family == 'Debian'
 
 # --- Timestamp directory ---
 
@@ -80,6 +84,7 @@
     owner: "root"
     group: "root"
     mode: "0755"
+  when: ansible_os_family == 'Debian'
 
 # --- PAM ---
 
@@ -118,6 +123,8 @@
     - ansible_os_family == 'Debian'
     - nsscache_sssd_active.rc | default(1) != 0
 
+# nsscache PAM/homedir/cron/sync below are Debian-nsscache-specific. RPM/FreeIPA
+# hosts (ipa9) handle account mapping + mkhomedir via SSSD, so skip all of it.
 - name: "Add PAM account rule for nsscache users in sshd"
   ansible.builtin.lineinfile:
     path: "/etc/pam.d/sshd"
@@ -125,6 +132,7 @@
     regexp: '^account\s+sufficient\s+pam_succeed_if\.so uid >= 1000000'
     line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
     state: "present"
+  when: ansible_os_family == 'Debian'
   notify: "Restart sshd"
 
 - name: "Add PAM account rule for nsscache users in sudo"
@@ -134,6 +142,7 @@
     regexp: '^account\s+sufficient\s+pam_succeed_if\.so uid >= 1000000'
     line: "account sufficient pam_succeed_if.so uid >= 1000000 quiet"
     state: "present"
+  when: ansible_os_family == 'Debian'
 
 - name: "Enable pam_mkhomedir for SSH sessions"
   ansible.builtin.lineinfile:
@@ -141,6 +150,7 @@
     regexp: '^session\s+required\s+pam_mkhomedir\.so'
     line: "session required pam_mkhomedir.so skel=/etc/skel umask=0022"
     state: "present"
+  when: ansible_os_family == 'Debian'
 
 # --- Cron job ---
 
@@ -151,6 +161,7 @@
     job: "/usr/bin/nsscache update"
     user: "root"
     cron_file: "nsscache"
+  when: ansible_os_family == 'Debian'
 
 # --- Initial sync ---
 
@@ -161,10 +172,13 @@
     - "/etc/passwd.cache"
     - "/etc/group.cache"
   register: cache_files
+  when: ansible_os_family == 'Debian'
 
 - name: "Run initial nsscache sync"
   ansible.builtin.command: "/usr/bin/nsscache update"
-  when: cache_files.results | rejectattr('stat.exists') | list | length > 0
+  when:
+    - ansible_os_family == 'Debian'
+    - cache_files.results | default([]) | rejectattr('stat.exists') | list | length > 0
   changed_when: true
 
 # --- SSH CA ---
