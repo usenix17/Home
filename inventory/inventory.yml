@@ -19,7 +19,7 @@ all:
           hosts:
             bork.starnix.net:
             3cx.starnix.net:
-            hecate.starnix.net:
+            ipa9.starnix.net:
             print.starnix.net:
             sky.starnix.net:
               ansible_user: "astro"
@@ -38,6 +38,7 @@ all:
       hosts:
         beastyboi.starnix.net:
         freebsd15.starnix.net:
+        huginn.starnix.net:
         mimir.starnix.net:
       vars:
         ansible_python_interpreter: "/usr/local/bin/python3"
@@ -49,6 +50,13 @@ all:
     storage:
       hosts:
         mimir.starnix.net:
+
+    # Hosts running Bastille (jails and/or bhyve VMs). The bastille role's
+    # VNET-template checksum-offload fix (tag: bastille_vnet_csum) targets these.
+    bastille:
+      hosts:
+        mimir.starnix.net:
+        beastyboi.starnix.net:
 
     # Hosts running the Wazuh agent that the wazuh_agent role manages
     # (FreeBSD/Debian/Arch). macOS, OmniOS, and the router run agents too but are
@@ -62,6 +70,7 @@ all:
         hecate.starnix.net:
         vault.starnix.net:
         selene.starnix.net:
+        huginn.starnix.net:
 
     omnios:
       hosts:
