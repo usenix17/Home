@@ -17,6 +17,7 @@ the current controller is a **no-op**. Edit the values to change config.
 | `policies.yml` | firewall policies | `unifi_firewall_policy` |
 | `ordering.yml` | policy evaluation order | `unifi_firewall_policy_order` |
 | `dhcp.yml` | per-network DHCP (DNS/NTP/...) | `unifi_network_dhcp` |
+| `routes.yml` | static routes + policy-based traffic routes | `unifi_reconcile` |
 
 ## How references work (no UUIDs)
 

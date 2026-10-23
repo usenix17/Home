@@ -18,6 +18,15 @@ KEY = os.environ["UNIFI_API_KEY"]
 OUT = os.environ.get("OUT", "/kronos/IaC/playbooks/vars/unifi_iac")
 V1 = f"https://{HOST}/proxy/network/integration"
 CLASSIC = f"https://{HOST}/proxy/network/api/s/default"
+V2 = f"https://{HOST}/proxy/network/v2/api/site/default"
+# Static-route fields -> the friendly keys unifi_reconcile takes.
+ROUTE_KEYS = {"static-route_network": "network",
+              "static-route_type": "type",
+              "static-route_nexthop": "next_hop",
+              "static-route_interface": "interface",
+              "static-route_distance": "distance"}
+# Server-managed traffic-route keys left out of the vars.
+TRAFFIC_SKIP = {"_id", "site_id"}
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
@@ -214,6 +223,28 @@ def main():
                 entry[field] = wlan[field]
         wlans.append(entry)
     dump("wlans.yml", "unifi_wlans", wlans)
+
+    static = []
+    for route in get(CLASSIC, "/rest/routing")["data"]:
+        entry = {"name": route["name"], "enabled": route.get("enabled", True)}
+        for field, key in ROUTE_KEYS.items():
+            if field in route:
+                entry[key] = route[field]
+        static.append(entry)
+    dump("routes.yml", "unifi_static_routes", static)
+
+    traffic = []
+    for route in get(V2, "/trafficroutes"):
+        entry = {k: v for k, v in route.items() if k not in TRAFFIC_SKIP}
+        if entry.get("network_id") in legacy_nets:
+            entry["network_id"] = legacy_nets[entry["network_id"]]
+        traffic.append(entry)
+    # Second key in the same file: append rather than overwrite.
+    with open(os.path.join(OUT, "routes.yml"), "a", encoding="utf-8") as fh:
+        yaml.dump({"unifi_traffic_routes": traffic}, fh,
+                  default_flow_style=False, sort_keys=False, width=100,
+                  allow_unicode=True)
+    print(f"  appended {len(traffic)} traffic route(s) to routes.yml")
 
 
 if __name__ == "__main__":
