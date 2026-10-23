@@ -2,7 +2,8 @@
 # UniFi "everything as code" via the starnix.unifi collection.
 #
 # Manages the zone-based firewall (groups, zones, policies, ordering), networks,
-# and per-network DHCP options in a SINGLE starnix.unifi.unifi_reconcile call.
+# per-network DHCP options, and static/traffic routes in a SINGLE
+# starnix.unifi.unifi_reconcile call.
 # The vars under vars/unifi_iac/ are name-based -- there are no UUIDs; the module
 # fetches each collection once, resolves every cross-reference from its name, and
 # writes only the drift. Reverse-engineered from the live controller, so a run is
@@ -26,6 +27,7 @@
     - vars/unifi_iac/policies.yml
     - vars/unifi_iac/ordering.yml
     - vars/unifi_iac/dhcp.yml
+    - vars/unifi_iac/routes.yml
   tasks:
     - name: Reconcile the entire UniFi state in one call
       starnix.unifi.unifi_reconcile:
@@ -38,6 +40,8 @@
         policies: "{{ unifi_policies }}"
         ordering: "{{ unifi_ordering }}"
         dhcp: "{{ unifi_dhcp }}"
+        static_routes: "{{ unifi_static_routes }}"
+        traffic_routes: "{{ unifi_traffic_routes }}"
       register: unifi_result
 
     - name: Show what changed

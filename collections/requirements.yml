@@ -29,7 +29,7 @@ collections:
   # the runner loses its installed collections (ephemeral/rebuilt runner), a run
   # fails with "No module named 'ansible_collections.starnix'". Touch this file
   # (bump the comment below) to force a reinstall.
-  # galaxy-reinstall-nonce: 2026-09-05.1
+  # galaxy-reinstall-nonce: 2026-10-23.1
   - name: https://github.com/usenix17/starnix.unifi.git
     type: git
     version: main

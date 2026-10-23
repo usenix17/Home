@@ -1,0 +1,71 @@
+# routes.yml -- UniFi static routes and policy-based traffic routes.
+# Static routes match by name, traffic routes by description; network_id is a
+# network name. The static routes were reverse-engineered from the live
+# controller (2026-10-23), so a run is a no-op for them.
+# Regenerating with discover_unifi_iac.py drops these comments.
+unifi_static_routes:
+- name: Wireguard
+  enabled: true
+  network: 192.168.4.0/24
+  type: nexthop-route
+  next_hop: 192.168.4.1
+  distance: 2
+- name: 3cx
+  enabled: true
+  network: 10.124.0.0/20
+  type: nexthop-route
+  next_hop: 192.168.1.86
+  distance: 2
+- name: DigitalOcean
+  enabled: true
+  network: 10.48.0.0/16
+  type: nexthop-route
+  next_hop: 192.168.1.86
+  distance: 2
+- name: Tailnet
+  enabled: true
+  network: 100.64.0.0/10
+  type: nexthop-route
+  next_hop: 192.168.1.48
+  distance: 2
+- name: Bastille
+  enabled: true
+  network: 10.17.89.0/24
+  type: nexthop-route
+  next_hop: 192.168.1.106
+  distance: 2
+# Nebula mesh, via the Nebula router on beastyboi.
+- name: Nebula
+  enabled: true
+  network: 100.69.0.0/22
+  type: nexthop-route
+  next_hop: 192.168.1.56
+  distance: 2
+
+unifi_traffic_routes:
+# QUIC to the Cloudflare tunnel edge (region1/region2.v2.argotunnel.com, port
+# 7844) fails over FiberFirst with "tls: no application protocol"; the same
+# cloudflared bound to the CenturyLink address connects fine (tested from the
+# UDM with --edge-bind-address, 2026-10-23). Send tunnel traffic out
+# CenturyLink. Kill switch off, so it falls back to FiberFirst if CenturyLink
+# drops (cloudflared then falls back to http2).
+- description: Cloudflare Tunnel QUIC via CenturyLink
+  enabled: true
+  matching_target: IP
+  network_id: CenturyLink
+  ip_addresses:
+  - ip_or_subnet: 198.41.192.0/24
+    ip_version: v4
+    ports: [7844]
+    port_ranges: []
+  - ip_or_subnet: 198.41.200.0/24
+    ip_version: v4
+    ports: [7844]
+    port_ranges: []
+  ip_ranges: []
+  domains: []
+  regions: []
+  next_hop: ""
+  target_devices:
+  - type: ALL_CLIENTS
+  kill_switch_enabled: false
