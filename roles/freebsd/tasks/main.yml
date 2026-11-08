@@ -98,6 +98,8 @@
 
 # Reconcile any packages still on the old branch onto 'latest' (a host that ran
 # the previous dual-repo config has a quarterly/latest mix that conflicts).
+# With pkgbase this upgrades base and the kernel too, on purpose: pkg manages
+# everything. A new kernel takes effect at the next reboot.
 - name: "Reconcile installed packages onto the latest branch"
   ansible.builtin.command: pkg upgrade -y
   register: pkg_reconcile
