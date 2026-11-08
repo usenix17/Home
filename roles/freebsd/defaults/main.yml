@@ -1,1 +1,4 @@
 ---
+
+# Fail a host whose base system is not managed by pkgbase (FreeBSD-* packages).
+freebsd_require_pkgbase: true

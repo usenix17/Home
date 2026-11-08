@@ -44,9 +44,57 @@
     owner: root
     group: wheel
 
+# --- pkgbase ---
+# The base system is managed as FreeBSD-* packages (pkgbase), not by
+# freebsd-update. FreeBSD 15's /etc/pkg/FreeBSD.conf already defines the
+# FreeBSD-base repo; pin it enabled here with exactly what pkgbasify writes,
+# so converted hosts don't drift and a stock default can't turn it off.
+- name: "Enable the FreeBSD-base (pkgbase) repo"
+  ansible.builtin.copy:
+    dest: /usr/local/etc/pkg/repos/FreeBSD-base.conf
+    content: |
+      FreeBSD-base: {
+        enabled: yes
+      }
+    mode: "0644"
+    owner: root
+    group: wheel
+
+# Keep copies of replaced shared libraries across base upgrades (pkgbasify
+# sets this too) so running binaries survive a libc/lib* swap.
+- name: "Keep backup libraries for pkgbase upgrades"
+  ansible.builtin.lineinfile:
+    path: /usr/local/etc/pkg.conf
+    regexp: "^#?\\s*BACKUP_LIBRARIES"
+    line: "BACKUP_LIBRARIES=yes"
+    create: true
+    mode: "0644"
+    owner: root
+    group: wheel
+
 - name: "Update pkg cache"
   ansible.builtin.command: pkg update -f
   changed_when: false
+
+# Converting reinstalls the whole base system, so it is never automated:
+# fail the host with instructions instead. pkgbasify uses the same check.
+- name: "Check that the base system is managed by pkgbase"
+  ansible.builtin.command: pkg which -q /usr/bin/uname
+  register: freebsd_pkgbase_check
+  changed_when: false
+  failed_when: false
+  when: freebsd_require_pkgbase | bool
+
+- name: "Require pkgbase"
+  ansible.builtin.assert:
+    that: freebsd_pkgbase_check.rc == 0
+    fail_msg: >-
+      {{ inventory_hostname }} is not on pkgbase (base files are not owned by
+      FreeBSD-* packages). Finish any pending freebsd-update, then convert with
+      pkgbasify (https://github.com/FreeBSDFoundation/pkgbasify) and reboot.
+      Set freebsd_require_pkgbase=false to skip this check.
+    quiet: true
+  when: freebsd_require_pkgbase | bool
 
 # Reconcile any packages still on the old branch onto 'latest' (a host that ran
 # the previous dual-repo config has a quarterly/latest mix that conflicts).
