@@ -21,6 +21,11 @@ class Trigger:
     detail: dict
 
 
+def _dict(value: Any) -> dict:
+    """Returns value if it is a dict, else an empty dict."""
+    return value if isinstance(value, dict) else {}
+
+
 def parse_alertmanager(body: dict[str, Any]) -> list[Trigger]:
     """Parses an Alertmanager v4 webhook body.
 
@@ -36,15 +41,16 @@ def parse_alertmanager(body: dict[str, Any]) -> list[Trigger]:
               if isinstance(a, dict) and a.get("status") == "firing"]
     if not firing:
         return []
-    labels = firing[0].get("labels") or {}
-    common = body.get("commonLabels") or {}
-    title = common.get("alertname") or labels.get("alertname") or "unknown"
-    alerts = [{"labels": a.get("labels") or {},
-               "annotations": a.get("annotations") or {},
+    labels = _dict(firing[0].get("labels"))
+    common = _dict(body.get("commonLabels"))
+    title = str(common.get("alertname") or labels.get("alertname")
+                or "unknown")
+    alerts = [{"labels": _dict(a.get("labels")),
+               "annotations": _dict(a.get("annotations")),
                "startsAt": a.get("startsAt", "")} for a in firing]
-    key = body.get("groupKey") or f"alertmanager:{title}"
+    key = str(body.get("groupKey") or f"alertmanager:{title}")
     return [Trigger("alertmanager", key, title,
-                    labels.get("severity", ""),
+                    str(labels.get("severity", "")),
                     {"alerts": alerts, "commonLabels": common})]
 
 
@@ -60,6 +66,7 @@ def parse_gatus(body: dict[str, Any]) -> list[Trigger]:
     endpoint = body.get("endpoint")
     if body.get("status") != "TRIGGERED" or not endpoint:
         return []
+    endpoint = str(endpoint)
     return [Trigger("gatus", f"gatus:{endpoint}", endpoint, "critical",
                     {"description": body.get("description", ""),
                      "errors": body.get("errors", "")})]

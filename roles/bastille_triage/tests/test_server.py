@@ -1,7 +1,9 @@
 """Tests for the HTTP receiver and worker loop."""
 import datetime
 import json
+import socket
 import threading
+import time
 import urllib.error
 import urllib.request
 from unittest import mock
@@ -301,3 +303,79 @@ def test_discord_failure_is_swallowed():
     with mock.patch("triage.server.urllib.request.urlopen",
                     side_effect=OSError("down")):
         server.post_discord("http://x.invalid/h", "hi")
+
+
+def test_numeric_alertname_still_posts(app, clock):
+    """Checks numeric alertname still produces one run and one post."""
+    body = json.loads(json.dumps(AM_FIRING))
+    body["commonLabels"]["alertname"] = 5
+    assert post(app, "/alertmanager", body).status == 202
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1 and len(app.posts) == 1
+
+
+def test_list_groupkey_400(app):
+    """Checks a list groupKey gives 400 and the server keeps serving."""
+    body = dict(AM_FIRING, groupKey=["a"])
+    assert post(app, "/alertmanager", body).status in (202, 400)
+    body = dict(AM_FIRING, alerts="x", commonLabels=[1])
+    assert post(app, "/alertmanager", body).status in (202, 400)
+    assert post(app, "/alertmanager", AM_FIRING).status == 202
+
+
+def test_slow_client_times_out(app):
+    """Checks a stalled client is dropped and others are still served."""
+    port = app.server.server_address[1]
+    sock = socket.create_connection(("127.0.0.1", port))
+    sock.sendall(b"POST /gatus HTTP/1.1\r\nHost: x\r\n"
+                 b"Authorization: Bearer secret\r\n"
+                 b"Content-Length: 100\r\n\r\nshort")
+    sock.settimeout(12)
+    start = time.time()
+    try:
+        data = sock.recv(1024)
+    except socket.timeout:
+        data = None
+    sock.close()
+    assert data is not None and time.time() - start < 12
+    assert post(app, "/gatus", gatus("a")).status == 202
+
+
+def test_batch_capped_at_30(app, clock):
+    """Checks a batch over 30 triggers is truncated with a note."""
+    for i in range(35):
+        post(app, "/gatus", gatus(f"n{i}"))
+    clock.advance(121)
+    app.enqueue_ready()
+    batch = app.queued()[0]
+    assert len(batch) == 31
+    assert batch[-1].title == "+5 more alerts omitted"
+
+
+def test_queue_fills_during_long_run(harness, clock):
+    """Checks batches queue (drop oldest) while a run is in flight."""
+    app = harness(queue_max=5)
+    release = threading.Event()
+    entered = threading.Event()
+    orig = app.app._runner  # pylint: disable=protected-access
+
+    def slow(prompt, cfg):
+        entered.set()
+        release.wait(10)
+        return orig(prompt, cfg)
+
+    app.app._runner = slow  # pylint: disable=protected-access
+    post(app, "/gatus", gatus("first"))
+    clock.advance(121)
+    worker = threading.Thread(target=app.tick)
+    worker.start()
+    assert entered.wait(5)
+    for i in range(6):
+        post(app, "/gatus", gatus(f"q{i}"))
+        clock.advance(121)
+        app.enqueue_ready()
+    titles = [b[0].title for b in app.queued()]
+    release.set()
+    worker.join(10)
+    assert titles == [f"talos/q{i}" for i in range(1, 6)]

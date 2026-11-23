@@ -20,6 +20,7 @@ from triage.runner import RunResult, run_claude
 
 LOG = logging.getLogger("triage")
 MAX_BODY = 1024 * 1024
+MAX_BATCH = 30
 PARSERS = {"/alertmanager": parse_alertmanager, "/gatus": parse_gatus}
 
 
@@ -100,6 +101,8 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
         class Handler(http.server.BaseHTTPRequestHandler):
             """Handles webhook pushes and health probes."""
 
+            timeout = 10
+
             def log_message(  # pylint: disable=arguments-differ
                     self, fmt: str, *args: Any) -> None:
                 """Routes access logs to the logger."""
@@ -144,29 +147,37 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
                     return
                 try:
                     body = json.loads(self.rfile.read(length))
-                    triggers = parser(body)
-                except (ValueError, AttributeError, TypeError):
+                    # pylint: disable-next=protected-access
+                    app._accept(parser(body))
+                except Exception:  # pylint: disable=broad-exception-caught
+                    LOG.warning("rejected malformed payload", exc_info=True)
                     self._reply(400)
                     return
-                app._accept(triggers)  # pylint: disable=protected-access
                 self._reply(202)
 
         return Handler
 
     def enqueue_ready(self) -> None:
         """Moves a ready batch into the queue, dropping the oldest."""
+        now = self._clock()
         with self._lock:
-            batch = self._batcher.ready(self._clock())
-        if not batch:
-            return
-        self._queue.append(batch)
-        while len(self._queue) > self._cfg["queue_max"]:
-            dropped = self._queue.pop(0)
-            LOG.warning("queue full, dropped batch of %d", len(dropped))
+            batch = self._batcher.ready(now)
+            if not batch:
+                return
+            if len(batch) > MAX_BATCH:
+                extra = len(batch) - MAX_BATCH
+                batch = batch[:MAX_BATCH] + [Trigger(
+                    "triage", f"triage:omitted:{int(now)}",
+                    f"+{extra} more alerts omitted", "", {})]
+            self._queue.append(batch)
+            while len(self._queue) > self._cfg["queue_max"]:
+                dropped = self._queue.pop(0)
+                LOG.warning("queue full, dropped batch of %d", len(dropped))
 
     def queued(self) -> list[list[Trigger]]:
         """Returns a copy of the queued batches, oldest first."""
-        return list(self._queue)
+        with self._lock:
+            return list(self._queue)
 
     def _write_log(self, triggers: list[Trigger], prompt: str,
                    res: RunResult, now: float) -> None:
@@ -192,10 +203,12 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
     def tick(self) -> None:
         """Runs one worker step: enqueue, then process one batch."""
         self.enqueue_ready()
-        if not self._queue:
-            return
+        with self._lock:
+            if not self._queue:
+                return
+            popped = self._queue.pop(0)
         now = self._clock()
-        batch = [t for t in self._queue.pop(0)
+        batch = [t for t in popped
                  if not self._deduper.seen_recently(t.key, now)]
         if not batch:
             return
@@ -267,6 +280,16 @@ def make_app(cfg: dict[str, Any],
     return TriageApp(cfg, runner, post, clock)
 
 
+def _loop(step: Callable[[], None]) -> None:
+    """Calls step every second forever, logging any exception."""
+    while True:
+        try:
+            step()
+        except Exception:  # pylint: disable=broad-exception-caught
+            LOG.exception("%s failed", getattr(step, "__name__", "step"))
+        time.sleep(1)
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     """Runs the receiver and worker until interrupted.
 
@@ -285,13 +308,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         cfg = json.load(fh)
     app = make_app(cfg)
     threading.Thread(target=app.server.serve_forever, daemon=True).start()
+    threading.Thread(target=_loop, args=(app.enqueue_ready,),
+                     daemon=True).start()
     try:
-        while True:
-            try:
-                app.tick()
-            except Exception:  # pylint: disable=broad-exception-caught
-                LOG.exception("tick failed")
-            time.sleep(1)
+        _loop(app.tick)
     except KeyboardInterrupt:
         app.server.shutdown()
     return 0
