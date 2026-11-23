@@ -103,6 +103,8 @@
   ansible.builtin.command: "bastille cmd {{ graylog_jail_name }} id {{ item }}"
   register: graylog_ids
   changed_when: false
+  # Read-only; run it in --check too so the uid assert below has data
+  check_mode: false
   loop:
     - opensearch
     - mongodb

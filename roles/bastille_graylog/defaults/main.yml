@@ -9,8 +9,8 @@ graylog_jail_cidr: "24"
 graylog_jail_gateway: "192.168.1.1"
 
 graylog_release: "{{ bastille_release | default('15.0-RELEASE') }}"
-bastille_prefix: "{{ bastille_prefix | default('/usr/local/bastille') }}"
-bastille_network_bridge: "{{ bastille_network_bridge | default('bridge0') }}"
+bastille_prefix: "/usr/local/bastille"
+bastille_network_bridge: "bridge0"
 graylog_jail_root: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}/root"
 graylog_jail_dir: "{{ bastille_prefix }}/jails/{{ graylog_jail_name }}"
 
@@ -38,7 +38,9 @@ graylog_graylog_uid: 848
 graylog_graylog_gid: 848
 
 # Pre-staged data (nullfs). Stage these from the STOPPED old jail in Phase 0.
-graylog_os_data_src: "/mnt/Store/graylog-opensearch"   # ~764 GB
+# OpenSearch stays on the zroot SSD (zroot/opensearch, 550G quota): on the
+# Store HDD mirror its indexing caused txg stalls (2026-08-17 move).
+graylog_os_data_src: "/mnt/opensearch-ssd"
 graylog_os_data_dst: "/var/db/opensearch"
 graylog_mongo_data_src: "/mnt/Store/graylog-mongodb"   # ~207 MB
 graylog_mongo_data_dst: "/var/db/mongodb"
