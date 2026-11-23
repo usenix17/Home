@@ -1,0 +1,303 @@
+"""Tests for the HTTP receiver and worker loop."""
+import datetime
+import json
+import threading
+import urllib.error
+import urllib.request
+from unittest import mock
+
+import pytest
+
+from triage import server
+from triage.runner import RunResult
+
+AM_FIRING = {
+    "status": "firing",
+    "groupKey": "{}:{alertname=\"KubePodCrashLooping\"}",
+    "commonLabels": {"alertname": "KubePodCrashLooping",
+                     "severity": "critical"},
+    "commonAnnotations": {"summary": "pod crashlooping"},
+    "alerts": [{"status": "firing",
+                "labels": {"alertname": "KubePodCrashLooping"},
+                "annotations": {}}],
+}
+AM_RESOLVED = dict(AM_FIRING, status="resolved")
+START = 1_800_000_000.0
+OK_RESULT = {"title": "t", "summary": "s", "evidence": ["e"],
+             "likely_cause": "c", "suggested_next_step": "n",
+             "confidence": "high"}
+
+
+def gatus(name):
+    """Builds a Gatus TRIGGERED body for talos/<name>."""
+    return {"endpoint": f"talos/{name}", "status": "TRIGGERED",
+            "description": "down", "errors": "boom"}
+
+
+class Clock:
+    """Fake clock."""
+
+    def __init__(self):
+        self.now = START
+
+    def __call__(self):
+        return self.now
+
+    def advance(self, secs):
+        """Moves time forward."""
+        self.now += secs
+
+
+class Harness:
+    """Wires a TriageApp to stubs and a live HTTP server."""
+
+    def __init__(self, cfg, clock, kind="ok"):
+        self.runner_calls = 0
+        self.posts = []
+        self.kind = kind
+        self.app = server.make_app(cfg, runner=self._run, post=self._post,
+                                   clock=clock)
+        self.thread = threading.Thread(target=self.app.server.serve_forever,
+                                       daemon=True)
+        self.thread.start()
+
+    def _run(self, _prompt, _cfg):
+        self.runner_calls += 1
+        result = OK_RESULT if self.kind == "ok" else None
+        return RunResult(self.kind, result, "raw", 1.5)
+
+    def _post(self, _url, content):
+        self.posts.append(content)
+
+    def __getattr__(self, name):
+        return getattr(self.app, name)
+
+    def close(self):
+        """Stops the server."""
+        self.app.server.shutdown()
+        self.app.server.server_close()
+        self.thread.join()
+
+
+@pytest.fixture(name="clock")
+def fixture_clock():
+    """Returns a fake clock."""
+    return Clock()
+
+
+@pytest.fixture(name="make_cfg")
+def fixture_make_cfg(tmp_path):
+    """Returns a config factory."""
+    token = tmp_path / "token"
+    token.write_text("sk-token")
+    claude = tmp_path / "claude"
+    claude.write_text("#!/bin/sh\n")
+    claude.chmod(0o755)
+
+    def make(**over):
+        cfg = {
+            "listen_port": 0, "push_token": "secret",
+            "discord_webhook": "http://discord.invalid/x",
+            "claude_bin": str(claude), "workdir": str(tmp_path),
+            "schema_path": "s.json", "model": "m", "max_turns": 5,
+            "timeout_s": 30, "batch_window_s": 120, "dedupe_s": 21600,
+            "daily_cap": 10, "queue_max": 5, "log_dir": str(tmp_path / "log"),
+            "state_dir": str(tmp_path / "state"), "token_path": str(token),
+            "token_created": "2027-01-10", "token_lifetime_days": 365,
+            "warn_days": 30,
+        }
+        cfg.update(over)
+        return cfg
+    return make
+
+
+@pytest.fixture(name="harness")
+def fixture_harness(make_cfg, clock):
+    """Returns a factory for harnesses, closing them afterwards."""
+    made = []
+
+    def build(kind="ok", **over):
+        h = Harness(make_cfg(**over), clock, kind)
+        made.append(h)
+        return h
+    yield build
+    for h in made:
+        h.close()
+
+
+@pytest.fixture(name="app")
+def fixture_app(harness):
+    """Returns a default harness."""
+    return harness()
+
+
+def post(app, path, body, token="secret", raw=None):
+    """POSTs JSON and returns the response (HTTPError included)."""
+    port = app.server.server_address[1]
+    data = raw if raw is not None else json.dumps(body).encode()
+    req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", data=data,
+                                 method="POST")
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    try:
+        return urllib.request.urlopen(req, timeout=5)
+    except urllib.error.HTTPError as err:
+        return err
+
+
+def test_rejects_missing_token(app):
+    """Checks rejects missing token."""
+    assert post(app, "/alertmanager", AM_FIRING, token=None).status == 401
+
+
+def test_rejects_wrong_token(app):
+    """Checks rejects wrong token."""
+    assert post(app, "/alertmanager", AM_FIRING, token="nope").status == 401
+
+
+def test_accepts_with_202(app):
+    """Checks accepts with 202."""
+    assert post(app, "/alertmanager", AM_FIRING).status == 202
+
+
+def test_unknown_path_404(app):
+    """Checks unknown path 404."""
+    assert post(app, "/other", AM_FIRING).status == 404
+
+
+def test_oversized_body_413(app):
+    """Checks oversized body 413."""
+    resp = post(app, "/gatus", None, raw=b"x" * (1024 * 1024 + 1))
+    assert resp.status == 413
+
+
+def test_bad_json_400(app):
+    """Checks bad json 400."""
+    assert post(app, "/gatus", None, raw=b"{not json").status == 400
+
+
+def test_resolved_is_ignored(app, clock):
+    """Checks resolved is ignored."""
+    assert post(app, "/alertmanager", AM_RESOLVED).status == 202
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 0 and not app.posts
+
+
+def test_firing_alert_runs_once_and_posts(app, clock):
+    """Checks firing alert runs once and posts."""
+    post(app, "/alertmanager", AM_FIRING)
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1 and app.posts[0].startswith(":mag: Triage:")
+    post(app, "/alertmanager", AM_FIRING)
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1
+
+
+def test_burst_is_one_run(app, clock):
+    """Checks burst is one run."""
+    for name in ("a", "b", "c"):
+        post(app, "/gatus", gatus(name))
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1
+
+
+def test_cap_posts_single_notice(harness, clock):
+    """Checks cap posts single notice."""
+    app = harness(daily_cap=1)
+    for name in ("a", "b", "c"):
+        post(app, "/gatus", gatus(name))
+        clock.advance(121)
+        app.tick()
+    assert app.runner_calls == 1
+    assert sum("cap" in p for p in app.posts) == 1
+
+
+def test_run_log_written(app, clock, tmp_path):
+    """Checks run log written."""
+    post(app, "/gatus", gatus("a"))
+    clock.advance(121)
+    app.tick()
+    logs = list((tmp_path / "log").rglob("*.json"))
+    assert len(logs) == 1
+    data = json.loads(logs[0].read_text())
+    assert {"triggers", "prompt", "raw", "kind", "duration_s",
+            "result"} <= data.keys()
+    assert data["triggers"][0]["title"] == "talos/a"
+
+
+def test_usage_limit_posts_notice(harness, clock):
+    """Checks usage limit posts notice."""
+    app = harness(kind="usage_limit")
+    post(app, "/gatus", gatus("a"))
+    clock.advance(121)
+    app.tick()
+    assert len(app.posts) == 1 and "usage" in app.posts[0].lower()
+    post(app, "/gatus", gatus("a"))
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1
+
+
+def test_health_ok(app):
+    """Checks health ok."""
+    status, body = app.health()
+    assert status == 200 and body["days_left"] > 30
+
+
+def test_health_over_http(app):
+    """Checks health over http."""
+    port = app.server.server_address[1]
+    with urllib.request.urlopen(f"http://127.0.0.1:{port}/health") as resp:
+        assert resp.status == 200
+        assert "days_left" in json.loads(resp.read())
+
+
+def test_health_token_expiry(harness, clock):
+    """Checks health token expiry."""
+    created = datetime.date.fromtimestamp(clock()) - datetime.timedelta(
+        days=340)
+    app = harness(token_created=created.isoformat())
+    assert app.health()[0] == 503
+
+
+def test_health_missing_token(harness, tmp_path):
+    """Checks health missing token."""
+    app = harness(token_path=str(tmp_path / "absent"))
+    assert app.health()[0] == 503
+
+
+def test_health_claude_not_executable(harness, tmp_path):
+    """Checks health claude not executable."""
+    app = harness(claude_bin=str(tmp_path / "absent"))
+    assert app.health()[0] == 503
+
+
+def test_queue_drops_oldest(harness, clock):
+    """Checks queue drops oldest."""
+    app = harness(queue_max=2)
+    for name in ("a", "b", "c", "d"):
+        post(app, "/gatus", gatus(name))
+        clock.advance(121)
+        app.enqueue_ready()
+    assert [b[0].title for b in app.queued()] == ["talos/c", "talos/d"]
+
+
+def test_discord_payload_suppresses_mentions():
+    """Checks discord payload suppresses mentions."""
+    with mock.patch("triage.server.urllib.request.urlopen") as opener:
+        server.post_discord("http://x.invalid/h", "@everyone hi")
+    req = opener.call_args[0][0]
+    assert json.loads(req.data) == {"content": "@everyone hi",
+                                    "allowed_mentions": {"parse": []}}
+    assert opener.call_args[1]["timeout"] == 10
+
+
+def test_discord_failure_is_swallowed():
+    """Checks discord failure is swallowed."""
+    with mock.patch("triage.server.urllib.request.urlopen",
+                    side_effect=OSError("down")):
+        server.post_discord("http://x.invalid/h", "hi")
