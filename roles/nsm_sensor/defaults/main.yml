@@ -45,3 +45,13 @@ zeek_site_local: "/usr/local/share/zeek/site/local.zeek"
 # Install the zeekctl housekeeping cron (crash recovery + log archival). Not
 # present on the hand-built host today; on by default as a reliability fix.
 nsm_zeek_cron: true
+# Zeek logs kept local only (not shipped to Graylog). These were ~89% of all
+# Graylog volume and filled OpenSearch in days; ntopng/Suricata cover them.
+nsm_zeek_graylog_exclude:
+  - conn
+  - dns
+  - sip
+  - syslog
+  - ntp
+  - quic
+  - files

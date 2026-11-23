@@ -8,7 +8,7 @@
 [INPUT]
     Name              tail
     Path              /var/log/zeek/current/*.log
-    Exclude_Path      /var/log/zeek/current/conn.log,/var/log/zeek/current/*.*.log,/var/log/zeek/current/stderr.log,/var/log/zeek/current/stdout.log
+    Exclude_Path      {% for l in nsm_zeek_graylog_exclude %}/var/log/zeek/current/{{ l }}.log,{% endfor %}/var/log/zeek/current/*.*.log,/var/log/zeek/current/stderr.log,/var/log/zeek/current/stdout.log
     Parser            json
     Tag               zeek
     Path_Key          logpath
