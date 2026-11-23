@@ -1,0 +1,255 @@
+---
+# Build/converge the triage jail on a FreeBSD 15 host: Linux userland under
+# linuxulator, pinned Linux Claude Code, read-only CLIs and the wrappers.
+# Idempotent: creates the jail only if missing, and every step is guarded.
+
+# --- Jail lifecycle ----------------------------------------------------------
+
+- name: "Check whether the jail already exists"
+  ansible.builtin.stat:
+    path: "{{ triage_jail_dir }}/jail.conf"
+  register: triage_jail_stat
+
+# -B attaches VNET to the EXISTING bridge; -g sets the jail default route.
+- name: "Create the triage VNET jail (L2-bridged onto {{ bastille_network_bridge }})"
+  ansible.builtin.command: >-
+    bastille create -B -g {{ triage_jail_gateway }} {{ triage_jail_name }} {{ triage_release }}
+    {{ triage_jail_ip }}/{{ triage_jail_cidr }} {{ bastille_network_bridge }}
+  when: not triage_jail_stat.stat.exists
+  changed_when: true
+
+# Everything below lives inside the jail, so a dry run can't go further
+# until the jail exists.
+- name: "End the dry run here: the jail does not exist yet"
+  ansible.builtin.meta: end_host
+  when: ansible_check_mode and not triage_jail_stat.stat.exists
+
+- name: "Seed jail resolv.conf from the host (if missing)"
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: "{{ triage_jail_root }}/etc/resolv.conf"
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+    force: false
+
+- name: "Set the default route inside the jail"
+  community.general.sysrc:
+    name: defaultrouter
+    value: "{{ triage_jail_gateway }}"
+    path: "{{ triage_jail_root }}/etc/rc.conf"
+
+- name: "Check whether the jail is running"
+  ansible.builtin.command: "jls -j {{ triage_jail_name }}"
+  register: triage_jls
+  changed_when: false
+  failed_when: false
+
+- name: "Start the jail"
+  ansible.builtin.command: "bastille start {{ triage_jail_name }}"
+  when: triage_jls.rc != 0
+  changed_when: true
+
+# --- Packages ----------------------------------------------------------------
+
+- name: "Check whether the packages are installed in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ triage_jail_name }} pkg -N info -e {{ triage_packages | join(' ') }}
+  register: triage_pkg
+  changed_when: false
+  failed_when: false
+
+# ASSUME_ALWAYS_YES avoids the interactive pkg-bootstrap prompt on a fresh jail.
+- name: "Install the packages in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ triage_jail_name }}
+    env ASSUME_ALWAYS_YES=yes pkg install -y {{ triage_packages | join(' ') }}
+  when: triage_pkg.rc != 0
+  changed_when: true
+
+# The wrappers' `#!/usr/bin/env python3` needs a python3 on PATH; python311
+# only installs python3.11 (the lang/python3 meta-port just adds this link).
+- name: "Link python3 to the pinned Python"
+  ansible.builtin.file:
+    src: "{{ triage_python }}"
+    dest: "{{ triage_jail_root }}/usr/local/bin/python3"
+    state: link
+    owner: root
+    group: wheel
+
+# --- Linux ABI filesystems ---------------------------------------------------
+
+# Host-side mounts recorded in the jail's Bastille fstab, so they come back on
+# every jail start.
+- name: "Mount the Linux filesystems into the jail"
+  ansible.posix.mount:
+    src: "{{ item.src }}"
+    path: "{{ triage_jail_root }}{{ item.path }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.opts }}"
+    fstab: "{{ triage_jail_dir }}/fstab"
+    state: mounted
+  loop: "{{ triage_linux_mounts }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# --- User and directories ----------------------------------------------------
+
+- name: "Check whether the triage user exists in the jail"
+  ansible.builtin.command: "pw -R {{ triage_jail_root }} usershow {{ triage_user }}"
+  register: triage_usershow
+  changed_when: false
+  failed_when: false
+
+- name: "Create the triage group in the jail"
+  ansible.builtin.command: >-
+    pw -R {{ triage_jail_root }} groupadd {{ triage_user }} -g {{ triage_uid }}
+  when: triage_usershow.rc != 0
+  changed_when: true
+
+- name: "Create the triage user in the jail"
+  ansible.builtin.command: >-
+    pw -R {{ triage_jail_root }} useradd {{ triage_user }} -u {{ triage_uid }}
+    -g {{ triage_uid }} -d {{ triage_home }} -s /usr/sbin/nologin
+    -c "AI alert triage"
+  when: triage_usershow.rc != 0
+  changed_when: true
+
+- name: "Create the triage home and private dirs (0700 triage)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ item }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ triage_uid }}"
+    group: "{{ triage_uid }}"
+  loop:
+    - "{{ triage_home }}"
+    - "{{ triage_home }}/work"
+    - "{{ triage_home }}/state"
+    - "{{ triage_home }}/.claude"
+
+- name: "Create the run log dir (0750 triage)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_log_dir }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ triage_uid }}"
+    group: "{{ triage_uid }}"
+
+- name: "Create the config dir (0750 root:triage)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_etc_dir }}"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: "{{ triage_uid }}"
+
+# --- Receiver package and wrappers -------------------------------------------
+
+- name: "Create the install dirs"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+  loop:
+    - "{{ triage_lib_dir }}"
+    - "{{ triage_lib_dir }}/triage"
+    - "{{ triage_lib_dir }}/bin"
+    - "{{ triage_lib_dir }}/linux"
+    - "{{ triage_claude_dir }}"
+
+# Globs (not a directory copy) so local __pycache__ never ships.
+- name: "Install the triage Python package"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ triage_jail_root }}{{ triage_lib_dir }}/triage/"
+    mode: "0644"
+    owner: root
+    group: wheel
+  with_fileglob: "triage/*.py"
+
+- name: "Install the read-only query wrappers"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ triage_jail_root }}{{ triage_lib_dir }}/bin/"
+    mode: "0755"
+    owner: root
+    group: wheel
+  with_fileglob: "bin/triage-*"
+
+# --- Pinned binaries ---------------------------------------------------------
+
+- name: "Download Claude Code {{ triage_claude_version }} (Linux x64)"
+  ansible.builtin.get_url:
+    url: "{{ triage_claude_url }}"
+    dest: "{{ triage_jail_root }}{{ triage_claude_dir }}/claude-{{ triage_claude_version }}"
+    checksum: "sha256:{{ triage_claude_sha256 }}"
+    mode: "0755"
+    owner: root
+    group: wheel
+    timeout: 300
+
+- name: "Stat the Claude Code binary"
+  ansible.builtin.stat:
+    path: "{{ triage_jail_root }}{{ triage_claude_dir }}/claude-{{ triage_claude_version }}"
+    get_checksum: false
+  register: triage_claude_stat
+
+- name: "Assert the Claude Code binary has the approved size"
+  ansible.builtin.assert:
+    that:
+      - triage_claude_stat.stat.exists
+      - triage_claude_stat.stat.size == triage_claude_size
+    fail_msg: "Claude Code binary is not the approved {{ triage_claude_size }} bytes."
+    quiet: true
+  when: not ansible_check_mode
+
+- name: "Point the stable Claude Code path at the pinned version"
+  ansible.builtin.file:
+    src: "claude-{{ triage_claude_version }}"
+    dest: "{{ triage_jail_root }}{{ triage_claude_bin }}"
+    state: link
+    owner: root
+    group: wheel
+
+- name: "Download talosctl {{ triage_talosctl_version }} (FreeBSD amd64)"
+  ansible.builtin.get_url:
+    url: "{{ triage_talosctl_url }}"
+    dest: "{{ triage_jail_root }}{{ triage_talosctl_bin }}"
+    checksum: "sha256:{{ triage_talosctl_sha256 }}"
+    mode: "0755"
+    owner: root
+    group: wheel
+
+- name: "Download omnictl {{ triage_omnictl_version }} (Linux amd64)"
+  ansible.builtin.get_url:
+    url: "{{ triage_omnictl_url }}"
+    dest: "{{ triage_jail_root }}{{ triage_omnictl_bin }}"
+    checksum: "sha256:{{ triage_omnictl_sha256 }}"
+    mode: "0755"
+    owner: root
+    group: wheel
+
+# --- Verification ------------------------------------------------------------
+
+- name: "Run the Linux Claude Code binary as triage"
+  ansible.builtin.command: >-
+    jexec -l -U {{ triage_user }} {{ triage_jail_name }} {{ triage_claude_bin }} --version
+  register: triage_claude_version_out
+  changed_when: false
+  failed_when: triage_claude_version not in triage_claude_version_out.stdout
+  when: not ansible_check_mode
+
+# The Linux shell Claude Code's Bash tool spawns must resolve every tool.
+- name: "Resolve the allowed tools from the Linux shell as triage"
+  ansible.builtin.command: >-
+    jexec -l -U {{ triage_user }} {{ triage_jail_name }}
+    env PATH={{ triage_path }} /compat/linux/bin/bash -c
+    'command -v kubectl talosctl triage-promql triage-gatus triage-graylog'
+  register: triage_tools
+  changed_when: false
+  failed_when: triage_tools.rc != 0 or triage_tools.stdout_lines | length != 5
+  when: not ansible_check_mode

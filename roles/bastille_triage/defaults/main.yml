@@ -1,0 +1,62 @@
+---
+# Read-only AI alert-triage jail (Bastille, VNET) on beastyboi: the Linux
+# Claude Code build under linuxulator, plus the read-only CLIs and wrappers
+# it may call. See README.md.
+
+triage_jail_name: "triage"
+triage_jail_ip: "192.168.1.61"
+triage_jail_cidr: "24"
+triage_jail_gateway: "192.168.1.1"
+
+triage_release: "{{ bastille_release | default('15.1-RELEASE') }}"
+triage_jail_dir: "{{ bastille_prefix | default('/usr/local/bastille') }}/jails/{{ triage_jail_name }}"
+triage_jail_root: "{{ triage_jail_dir }}/root"
+
+# FreeBSD packages inside the jail. Approved 2026-11-23 at linux_base-rl9
+# 9.8_1, kubectl 1.37.1_3, python311 3.11.18 (plus their deps).
+triage_packages:
+  - linux_base-rl9
+  - kubectl
+  - python311
+triage_python: "/usr/local/bin/python3.11"
+
+# Pinned binaries; bump version and checksum together. Claude Code has no
+# approved checksum file, so its sha256 is pinned from the approved download.
+triage_claude_version: "2.1.312"
+triage_claude_url: "https://downloads.claude.ai/claude-code-releases/{{ triage_claude_version }}/linux-x64/claude"
+triage_claude_size: 293592432
+triage_claude_sha256: "4f4178ce41d83e23341ebfbaecdbcf8ea6bf7baea0690025abe49eeec3a5d01d"
+
+triage_talosctl_version: "v1.14.5"
+triage_talosctl_url: "https://github.com/siderolabs/talos/releases/download/{{ triage_talosctl_version }}/talosctl-freebsd-amd64"
+triage_talosctl_sha256: "6657416d2160d15c1cf015c545228a317595b90b7bd8a63786d4dfb9f75691ee"
+
+triage_omnictl_version: "v1.12.2"
+triage_omnictl_url: "https://github.com/siderolabs/omni/releases/download/{{ triage_omnictl_version }}/omnictl-linux-amd64"
+triage_omnictl_sha256: "7e79fcfa6e8ad20b92bcfe3026d01edefcc65ce2fef927f54310a0ec0dfff0c4"
+
+# Install layout (jail paths). The wrappers in bin/ import the package from
+# their grandparent dir, so lib/triage/{triage,bin} must stay siblings.
+triage_lib_dir: "/usr/local/lib/triage"
+triage_claude_dir: "{{ triage_lib_dir }}/claude"
+triage_claude_bin: "{{ triage_claude_dir }}/claude"
+triage_talosctl_bin: "/usr/local/bin/talosctl"
+triage_omnictl_bin: "{{ triage_lib_dir }}/linux/omnictl"
+
+# PATH for the Linux shell Claude Code's Bash tool spawns.
+triage_path: "{{ triage_lib_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+
+triage_user: "triage"
+triage_uid: 1061
+triage_home: "/var/db/triage"
+triage_log_dir: "/var/log/triage"
+triage_etc_dir: "/usr/local/etc/triage"
+
+# Linux ABI filesystems, mounted from the host via the jail's fstab so the
+# jail needs no allow.mount* parameters. No devfs at /compat/linux/dev:
+# Linux lookups fall back to the jail's own /dev (README "Why no devfs").
+triage_linux_mounts:
+  - { src: "fdescfs", path: "/compat/linux/dev/fd", fstype: "fdescfs", opts: "rw,linrdlnk" }
+  - { src: "tmpfs", path: "/compat/linux/dev/shm", fstype: "tmpfs", opts: "rw,mode=1777,size=256m" }
+  - { src: "linprocfs", path: "/compat/linux/proc", fstype: "linprocfs", opts: "rw" }
+  - { src: "linsysfs", path: "/compat/linux/sys", fstype: "linsysfs", opts: "rw" }
