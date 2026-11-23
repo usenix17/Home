@@ -362,12 +362,14 @@
   no_log: true
 
 # Only triage-kubectl uses it (raw kubectl is denied to the agent).
-- name: "Install the agent kubeconfig (0400 triage-agent)"
+# Root-owned: an owner could rewrite it (e.g. plant an exec credential
+# plugin). The agent only needs to read it.
+- name: "Install the agent kubeconfig (0440 root:triage-agent)"
   ansible.builtin.template:
     src: kubeconfig.j2
     dest: "{{ triage_jail_root }}{{ triage_agent_kubeconfig }}"
-    mode: "0400"
-    owner: "{{ triage_agent_uid }}"
+    mode: "0440"
+    owner: root
     group: "{{ triage_agent_uid }}"
   no_log: true
 

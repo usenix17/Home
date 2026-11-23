@@ -58,6 +58,10 @@ triage_claude_managed_settings:
     DISABLE_ERROR_REPORTING: "1"
   allowManagedPermissionRulesOnly: true
   allowManagedHooksOnly: true
+  # No MCP servers at all, and only managed settings may say otherwise.
+  allowedMcpServers: []
+  allowManagedMcpServersOnly: true
+  enableAllProjectMcpServers: false
   permissions:
     defaultMode: "dontAsk"
     disableBypassPermissionsMode: "disable"

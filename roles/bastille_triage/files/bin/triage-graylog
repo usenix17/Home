@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3.11 -I
 # pylint: disable=invalid-name
 """Searches recent Graylog messages via the fixed Graylog server."""
 import argparse

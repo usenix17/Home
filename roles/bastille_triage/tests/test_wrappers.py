@@ -178,3 +178,17 @@ def test_http_error_one_line_exit1(capsys):
     captured = capsys.readouterr()
     assert captured.out == ""
     assert len(captured.err.strip().splitlines()) == 1
+
+
+@pytest.mark.parametrize("name", [
+    "triage-kubectl", "triage-promql", "triage-gatus", "triage-graylog"])
+def test_wrapper_shebang_is_pinned_and_isolated(name):
+    """Wrappers ignore PYTHONPATH/user site: pinned python in -I mode."""
+    with open(os.path.join(BIN, name), encoding="utf-8") as handle:
+        assert handle.readline() == "#!/usr/local/bin/python3.11 -I\n"
+
+
+def test_every_wrapper_is_covered():
+    """The shebang test lists every wrapper in files/bin."""
+    assert sorted(n for n in os.listdir(BIN) if n.startswith("triage-")) == [
+        "triage-gatus", "triage-graylog", "triage-kubectl", "triage-promql"]

@@ -98,7 +98,8 @@ def _build_argv(prompt: str, cfg: dict) -> list:
     argv = list(cfg.get("agent_cmd") or [cfg["claude_bin"]])
     argv += ["-p", prompt, "--permission-mode", "dontAsk",
              "--max-turns", str(cfg.get("max_turns", 25)),
-             "--output-format", "json", "--json-schema", schema]
+             "--output-format", "json", "--json-schema", schema,
+             "--strict-mcp-config"]
     if cfg.get("model"):
         argv += ["--model", cfg["model"]]
     return argv

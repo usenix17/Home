@@ -200,3 +200,10 @@ def test_timeout_other_uid_does_not_raise(fake_claude, monkeypatch):
 
     monkeypatch.setattr("os.killpg", deny)
     assert run_claude("p", cfg).kind == "timeout"
+
+
+def test_run_uses_strict_mcp_config(fake_claude):
+    """No user or project MCP config is ever loaded."""
+    cfg = fake_claude(stdout=OK_JSON)
+    run_claude("p", cfg)
+    assert "--strict-mcp-config" in read_argv(cfg)

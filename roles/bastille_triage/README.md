@@ -87,8 +87,12 @@ auto-update or `claude update`, no telemetry, error reports or
 nonessential traffic) and the `permissions` (allow/deny lists,
 `defaultMode: dontAsk`, bypass mode disabled). With
 `allowManagedPermissionRulesOnly` and `allowManagedHooksOnly`, rules or
-hooks in the agent's `~/.claude/settings.json` are ignored, and the role
+hooks in the agent's `~/.claude/settings.json` are ignored, no MCP server
+is allowed (`allowedMcpServers: []`, managed-only, plus `--strict-mcp-config`
+on every run), and the role
 keeps that file absent. Anything not allowed is denied without a prompt.
+The wrappers run as `#!/usr/local/bin/python3.11 -I`, so PYTHONPATH and
+user site-packages from the Bash tool's env can't load code into them.
 The only Bash allows are the wrappers (`triage-kubectl`, `triage-promql`,
 `triage-gatus`, `triage-graylog`); raw `kubectl`/`talosctl` are denied.
 Claude Code also auto-approves its own read-only utilities (`head`, `id`,
@@ -107,8 +111,8 @@ DISABLE_UPDATES)` (`enabled` if the file is missing).
 - `triage-agent` (uid 1062) runs Claude Code and every tool it calls. Home
   `/var/db/triage-agent`, work dir `work/` (root:triage-agent 0750) with the
   runbook (`files/runbook.md`) as a root-owned `CLAUDE.md`, and
-  `/usr/local/etc/triage-agent/kubeconfig` (0400 triage-agent), used only by
-  `triage-kubectl`. It cannot read triage's files.
+  `/usr/local/etc/triage-agent/kubeconfig` (0440 root:triage-agent, so the
+  agent can read but never rewrite it), used only by `triage-kubectl`. It cannot read triage's files.
 - The receiver starts the agent with `doas -n -u triage-agent
   /usr/local/lib/triage/libexec/triage-agent-run`, the only rule in
   `/usr/local/etc/doas.conf`. The launcher reads the OAuth token from

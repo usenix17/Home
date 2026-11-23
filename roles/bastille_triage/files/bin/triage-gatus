@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3.11 -I
 # pylint: disable=invalid-name
 """Lists Gatus endpoint health from the fixed Gatus instance."""
 import argparse

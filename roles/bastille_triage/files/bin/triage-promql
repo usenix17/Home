@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3.11 -I
 # pylint: disable=invalid-name
 """Runs a read-only PromQL query against the fixed Prometheus."""
 import argparse
