@@ -154,6 +154,11 @@ re-rules the running jail). `/etc/pf.conf` blocks and logs everything
 - out, root: tcp 80/443 (pkg).
 Watch drops with `jexec triage tcpdump -n -e -ttt -i pflog0`.
 
+**Open (2026-11-23):** pf refuses `DIOCADDRULE`/`DIOCSTART` with EPERM at
+the jail's `securelevel = 2` (the Nebula jails run pf at securelevel 1).
+Until that is decided, the "Start pf" task fails, which stops the play
+before the receiver is started: no egress allowlist, no receiver.
+
 ## Run
 
     ansible-playbook -i inventory/inventory.yml playbooks/triage.yml \

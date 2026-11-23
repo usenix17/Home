@@ -499,10 +499,13 @@
   failed_when: false
   when: not ansible_check_mode
 
+# pf refuses rule loads at jail securelevel >= 2 (EPERM), so this fails
+# closed: no egress allowlist, no receiver start below.
 - name: "Start pf and pflog in the jail"
   ansible.builtin.shell: >-
-    jexec {{ triage_jail_name }} service pflog start;
-    jexec {{ triage_jail_name }} service pf start
+    jexec {{ triage_jail_name }} service pflog start &&
+    jexec {{ triage_jail_name }} pfctl -f /etc/pf.conf &&
+    jexec {{ triage_jail_name }} pfctl -e
   when: "not ansible_check_mode and ('Status: Enabled' not in triage_pfinfo.stdout)"
   changed_when: true
 
