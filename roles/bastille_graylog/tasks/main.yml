@@ -238,6 +238,8 @@
     # the rc.d and never loads graylog-storage-opensearch2 -> empty SearchVersion
     # Guice map. Force the absolute path.
     - { re: '^#?\s*plugin_dir\s*=', line: "plugin_dir = /usr/local/share/graylog/plugin" }
+    - { re: '^#?\s*prometheus_exporter_enabled\s*=', line: "prometheus_exporter_enabled = true" }
+    - { re: '^#?\s*prometheus_exporter_bind_address\s*=', line: "prometheus_exporter_bind_address = {{ graylog_prometheus_bind_address }}" }
   loop_control:
     label: "{{ item.re }}"
   no_log: true
