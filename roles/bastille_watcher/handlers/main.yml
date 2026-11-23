@@ -1,0 +1,4 @@
+---
+- name: "Restart Gatus in jail"
+  ansible.builtin.command: "bastille service {{ watcher_jail_name }} gatus restart"
+  changed_when: true

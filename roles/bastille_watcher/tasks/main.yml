@@ -1,0 +1,131 @@
+---
+# Build/converge the Gatus watcher jail on a FreeBSD 15 host.
+# Idempotent: creates the jail only if missing, and every step is guarded.
+
+- name: "Refuse to deploy without the run-time secrets"
+  ansible.builtin.assert:
+    that:
+      - watcher_discord_webhook is match('^https://discord(app)?\.com/api/webhooks/')
+      - watcher_push_token | length >= 32
+    fail_msg: >-
+      Pass vault_watcher_discord_webhook and vault_watcher_push_token (OpenBao
+      cluster/monitoring-secrets discordWebhookUrl / watcherPushToken).
+    quiet: true
+  no_log: true
+
+# --- Jail lifecycle ----------------------------------------------------------
+
+- name: "Check whether the jail already exists"
+  ansible.builtin.stat:
+    path: "{{ watcher_jail_dir }}/jail.conf"
+  register: watcher_jail_stat
+
+# -B attaches VNET to the EXISTING bridge; -g sets the jail default route.
+- name: "Create the watcher VNET jail (L2-bridged onto {{ bastille_network_bridge }})"
+  ansible.builtin.command: >-
+    bastille create -B -g {{ watcher_jail_gateway }} {{ watcher_jail_name }} {{ watcher_release }}
+    {{ watcher_jail_ip }}/{{ watcher_jail_cidr }} {{ bastille_network_bridge }}
+  when: not watcher_jail_stat.stat.exists
+  changed_when: true
+
+- name: "Seed jail resolv.conf from the host (if missing)"
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: "{{ watcher_jail_root }}/etc/resolv.conf"
+    remote_src: true
+    mode: "0644"
+    owner: root
+    group: wheel
+    force: false
+
+- name: "Set the default route inside the jail"
+  community.general.sysrc:
+    name: defaultrouter
+    value: "{{ watcher_jail_gateway }}"
+    path: "{{ watcher_jail_root }}/etc/rc.conf"
+
+- name: "Check whether the jail is running"
+  ansible.builtin.command: "jls -j {{ watcher_jail_name }}"
+  register: watcher_jls
+  changed_when: false
+  failed_when: false
+
+- name: "Start the jail"
+  ansible.builtin.command: "bastille start {{ watcher_jail_name }}"
+  when: watcher_jls.rc != 0
+  changed_when: true
+
+# --- Gatus -------------------------------------------------------------------
+
+- name: "Check whether Gatus is installed in the jail"
+  ansible.builtin.command: "bastille cmd {{ watcher_jail_name }} pkg -N info -e gatus"
+  register: watcher_pkg
+  changed_when: false
+  failed_when: false
+
+# ASSUME_ALWAYS_YES avoids the interactive pkg-bootstrap prompt on a fresh jail.
+- name: "Install Gatus in the jail"
+  ansible.builtin.command: >-
+    bastille cmd {{ watcher_jail_name }}
+    env ASSUME_ALWAYS_YES=yes pkg install -y {{ watcher_packages | join(' ') }}
+  when: watcher_pkg.rc != 0
+  changed_when: true
+
+- name: "Ensure the Gatus SQLite directory exists (owned by www)"
+  ansible.builtin.file:
+    path: "{{ watcher_jail_root }}{{ watcher_gatus_db }}"
+    state: directory
+    mode: "0750"
+    owner: "80"
+    group: "80"
+
+- name: "Install the Gatus config"
+  ansible.builtin.template:
+    src: gatus.yaml.j2
+    dest: "{{ watcher_jail_root }}{{ watcher_gatus_config }}"
+    mode: "0640"
+    owner: root
+    group: "80"
+  no_log: true
+  notify: "Restart Gatus in jail"
+
+- name: "Install the Gatus log rotation config"
+  ansible.builtin.copy:
+    content: "/var/log/gatus.log  644  7  1000  *  JC  /var/run/gatusd.pid\n"
+    dest: "{{ watcher_jail_root }}/usr/local/etc/newsyslog.conf.d/gatus.conf"
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Enable Gatus at jail boot"
+  community.general.sysrc:
+    name: gatus_enable
+    value: "YES"
+    path: "{{ watcher_jail_root }}/etc/rc.conf"
+
+- name: "Apply any pending Gatus config changes now"
+  ansible.builtin.meta: flush_handlers
+
+- name: "Check whether Gatus is running in the jail"
+  ansible.builtin.command: "bastille cmd {{ watcher_jail_name }} service gatus status"
+  register: watcher_svc
+  changed_when: false
+  failed_when: false
+
+- name: "Start Gatus in the jail"
+  ansible.builtin.command: "bastille cmd {{ watcher_jail_name }} service gatus start"
+  when: watcher_svc.rc != 0
+  changed_when: true
+
+# --- Verification ------------------------------------------------------------
+
+- name: "Wait for the Gatus API to answer"
+  ansible.builtin.uri:
+    url: "http://{{ watcher_jail_ip }}:{{ watcher_gatus_port }}/api/v1/endpoints/statuses"
+    return_content: false
+  register: watcher_api
+  until: watcher_api.status == 200
+  retries: 12
+  delay: 5
+  delegate_to: localhost
+  become: false

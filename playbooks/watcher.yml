@@ -1,0 +1,14 @@
+---
+# Deploy the out-of-cluster Gatus watcher jail on beastyboi (FreeBSD 15, Bastille).
+#
+# Secrets come from OpenBao at run time (never committed), e.g.:
+#   ansible-playbook playbooks/watcher.yml -e @/path/to/watcher-secrets.yml
+# where the vars file holds vault_watcher_discord_webhook and
+# vault_watcher_push_token (cluster/monitoring-secrets discordWebhookUrl and
+# watcherPushToken). Add --check --diff for a dry run.
+
+- name: "Gatus watcher jail on beastyboi"
+  hosts: "beastyboi.starnix.net"
+  become: true
+  roles:
+    - role: "bastille_watcher"

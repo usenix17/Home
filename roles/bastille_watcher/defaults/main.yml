@@ -1,0 +1,61 @@
+---
+# Out-of-cluster watcher jail (Bastille, VNET): Gatus probing the Talos cluster
+# and the infra around it, plus a dead man's switch fed by the in-cluster
+# Alertmanager Watchdog. Probes by IP where possible so a DNS outage doesn't
+# blind it. See README.md.
+
+watcher_jail_name: "watcher"
+watcher_jail_ip: "192.168.1.60"
+watcher_jail_cidr: "24"
+watcher_jail_gateway: "192.168.1.1"
+
+watcher_release: "{{ bastille_release | default('15.1-RELEASE') }}"
+watcher_jail_root: "{{ bastille_prefix | default('/usr/local/bastille') }}/jails/{{ watcher_jail_name }}/root"
+watcher_jail_dir: "{{ bastille_prefix | default('/usr/local/bastille') }}/jails/{{ watcher_jail_name }}"
+
+watcher_packages:
+  - gatus
+
+# Gatus (www/gatus) runs as `www` via daemon(8); config at the port's default.
+watcher_gatus_config: "/usr/local/etc/gatus.yaml"
+watcher_gatus_db: "/var/db/gatus"
+watcher_gatus_port: 8080
+
+# Secrets, supplied at run time (OpenBao cluster/monitoring-secrets):
+#   discordWebhookUrl -> vault_watcher_discord_webhook
+#   watcherPushToken  -> vault_watcher_push_token (also used by Alertmanager)
+watcher_discord_webhook: "{{ vault_watcher_discord_webhook | default('CHANGE_ME') }}"
+watcher_push_token: "{{ vault_watcher_push_token | default('CHANGE_ME') }}"
+
+# Alertmanager pushes its always-firing Watchdog every ~2 min; silence for
+# this long means in-cluster alerting is dead.
+watcher_heartbeat_interval: "10m"
+
+watcher_talos_nodes:
+  - { name: "talos-zv2-ov6", ip: "192.168.7.201" }
+  - { name: "talos-hb1-9mk", ip: "192.168.7.202", control_plane: true }
+  - { name: "talos-p93-8cq", ip: "192.168.7.203", control_plane: true }
+  - { name: "talos-dg8-q1t", ip: "192.168.7.204", control_plane: true }
+  - { name: "talos-1yg-rc3", ip: "192.168.7.205" }
+
+watcher_ingress_ip: "192.168.7.207"
+
+# DNS resolvers to query, and the answer expected for a known ingress name.
+watcher_dns_servers:
+  - { name: "knot", ip: "192.168.7.211" }
+  - { name: "unbound", ip: "192.168.1.53" }
+watcher_dns_probe_name: "grafana.starnix.net"
+
+# Plain HTTP(S) health endpoints: [name, group, url].
+watcher_http_checks:
+  - { name: "Prometheus", group: "monitoring", url: "https://prometheus.starnix.net/-/healthy" }
+  - { name: "Alertmanager", group: "monitoring", url: "https://alertmanager.starnix.net/-/healthy" }
+  - { name: "Grafana", group: "monitoring", url: "https://grafana.starnix.net/api/health" }
+  - { name: "Authentik", group: "cluster", url: "https://auth.starnix.net/-/health/live/" }
+  - { name: "Graylog", group: "infra", url: "http://192.168.1.151:9000/api/system/lbstatus" }
+  - { name: "OpenBao", group: "infra", url: "https://vault.starnix.net/v1/sys/health" }
+  - { name: "bork vLLM", group: "infra", url: "http://192.168.1.86:8000/health" }
+
+# Plain TCP checks: [name, group, host:port].
+watcher_tcp_checks:
+  - { name: "mimir NFS", group: "infra", target: "192.168.1.75:2049" }
