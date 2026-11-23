@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+# Bastille jail devfs rulesets. Needs vfs.devfs.rule_depth >= 2 so the nested
+# includes inside $devfsrules_jail run (see roles/bastille defaults).
+[bastille_bpf=13]
+add include $devfsrules_jail
+add path 'bpf*' unhide
+{% if bastille_devfs_net_ruleset %}
+
+# Jails that open tun devices or run pf inside a VNET jail.
+[bastille_net=14]
+add include $devfsrules_jail
+add path 'bpf*' unhide
+add path 'tun*' unhide
+add path pf unhide
+{% endif %}

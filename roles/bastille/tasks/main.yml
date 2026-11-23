@@ -61,3 +61,26 @@
     replace: '\1 -txcsum -txcsum6 -tso -lro"'
   when: bastille_vnet_template.stat.exists
   tags: ["bastille_vnet_csum"]
+
+# Without depth >= 2 the jail rulesets hide nothing (see defaults).
+- name: "Let devfs rulesets follow nested includes"
+  ansible.posix.sysctl:
+    name: vfs.devfs.rule_depth
+    value: "{{ bastille_devfs_rule_depth }}"
+    sysctl_file: /etc/sysctl.conf
+    state: present
+    reload: true
+  tags: ["bastille_devfs"]
+
+# Changing rules does not touch running jails' /dev: re-apply with
+# `devfs -m <jail>/root/dev ruleset N && devfs -m ... rule applyset`
+# (or restart the jail). See README.
+- name: "Install the jail devfs rulesets"
+  ansible.builtin.template:
+    src: devfs.rules.j2
+    dest: /etc/devfs.rules
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: "Reload devfs rulesets"
+  tags: ["bastille_devfs"]

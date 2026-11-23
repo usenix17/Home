@@ -1,2 +1,4 @@
 ---
-# No host-level handlers yet; jail service restarts live in the per-jail roles.
+- name: "Reload devfs rulesets"
+  ansible.builtin.command: "service devfs restart"
+  changed_when: true
