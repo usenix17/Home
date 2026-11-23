@@ -215,6 +215,23 @@
     owner: root
     group: wheel
 
+- name: "Create the Claude Code managed settings dir"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_claude_managed_dir }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: wheel
+
+# Root-owned, so the triage user can't loosen its own lockdown.
+- name: "Install the Claude Code managed settings"
+  ansible.builtin.template:
+    src: managed-settings.json.j2
+    dest: "{{ triage_jail_root }}{{ triage_claude_managed_dir }}/managed-settings.json"
+    mode: "0644"
+    owner: root
+    group: wheel
+
 - name: "Download talosctl {{ triage_talosctl_version }} (FreeBSD amd64)"
   ansible.builtin.get_url:
     url: "{{ triage_talosctl_url }}"

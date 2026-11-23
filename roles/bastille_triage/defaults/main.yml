@@ -43,6 +43,18 @@ triage_claude_bin: "{{ triage_claude_dir }}/claude"
 triage_talosctl_bin: "/usr/local/bin/talosctl"
 triage_omnictl_bin: "{{ triage_lib_dir }}/linux/omnictl"
 
+# Claude Code managed settings: root-owned, outrank user/project settings.
+# Linux path /etc/claude-code; the jail path below is what the Linux binary
+# sees there under linuxulator. Task 8 adds `permissions` to this dict.
+triage_claude_managed_dir: "/compat/linux/etc/claude-code"
+triage_claude_managed_settings:
+  env:
+    DISABLE_AUTOUPDATER: "1"
+    DISABLE_UPDATES: "1"
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+    DISABLE_TELEMETRY: "1"
+    DISABLE_ERROR_REPORTING: "1"
+
 # PATH for the Linux shell Claude Code's Bash tool spawns.
 triage_path: "{{ triage_lib_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
 

@@ -72,6 +72,23 @@ the allowed tools resolve to `/usr/local/bin/kubectl`,
 omnictl is not on PATH; call it by full path. The user's login shell is
 nologin, so whoever starts Claude Code must set `SHELL=/bin/bash`.
 
+## Claude Code managed settings
+
+Claude Code's lockdown lives in its **managed settings** file, which
+outranks user and project settings and can't be overridden by them. The
+Linux build reads `/etc/claude-code/managed-settings.json`; under
+linuxulator that resolves to the jail path
+`/compat/linux/etc/claude-code/managed-settings.json` (root:wheel 0644,
+dir 0755). It is root-owned on purpose: `triage` owns `~/.claude`, so
+anything there could be rewritten by the agent itself.
+
+The file is rendered from `triage_claude_managed_settings`. Today it only
+sets `env` (no auto-update or `claude update`, no telemetry, error reports
+or nonessential traffic); the receiver's `permissions` get added to the
+same dict. To check it is in effect, run `claude doctor` as triage with an
+empty environment: it reports `Auto-updates: disabled (set by env:
+DISABLE_UPDATES)`, and `enabled` if the file is missing.
+
 ## Run
 
     ansible-playbook -i inventory/inventory.yml playbooks/triage.yml \
