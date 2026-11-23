@@ -26,7 +26,6 @@ command_args="-P ${pidfile} -r -R 10 -H -o {{ triage_receiver_log }} \
     HOME={{ triage_home }} \
     LANG={{ triage_lang }} \
     SHELL=/bin/bash \
-    KUBECONFIG={{ triage_kubeconfig }} \
     PYTHONPATH={{ triage_lib_dir }} \
     {{ triage_python }} -P -m triage.server --config {{ triage_config_path }}"
 

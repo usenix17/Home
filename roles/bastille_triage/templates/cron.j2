@@ -1,5 +1,5 @@
 # Managed by Ansible (roles/bastille_triage).
-# Prune per-run logs (YYYY-MM-DD/<id>.json) after {{ triage_run_log_days }} days.
+# Prune per-run logs (YYYY-MM-DD/<id>.json) after {{ triage_run_log_days }} days, then empty day dirs.
 SHELL=/bin/sh
 PATH=/bin:/usr/bin
-15	4	*	*	*	{{ triage_user }}	find {{ triage_log_dir }} -mindepth 1 -mtime +{{ triage_run_log_days }} ! -name receiver.log\* -delete
+15	4	*	*	*	{{ triage_user }}	find {{ triage_log_dir }} -mindepth 2 -type f -mtime +{{ triage_run_log_days }} -delete; find {{ triage_log_dir }} -mindepth 1 -type d -empty -delete

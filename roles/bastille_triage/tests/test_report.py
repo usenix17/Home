@@ -93,3 +93,12 @@ def test_redact_keeps_legit_evidence():
             "/var/lib/longhorn/replicas/"
             "pvc-ad813c60-f5dd-472f-90dd-827f48cb6df0-abcd"):
         assert redact(keep) == keep
+
+
+def test_redact_anthropic_keys():
+    """Anthropic OAuth tokens and API keys are removed."""
+    oat = "sk-ant-oat01-" + "Ab3_x-" * 12
+    api = "sk-ant-api03-" + "Zz9-" * 10
+    out = redact(f"token {oat} and {api}.")
+    assert "sk-ant" not in out and "Ab3_x" not in out and "Zz9" not in out
+    assert out == "token [redacted] and [redacted]."

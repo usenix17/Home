@@ -23,13 +23,13 @@ def test_parse_alertmanager_group_and_resolved():
     assert ts[0].severity == "warning"
     assert {a["labels"]["node"] for a in ts[0].detail["alerts"]} == {
         "talos-hb1-9mk", "talos-zv2-ov6"}
-    assert parse_alertmanager({**body, "status": "resolved"}) == []
+    assert not parse_alertmanager({**body, "status": "resolved"})
 
 
 def test_parse_alertmanager_malformed():
     """Malformed bodies yield no triggers."""
-    assert parse_alertmanager({}) == []
-    assert parse_alertmanager({"status": "firing", "alerts": []}) == []
+    assert not parse_alertmanager({})
+    assert not parse_alertmanager({"status": "firing", "alerts": []})
 
 
 def test_parse_gatus_triggered_only():
@@ -41,4 +41,4 @@ def test_parse_gatus_triggered_only():
     assert t.key == "gatus:talos/talos-hb1-9mk Talos API"
     assert t.severity == "critical"
     assert t.source == "gatus"
-    assert parse_gatus({**b, "status": "RESOLVED"}) == []
+    assert not parse_gatus({**b, "status": "RESOLVED"})

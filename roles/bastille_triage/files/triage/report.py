@@ -41,6 +41,7 @@ _PATTERNS = [
                r"hooks\.slack\.com/(?:services|workflows))/\S+"),
     re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]+", re.IGNORECASE),
     re.compile(r"github_pat_[A-Za-z0-9_]+"),
+    re.compile(r"sk-ant-[A-Za-z0-9_-]+"),
     re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
 ]
 _BASE64 = re.compile(r"[A-Za-z0-9+/]{40,}={0,2}")

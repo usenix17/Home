@@ -163,3 +163,40 @@ def test_timeout_kills_group(fake_claude):
             return
         time.sleep(0.1)
     pytest.fail("background child survived the timeout")
+
+
+def test_agent_cmd_gets_token_on_stdin(fake_claude, monkeypatch):
+    """With agent_cmd the token goes on stdin, never into the env."""
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "parent-tok")
+    cfg = fake_claude(stdout=OK_JSON)
+    launcher = cfg["dir"] / "launcher"
+    launcher.write_text(
+        "#!/bin/sh\n"
+        f"IFS= read -r t; printf '%s' \"$t\" > {cfg['dir']}/stdin\n"
+        f"exec {cfg['claude_bin']} \"$@\"\n")
+    launcher.chmod(0o755)
+    cfg["agent_cmd"] = [str(launcher), "--flag"]
+    res = run_claude("p", cfg)
+    assert res.kind == "ok"
+    assert (cfg["dir"] / "stdin").read_text() == "tok-123"
+    env = (cfg["dir"] / "env").read_text()
+    assert "CLAUDE_CODE_OAUTH_TOKEN" not in env
+    argv = read_argv(cfg)
+    assert argv[:3] == ["--flag", "-p", "p"]
+
+
+def test_child_env_without_token_drops_inherited():
+    """child_env(None) strips any inherited OAuth token."""
+    env = child_env({"CLAUDE_CODE_OAUTH_TOKEN": "x", "PATH": "/bin"}, None)
+    assert "CLAUDE_CODE_OAUTH_TOKEN" not in env and env["PATH"] == "/bin"
+
+
+def test_timeout_other_uid_does_not_raise(fake_claude, monkeypatch):
+    """A child we may not signal (EPERM) still yields a timeout result."""
+    cfg = fake_claude(sleep=2, timeout_s=1)
+
+    def deny(*_):
+        raise PermissionError
+
+    monkeypatch.setattr("os.killpg", deny)
+    assert run_claude("p", cfg).kind == "timeout"

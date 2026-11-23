@@ -126,7 +126,6 @@
   loop:
     - "{{ triage_home }}"
     - "{{ triage_home }}/state"
-    - "{{ triage_home }}/.claude"
 
 - name: "Create the run log dir (0750 triage)"
   ansible.builtin.file:
@@ -144,6 +143,71 @@
     owner: root
     group: "{{ triage_uid }}"
 
+# --- Agent user (R14) ----------------------------------------------------------
+# Claude and its tools run as this uid, so they can't read the receiver's
+# 0400 secrets. The pf rules in the jail key on it too.
+
+- name: "Check whether the agent user exists in the jail"
+  ansible.builtin.command: "pw -R {{ triage_jail_root }} usershow {{ triage_agent_user }}"
+  register: triage_agent_usershow
+  changed_when: false
+  failed_when: false
+
+- name: "Create the agent group in the jail"
+  ansible.builtin.command: >-
+    pw -R {{ triage_jail_root }} groupadd {{ triage_agent_user }} -g {{ triage_agent_uid }}
+  when: triage_agent_usershow.rc != 0
+  changed_when: true
+
+- name: "Create the agent user in the jail"
+  ansible.builtin.command: >-
+    pw -R {{ triage_jail_root }} useradd {{ triage_agent_user }} -u {{ triage_agent_uid }}
+    -g {{ triage_agent_uid }} -d {{ triage_agent_home }} -s /usr/sbin/nologin
+    -c "AI alert triage agent"
+  when: triage_agent_usershow.rc != 0
+  changed_when: true
+
+- name: "Create the agent home and Claude dir (0700 triage-agent)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ item }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ triage_agent_uid }}"
+    group: "{{ triage_agent_uid }}"
+  loop:
+    - "{{ triage_agent_home }}"
+    - "{{ triage_agent_home }}/.claude"
+
+# Root-owned so the agent can't replace its own runbook (CLAUDE.md).
+- name: "Create the agent work dir (0750 root:triage-agent)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_agent_workdir }}"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: "{{ triage_agent_uid }}"
+
+- name: "Create the agent config dir (0750 root:triage-agent)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_agent_etc_dir }}"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: "{{ triage_agent_uid }}"
+
+# The agent used to run as triage: drop its old work dir, settings and
+# kubeconfig so nothing of the agent's lives under the receiver's uid.
+- name: "Remove the agent leftovers from the receiver's uid"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ item }}"
+    state: absent
+  loop:
+    - "{{ triage_home }}/work"
+    - "{{ triage_home }}/.claude"
+    - "{{ triage_home }}/.claude.json"
+    - "{{ triage_home }}/.kube"
+    - "{{ triage_etc_dir }}/kubeconfig"
+
 # --- Receiver package and wrappers -------------------------------------------
 
 - name: "Create the install dirs"
@@ -158,6 +222,7 @@
     - "{{ triage_lib_dir }}/triage"
     - "{{ triage_lib_dir }}/bin"
     - "{{ triage_lib_dir }}/linux"
+    - "{{ triage_lib_dir }}/libexec"
     - "{{ triage_claude_dir }}"
 
 # Globs (not a directory copy) so local __pycache__ never ships.
@@ -265,19 +330,10 @@
     quiet: true
   no_log: true
 
-# Root-owned so the agent can't replace its own runbook (CLAUDE.md).
-- name: "Create the work dir (0750 root:triage)"
-  ansible.builtin.file:
-    path: "{{ triage_jail_root }}{{ triage_workdir }}"
-    state: directory
-    mode: "0750"
-    owner: root
-    group: "{{ triage_uid }}"
-
-- name: "Install the runbook as the work dir's CLAUDE.md"
+- name: "Install the runbook as the agent work dir's CLAUDE.md"
   ansible.builtin.copy:
     src: runbook.md
-    dest: "{{ triage_jail_root }}{{ triage_workdir }}/CLAUDE.md"
+    dest: "{{ triage_jail_root }}{{ triage_agent_workdir }}/CLAUDE.md"
     mode: "0644"
     owner: root
     group: wheel
@@ -291,9 +347,9 @@
     group: wheel
 
 # Permission rules are managed-only; a user settings file has no say.
-- name: "Keep the triage user settings file absent"
+- name: "Keep the agent user settings file absent"
   ansible.builtin.file:
-    path: "{{ triage_jail_root }}{{ triage_home }}/.claude/settings.json"
+    path: "{{ triage_jail_root }}{{ triage_agent_home }}/.claude/settings.json"
     state: absent
 
 - name: "Install the Claude OAuth token (0400 triage)"
@@ -305,14 +361,36 @@
     group: "{{ triage_uid }}"
   no_log: true
 
-- name: "Install the kubeconfig (0400 triage)"
+# Only triage-kubectl uses it (raw kubectl is denied to the agent).
+- name: "Install the agent kubeconfig (0400 triage-agent)"
   ansible.builtin.template:
     src: kubeconfig.j2
-    dest: "{{ triage_jail_root }}{{ triage_kubeconfig }}"
+    dest: "{{ triage_jail_root }}{{ triage_agent_kubeconfig }}"
     mode: "0400"
-    owner: "{{ triage_uid }}"
-    group: "{{ triage_uid }}"
+    owner: "{{ triage_agent_uid }}"
+    group: "{{ triage_agent_uid }}"
   no_log: true
+
+- name: "Install the agent launcher"
+  ansible.builtin.template:
+    src: triage-agent-run.j2
+    dest: "{{ triage_jail_root }}{{ triage_agent_launcher }}"
+    mode: "0755"
+    owner: root
+    group: wheel
+
+- name: "Let the receiver start only the launcher, as the agent"
+  ansible.builtin.template:
+    src: doas.conf.j2
+    dest: "{{ triage_jail_root }}/usr/local/etc/doas.conf"
+    mode: "0440"
+    owner: root
+    group: wheel
+
+- name: "Check the doas rule parses"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} {{ triage_doas }} -C /usr/local/etc/doas.conf"
+  changed_when: false
+  when: not ansible_check_mode
 
 - name: "Install the receiver config (0400 triage)"
   ansible.builtin.template:
@@ -354,6 +432,86 @@
     mode: "0644"
     owner: root
     group: wheel
+
+# --- Jail egress allowlist (R14) ---------------------------------------------
+
+- name: "Check the host defines the tun/pf devfs ruleset"
+  ansible.builtin.command: "grep -q '=[[:space:]]*{{ triage_devfs_ruleset }}]' /etc/devfs.rules"
+  changed_when: false
+
+- name: "Give the jail the pf devfs ruleset"
+  ansible.builtin.lineinfile:
+    path: "{{ triage_jail_dir }}/jail.conf"
+    regexp: '^(\s*)devfs_ruleset\s*=.*;'
+    line: '\1devfs_ruleset = {{ triage_devfs_ruleset }};'
+    backrefs: true
+  register: triage_devfs
+
+# Live re-rule, so the running jail gets /dev/pf without a restart.
+- name: "Apply the devfs ruleset to the running jail"
+  ansible.builtin.shell: >-
+    devfs -m {{ triage_jail_root }}/dev ruleset {{ triage_devfs_ruleset }} &&
+    devfs -m {{ triage_jail_root }}/dev rule applyset
+  when: triage_devfs is changed and not ansible_check_mode
+  changed_when: true
+
+- name: "Read the jail's resolvers"
+  ansible.builtin.slurp:
+    src: "{{ triage_jail_root }}/etc/resolv.conf"
+  register: triage_resolv
+
+- name: "Pick the DNS servers pf lets out"
+  ansible.builtin.set_fact:
+    triage_dns_servers: >-
+      {{ triage_resolv.content | b64decode | regex_findall('(?m)^nameserver\s+(\S+)') }}
+
+- name: "Require at least one resolver"
+  ansible.builtin.assert:
+    that: triage_dns_servers | length > 0
+    fail_msg: "No nameserver in the jail's /etc/resolv.conf."
+    quiet: true
+
+- name: "Install the jail pf rules"
+  ansible.builtin.template:
+    src: pf.conf.j2
+    dest: "{{ triage_jail_root }}/etc/pf.conf"
+    mode: "0600"
+    owner: root
+    group: wheel
+  register: triage_pfconf
+
+- name: "Check the pf rules parse"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} pfctl -nf /etc/pf.conf"
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: "Enable pf and pflog in the jail"
+  community.general.sysrc:
+    name: "{{ item }}"
+    value: "YES"
+    path: "{{ triage_jail_root }}/etc/rc.conf"
+  loop: ["pf_enable", "pflog_enable"]
+
+- name: "Check whether pf is running in the jail"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} pfctl -s info"
+  register: triage_pfinfo
+  changed_when: false
+  failed_when: false
+  when: not ansible_check_mode
+
+- name: "Start pf and pflog in the jail"
+  ansible.builtin.shell: >-
+    jexec {{ triage_jail_name }} service pflog start;
+    jexec {{ triage_jail_name }} service pf start
+  when: "not ansible_check_mode and ('Status: Enabled' not in triage_pfinfo.stdout)"
+  changed_when: true
+
+- name: "Load changed pf rules"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} pfctl -f /etc/pf.conf"
+  when: >-
+    not ansible_check_mode and triage_pfconf is changed
+    and ('Status: Enabled' in triage_pfinfo.stdout)
+  changed_when: true
 
 - name: "Check whether the receiver is running"
   ansible.builtin.command: "jexec {{ triage_jail_name }} service triage status"

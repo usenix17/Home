@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+# pylint: disable=invalid-name
+"""Runs a read-only kubectl get/describe/logs/top/events with a fixed config.
+
+Only allowlisted flags pass; file, template, server, credential and
+impersonation flags are refused, as is any Secrets resource.
+"""
+import os
+import sys
+
+KUBECTL = "/usr/local/bin/kubectl"
+KUBECONFIG = "/usr/local/etc/triage-agent/kubeconfig"
+VERBS = frozenset({"get", "describe", "logs", "top", "events"})
+OUTPUTS = frozenset({"wide", "json", "yaml", "name"})
+# Flags taking a value: long name -> short alias (or None).
+VALUED = {"--namespace": "-n", "--selector": "-l", "--field-selector": None,
+          "--output": "-o", "--tail": None, "--since": None,
+          "--container": "-c", "--sort-by": None}
+# Boolean flags: long name -> short alias (or None).
+BOOLEAN = {"--all-namespaces": "-A", "--previous": "-p"}
+SHORT = {short: name for name, short in {**VALUED, **BOOLEAN}.items()
+         if short}
+SECRET_KINDS = frozenset({"secret", "secrets"})
+
+
+class Refused(Exception):
+    """An argument outside the read-only allowlist."""
+
+
+def _canonical(flag: str) -> str:
+    """Maps a short flag to its long name; refuses unknown flags."""
+    name = SHORT.get(flag, flag)
+    if name not in VALUED and name not in BOOLEAN:
+        raise Refused(f"flag not allowed: {flag}")
+    return name
+
+
+def _split(arg: str) -> tuple[str, str | None]:
+    """Splits --flag=value, -fvalue and -f=value into (flag, value)."""
+    if arg.startswith("--"):
+        flag, sep, value = arg.partition("=")
+        return flag, value if sep else None
+    flag, rest = arg[:2], arg[2:]
+    if not rest:
+        return flag, None
+    return flag, rest[1:] if rest.startswith("=") else rest
+
+
+def _check_value(name: str, value: str) -> None:
+    """Validates a flag value."""
+    if name == "--output" and value not in OUTPUTS:
+        raise Refused(f"output format not allowed: {value}")
+
+
+def _check_resource(arg: str) -> None:
+    """Refuses any positional naming the Secrets resource."""
+    for part in arg.split(","):
+        kind = part.split("/", 1)[0].split(".", 1)[0]
+        if kind.strip().lower() in SECRET_KINDS:
+            raise Refused("secrets are not readable")
+
+
+def build_argv(args: list[str]) -> list[str]:
+    """Validates arguments and returns the kubectl argv.
+
+    Args:
+      args: The wrapper's arguments: a verb, then flags and names.
+
+    Returns:
+      The argv to exec, with the fixed kubeconfig.
+
+    Raises:
+      Refused: If any argument is outside the allowlist.
+    """
+    if not args or args[0] not in VERBS:
+        raise Refused(f"verb must be one of: {', '.join(sorted(VERBS))}")
+    out = [KUBECTL, f"--kubeconfig={KUBECONFIG}", args[0]]
+    rest = iter(args[1:])
+    for arg in rest:
+        if not arg.startswith("-"):
+            _check_resource(arg)
+            out.append(arg)
+            continue
+        flag, value = _split(arg)
+        name = _canonical(flag)
+        if name in BOOLEAN:
+            if value is not None:
+                raise Refused(f"flag takes no value: {flag}")
+            out.append(name)
+            continue
+        if value is None:
+            value = next(rest, None)
+            if value is None:
+                raise Refused(f"flag needs a value: {flag}")
+        _check_value(name, value)
+        out.append(f"{name}={value}")
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.
+
+    Args:
+      argv: Argument list; defaults to sys.argv[1:].
+
+    Returns:
+      The process exit code (only on refusal; success execs kubectl).
+    """
+    try:
+        cmd = build_argv(sys.argv[1:] if argv is None else argv)
+    except Refused as err:
+        sys.stderr.write(f"error: {err}\n")
+        return 2
+    env = {"PATH": "/usr/local/bin:/usr/bin:/bin",
+           "HOME": os.environ.get("HOME", "/nonexistent"),
+           "LANG": os.environ.get("LANG", "C.UTF-8")}
+    os.execve(KUBECTL, cmd, env)
+    return 1  # pragma: no cover
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -87,32 +87,72 @@ auto-update or `claude update`, no telemetry, error reports or
 nonessential traffic) and the `permissions` (allow/deny lists,
 `defaultMode: dontAsk`, bypass mode disabled). With
 `allowManagedPermissionRulesOnly` and `allowManagedHooksOnly`, rules or
-hooks in `~triage/.claude/settings.json` are ignored, and the role keeps
-that file absent. Anything not allowed is denied without a prompt.
+hooks in the agent's `~/.claude/settings.json` are ignored, and the role
+keeps that file absent. Anything not allowed is denied without a prompt.
+The only Bash allows are the wrappers (`triage-kubectl`, `triage-promql`,
+`triage-gatus`, `triage-graylog`); raw `kubectl`/`talosctl` are denied.
 Claude Code also auto-approves its own read-only utilities (`head`, `id`,
-...) as pipe filters, but the `Read(...)` denies cover them: `cat`/`wc`/`ls`
-on the credential dir, `~/.claude*` or `/proc` are denied, as is any
-`$VAR` or `$(...)` expansion of the token.
+...) as pipe filters; the `Read(...)` denies fence them away from the
+credential dirs, `~/.claude*` and `/proc`.
 
 To check it is in effect, run `claude doctor` as triage with an empty
 environment: it reports `Auto-updates: disabled (set by env:
-DISABLE_UPDATES)` (`enabled` if the file is missing). It also warns that
-`Bash(talosctl * logs *)` and `Bash(talosctl * get *)` match options at the
-wildcard; the talosctl write-verb denies cover every position.
+DISABLE_UPDATES)` (`enabled` if the file is missing).
 
-## Receiver
+## Receiver and agent (two uids)
+
+- `triage` (uid 1061) runs the receiver and holds the secrets:
+  `/usr/local/etc/triage` (root:triage 0750) with `config.json` and
+  `claude.token`, both 0400 triage.
+- `triage-agent` (uid 1062) runs Claude Code and every tool it calls. Home
+  `/var/db/triage-agent`, work dir `work/` (root:triage-agent 0750) with the
+  runbook (`files/runbook.md`) as a root-owned `CLAUDE.md`, and
+  `/usr/local/etc/triage-agent/kubeconfig` (0400 triage-agent), used only by
+  `triage-kubectl`. It cannot read triage's files.
+- The receiver starts the agent with `doas -n -u triage-agent
+  /usr/local/lib/triage/libexec/triage-agent-run`, the only rule in
+  `/usr/local/etc/doas.conf`. The launcher reads the OAuth token from
+  stdin (never argv, never a file this uid can read, independent of what
+  environment doas passes), sets a fixed environment, cds to the work dir
+  and runs claude under `timeout(1)` (15s under the receiver's timeout,
+  since the receiver's uid cannot signal the agent's).
 
 `/usr/local/etc/rc.d/triage` runs `python3 -P -m triage.server --config
 /usr/local/etc/triage/config.json` as `triage` under a `daemon(8)`
 supervisor (restart on exit, stdout to `/var/log/triage/receiver.log`)
-with `env -i`, so only PATH, HOME, LANG, SHELL=/bin/bash, KUBECONFIG and
-PYTHONPATH reach it, and never `ANTHROPIC_API_KEY`. Port 8090.
-`/usr/local/etc/triage` (root:triage 0750) holds `config.json`,
-`claude.token` and `kubeconfig`, all 0400 triage. The work dir is
-root:triage 0750 with the runbook (`files/runbook.md`) as a root-owned
-`CLAUDE.md`, so the agent can't replace it. Run logs go to
+with `env -i`, so only PATH, HOME, LANG, SHELL=/bin/bash and PYTHONPATH
+reach it, and never `ANTHROPIC_API_KEY`. Port 8090. Run logs go to
 `/var/log/triage/YYYY-MM-DD/<id>.json`, pruned after 30 days by
 `/etc/cron.d/triage`; newsyslog rotates the receiver log.
+
+## triage-kubectl
+
+Verbs `get`, `describe`, `logs`, `top`, `events` only. Allowed flags:
+`-n/--namespace`, `-A`, `-l/--selector`, `--field-selector`,
+`-o wide|json|yaml|name`, `--tail`, `--since`, `--previous`,
+`-c/--container`, `--sort-by`, in separate, `=` or joined form; values are
+always re-emitted joined (`--flag=value`) so one can't become a flag.
+Everything else is refused (files, templates, `-s/--server`, credentials,
+contexts, impersonation, `--raw`, `--cache-dir`), as is the Secrets
+resource in any case or form. It runs `/usr/local/bin/kubectl` with
+`--kubeconfig=` the fixed agent kubeconfig and a clean environment.
+
+## Jail egress (pf)
+
+The jail runs its own pf (VNET), which needs `/dev/pf`: the jail uses
+devfs ruleset 14 (`bastille_net`, from roles/bastille with
+`bastille_devfs_net_ruleset`; the role asserts the host defines it and
+re-rules the running jail). `/etc/pf.conf` blocks and logs everything
+(pflog0) except:
+- in: tcp 8090 from the LAN and the cluster nodes;
+- out, DNS (to the jail's resolv.conf servers): root, triage, triage-agent;
+- out, triage-agent: the Anthropic API ranges on 443 (from
+  https://platform.claude.com/docs/en/api/ip-addresses), the k8s API
+  192.168.7.202-204:6443, Prometheus 192.168.7.207:443, the watcher
+  192.168.1.60:8080, Graylog 192.168.1.151:9000;
+- out, triage: tcp 443 anywhere (the Discord webhook);
+- out, root: tcp 80/443 (pkg).
+Watch drops with `jexec triage tcpdump -n -e -ttt -i pflog0`.
 
 ## Run
 
