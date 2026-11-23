@@ -1,0 +1,99 @@
+# {{ ansible_managed }}
+# Out-of-cluster watcher. Probes by IP where possible; app-level checks live in
+# the in-cluster Gatus (ArgoCD applications/gatus).
+
+web:
+  port: {{ watcher_gatus_port }}
+
+storage:
+  type: sqlite
+  path: {{ watcher_gatus_db }}/data.db
+
+alerting:
+  discord:
+    webhook-url: "{{ watcher_discord_webhook }}"
+    title: ":telescope: Watcher (beastyboi)"
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
+endpoints:
+{% for n in watcher_talos_nodes %}
+  - name: "{{ n.name }} Talos API"
+    group: "talos"
+    url: "tcp://{{ n.ip }}:50000"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: discord
+{% if n.control_plane | default(false) %}
+  - name: "{{ n.name }} kube-apiserver"
+    group: "talos"
+    url: "tcp://{{ n.ip }}:6443"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: discord
+{% endif %}
+{% endfor %}
+  - name: "Traefik ingress"
+    group: "cluster"
+    url: "tcp://{{ watcher_ingress_ip }}:443"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: discord
+{% for d in watcher_dns_servers %}
+  - name: "DNS {{ d.name }}"
+    group: "dns"
+    url: "{{ d.ip }}"
+    interval: 60s
+    dns:
+      query-name: "{{ watcher_dns_probe_name }}"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+      - "[BODY] == {{ watcher_ingress_ip }}"
+    alerts:
+      - type: discord
+{% endfor %}
+{% for c in watcher_http_checks %}
+  - name: "{{ c.name }}"
+    group: "{{ c.group }}"
+    url: "{{ c.url }}"
+    interval: 60s
+    client:
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+{% endfor %}
+{% for c in watcher_tcp_checks %}
+  - name: "{{ c.name }}"
+    group: "{{ c.group }}"
+    url: "tcp://{{ c.target }}"
+    interval: 60s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: discord
+{% endfor %}
+
+# Dead man's switch: the in-cluster Alertmanager posts its always-firing
+# Watchdog to /api/v1/endpoints/cluster_alertmanager-watchdog/external.
+# Silence means Prometheus, Alertmanager or the whole cluster is down.
+external-endpoints:
+  - name: "alertmanager-watchdog"
+    group: "cluster"
+    token: "{{ watcher_push_token }}"
+    heartbeat:
+      interval: {{ watcher_heartbeat_interval }}
+    alerts:
+      - type: discord
+        failure-threshold: 1
+        description: "In-cluster alerting has gone silent (no Watchdog heartbeat)"

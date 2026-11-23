@@ -1,0 +1,6 @@
+---
+# beastyboi = DNS (unbound) + Nebula + Warpgate + watcher jails. Its Bastille
+# differs from the role defaults (mimir): zroot pool, `jailbridge`, 15.1.
+bastille_release: "15.1-RELEASE"
+bastille_zfs_zpool: "zroot"
+bastille_network_bridge: "jailbridge"
