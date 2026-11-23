@@ -154,10 +154,15 @@ re-rules the running jail). `/etc/pf.conf` blocks and logs everything
 - out, root: tcp 80/443 (pkg).
 Watch drops with `jexec triage tcpdump -n -e -ttt -i pflog0`.
 
-**Open (2026-11-23):** pf refuses `DIOCADDRULE`/`DIOCSTART` with EPERM at
-the jail's `securelevel = 2` (the Nebula jails run pf at securelevel 1).
-Until that is decided, the "Start pf" task fails, which stops the play
-before the receiver is started: no egress allowlist, no receiver.
+**Securelevel (R15, 2026-11-23).** pf refuses to load rules (EPERM) at
+securelevel >= 2, so the jail starts at `securelevel = 1` (jail.conf) and
+its own rc raises it to 2 (`kern_securelevel_enable`/`kern_securelevel`
+in the jail rc.conf). `rc.d/securelevel` REQUIREs pf, so the rules load
+first. At level 2, loading new rules and `pfctl -d` are refused, but
+**`pfctl -F rules` still succeeds**, so jail root (not triage or
+triage-agent: `/dev/pf` is root 0600) can drop the allowlist. A pf.conf
+or securelevel change makes the role restart the jail, the only way to
+reload. The "Start pf" task still fails closed if pf is not enabled.
 
 ## Run
 

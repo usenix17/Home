@@ -167,6 +167,9 @@ triage_agent_timeout_s: "{{ triage_timeout_s - 15 }}"
 # pf inside the VNET jail needs /dev/pf: devfs ruleset 14 (bastille_net), from
 # roles/bastille with bastille_devfs_net_ruleset (fix/bastille-devfs).
 triage_devfs_ruleset: 14
+# R15 (Sasha, 2026-11-23): boot at 1 so pf can load, rc raises it to 2.
+triage_jail_boot_securelevel: 1
+triage_jail_securelevel: 2
 # Anthropic API inbound ranges, from
 # https://platform.claude.com/docs/en/api/ip-addresses (checked 2026-11-23).
 triage_anthropic_api_v4: ["160.79.104.0/23", "153.61.224.0/22"]

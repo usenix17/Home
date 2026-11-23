@@ -455,6 +455,27 @@
   when: triage_devfs is changed and not ansible_check_mode
   changed_when: true
 
+# R15: pf won't load rules at securelevel >= 2, so the jail starts at 1 and
+# its own rc raises it to 2 after pf (rc.d/securelevel REQUIREs pf). The
+# rules are then locked until the next jail start.
+- name: "Start the jail at securelevel 1"
+  ansible.builtin.lineinfile:
+    path: "{{ triage_jail_dir }}/jail.conf"
+    regexp: '^(\s*)securelevel\s*=.*;'
+    line: '\1securelevel = {{ triage_jail_boot_securelevel }};'
+    backrefs: true
+  register: triage_jail_sl_line
+
+- name: "Raise the securelevel from the jail's rc, after pf"
+  community.general.sysrc:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    path: "{{ triage_jail_root }}/etc/rc.conf"
+  loop:
+    - { name: "kern_securelevel_enable", value: "YES" }
+    - { name: "kern_securelevel", value: "{{ triage_jail_securelevel }}" }
+  register: triage_rc_securelevel
+
 - name: "Read the jail's resolvers"
   ansible.builtin.slurp:
     src: "{{ triage_jail_root }}/etc/resolv.conf"
@@ -500,21 +521,33 @@
   when: not ansible_check_mode
 
 # pf refuses rule loads at jail securelevel >= 2 (EPERM), so this fails
-# closed: no egress allowlist, no receiver start below.
+# closed: no egress allowlist, no receiver start below. Skipped when the
+# restart below is due anyway (boot loads pf before raising the level).
 - name: "Start pf and pflog in the jail"
   ansible.builtin.shell: >-
     jexec {{ triage_jail_name }} service pflog start &&
     jexec {{ triage_jail_name }} pfctl -f /etc/pf.conf &&
     jexec {{ triage_jail_name }} pfctl -e
-  when: "not ansible_check_mode and ('Status: Enabled' not in triage_pfinfo.stdout)"
+  when: >-
+    not ansible_check_mode and ('Status: Enabled' not in triage_pfinfo.stdout)
+    and not (triage_pfconf is changed or triage_jail_sl_line is changed
+    or triage_rc_securelevel is changed)
   changed_when: true
 
-- name: "Load changed pf rules"
-  ansible.builtin.command: "jexec {{ triage_jail_name }} pfctl -f /etc/pf.conf"
+# Running rules are locked at securelevel 2: a restart is the only reload.
+- name: "Restart the jail to apply pf rules or the securelevel"
+  ansible.builtin.command: "bastille restart {{ triage_jail_name }}"
   when: >-
-    not ansible_check_mode and triage_pfconf is changed
-    and ('Status: Enabled' in triage_pfinfo.stdout)
+    not ansible_check_mode and (triage_pfconf is changed
+    or triage_jail_sl_line is changed or triage_rc_securelevel is changed)
   changed_when: true
+
+- name: "Check pf is enabled after the restart"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} pfctl -s info"
+  register: triage_pfinfo_after
+  changed_when: false
+  failed_when: "'Status: Enabled' not in triage_pfinfo_after.stdout"
+  when: not ansible_check_mode
 
 - name: "Check whether the receiver is running"
   ansible.builtin.command: "jexec {{ triage_jail_name }} service triage status"
