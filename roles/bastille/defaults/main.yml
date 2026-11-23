@@ -19,3 +19,11 @@ bastille_network_bridge: "bridge0"
 # bastille.conf keys this role manages (shell-style key="value").
 # The package ships this file under /usr/local/etc/bastille/.
 bastille_conf_path: "/usr/local/etc/bastille/bastille.conf"
+
+# Jail devfs. Bastille's ruleset 13 is `include $devfsrules_jail`, whose own
+# hide-all/unhide rules are nested includes: with the FreeBSD default
+# vfs.devfs.rule_depth=1 they never run and jails see every host device
+# (/dev/mem, raw disks). Found 2026-11-23 on beastyboi and mimir.
+bastille_devfs_rule_depth: 2
+# Extra ruleset 14 for jails that need tun/pf (Nebula, nrelay on beastyboi).
+bastille_devfs_net_ruleset: false

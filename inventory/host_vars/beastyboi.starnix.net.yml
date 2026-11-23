@@ -4,3 +4,6 @@
 bastille_release: "15.1-RELEASE"
 bastille_zfs_zpool: "zroot"
 bastille_network_bridge: "jailbridge"
+
+# Nebula + nrelay jails use devfs ruleset 14 (tun + pf).
+bastille_devfs_net_ruleset: true
