@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "summary", "evidence", "likely_cause",
+               "suggested_next_step", "confidence"],
+  "properties": {
+    "title": {"type": "string", "description": "One-line headline."},
+    "summary": {"type": "string", "description": "Two or three sentences."},
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Each item names the command run and what it showed."
+    },
+    "likely_cause": {"type": "string", "description": "Or \"unknown\"."},
+    "suggested_next_step": {"type": "string",
+                            "description": "The single most useful step."},
+    "confidence": {"type": "string", "enum": ["low", "medium", "high"]}
+  }
+}

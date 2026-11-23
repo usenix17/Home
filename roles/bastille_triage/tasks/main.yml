@@ -125,7 +125,6 @@
     group: "{{ triage_uid }}"
   loop:
     - "{{ triage_home }}"
-    - "{{ triage_home }}/work"
     - "{{ triage_home }}/state"
     - "{{ triage_home }}/.claude"
 
@@ -170,6 +169,7 @@
     owner: root
     group: wheel
   with_fileglob: "triage/*.py"
+  notify: "Restart triage"
 
 - name: "Install the read-only query wrappers"
   ansible.builtin.copy:
@@ -250,6 +250,126 @@
     owner: root
     group: wheel
 
+# --- Receiver: secrets, config, runbook, service -----------------------------
+
+- name: "Check the run-time secrets were passed"
+  ansible.builtin.assert:
+    that:
+      - vault_triage_claude_token | default('') | length > 0
+      - vault_triage_push_token | default('') | length > 0
+      - vault_triage_discord_webhook | default('') | length > 0
+      - vault_triage_kube_token | default('') | length > 0
+      - vault_triage_kube_ca | default('') is search('BEGIN CERTIFICATE')
+      - triage_token_created | default('') is match('^\d{4}-\d{2}-\d{2}$')
+    fail_msg: "Pass the vault_triage_* secrets and triage_token_created (see README)."
+    quiet: true
+  no_log: true
+
+# Root-owned so the agent can't replace its own runbook (CLAUDE.md).
+- name: "Create the work dir (0750 root:triage)"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_workdir }}"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: "{{ triage_uid }}"
+
+- name: "Install the runbook as the work dir's CLAUDE.md"
+  ansible.builtin.copy:
+    src: runbook.md
+    dest: "{{ triage_jail_root }}{{ triage_workdir }}/CLAUDE.md"
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Install the triage output schema"
+  ansible.builtin.copy:
+    src: schema.json
+    dest: "{{ triage_jail_root }}{{ triage_schema_path }}"
+    mode: "0644"
+    owner: root
+    group: wheel
+
+# Permission rules are managed-only; a user settings file has no say.
+- name: "Keep the triage user settings file absent"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ triage_home }}/.claude/settings.json"
+    state: absent
+
+- name: "Install the Claude OAuth token (0400 triage)"
+  ansible.builtin.copy:
+    content: "{{ vault_triage_claude_token }}\n"
+    dest: "{{ triage_jail_root }}{{ triage_token_path }}"
+    mode: "0400"
+    owner: "{{ triage_uid }}"
+    group: "{{ triage_uid }}"
+  no_log: true
+
+- name: "Install the kubeconfig (0400 triage)"
+  ansible.builtin.template:
+    src: kubeconfig.j2
+    dest: "{{ triage_jail_root }}{{ triage_kubeconfig }}"
+    mode: "0400"
+    owner: "{{ triage_uid }}"
+    group: "{{ triage_uid }}"
+  no_log: true
+
+- name: "Install the receiver config (0400 triage)"
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ triage_jail_root }}{{ triage_config_path }}"
+    mode: "0400"
+    owner: "{{ triage_uid }}"
+    group: "{{ triage_uid }}"
+  no_log: true
+  notify: "Restart triage"
+
+- name: "Install the rc.d script"
+  ansible.builtin.template:
+    src: triage.rc.j2
+    dest: "{{ triage_jail_root }}/usr/local/etc/rc.d/triage"
+    mode: "0555"
+    owner: root
+    group: wheel
+  notify: "Restart triage"
+
+- name: "Enable the receiver in the jail's rc.conf"
+  community.general.sysrc:
+    name: triage_enable
+    value: "YES"
+    path: "{{ triage_jail_root }}/etc/rc.conf"
+
+- name: "Rotate the receiver log"
+  ansible.builtin.template:
+    src: newsyslog.conf.j2
+    dest: "{{ triage_jail_root }}/etc/newsyslog.conf.d/triage.conf"
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Prune old run logs"
+  ansible.builtin.template:
+    src: cron.j2
+    dest: "{{ triage_jail_root }}/etc/cron.d/triage"
+    mode: "0644"
+    owner: root
+    group: wheel
+
+- name: "Check whether the receiver is running"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} service triage status"
+  register: triage_svc
+  changed_when: false
+  failed_when: false
+  when: not ansible_check_mode
+
+- name: "Start the receiver"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} service triage start"
+  when: not ansible_check_mode and triage_svc.rc != 0
+  changed_when: true
+
+- name: "Apply a pending receiver restart now"
+  ansible.builtin.meta: flush_handlers
+
 # --- Verification ------------------------------------------------------------
 
 - name: "Run the Linux Claude Code binary as triage"
@@ -269,4 +389,14 @@
   register: triage_tools
   changed_when: false
   failed_when: triage_tools.rc != 0 or triage_tools.stdout_lines | length != 5
+  when: not ansible_check_mode
+
+- name: "Check the receiver answers /health"
+  ansible.builtin.command: >-
+    jexec {{ triage_jail_name }} fetch -qo - http://127.0.0.1:{{ triage_port }}/health
+  register: triage_health
+  changed_when: false
+  retries: 10
+  delay: 2
+  until: triage_health.rc == 0
   when: not ansible_check_mode

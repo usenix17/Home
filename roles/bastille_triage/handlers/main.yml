@@ -1,3 +1,5 @@
 ---
-# No handlers yet: nothing runs in the jail until the receiver is deployed.
-[]
+- name: "Restart triage"
+  ansible.builtin.command: "jexec {{ triage_jail_name }} service triage restart"
+  changed_when: true
+  when: not ansible_check_mode

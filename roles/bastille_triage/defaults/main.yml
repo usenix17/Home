@@ -45,7 +45,8 @@ triage_omnictl_bin: "{{ triage_lib_dir }}/linux/omnictl"
 
 # Claude Code managed settings: root-owned, outrank user/project settings.
 # Linux path /etc/claude-code; the jail path below is what the Linux binary
-# sees there under linuxulator. Task 8 adds `permissions` to this dict.
+# sees there under linuxulator. The permission rules live here too, so the
+# triage user can't add an allow rule (managed-only rules, no bypass mode).
 triage_claude_managed_dir: "/compat/linux/etc/claude-code"
 triage_claude_managed_settings:
   env:
@@ -54,6 +55,54 @@ triage_claude_managed_settings:
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
     DISABLE_TELEMETRY: "1"
     DISABLE_ERROR_REPORTING: "1"
+  allowManagedPermissionRulesOnly: true
+  allowManagedHooksOnly: true
+  permissions:
+    defaultMode: "dontAsk"
+    disableBypassPermissionsMode: "disable"
+    denyInsteadOfPrompting: true
+    allow: "{{ triage_claude_allow }}"
+    deny: "{{ triage_claude_deny }}"
+
+# Bare command names: Task 7 verified these resolve on triage_path from the
+# Linux bash Claude Code spawns. Anything not allowed is denied (dontAsk).
+triage_claude_allow:
+  - "Bash(kubectl get *)"
+  - "Bash(kubectl describe *)"
+  - "Bash(kubectl logs *)"
+  - "Bash(kubectl top *)"
+  - "Bash(kubectl events *)"
+  - "Bash(talosctl * services*)"
+  - "Bash(talosctl * dmesg*)"
+  - "Bash(talosctl * health*)"
+  - "Bash(talosctl * logs *)"
+  - "Bash(talosctl * get *)"
+  - "Bash(triage-promql *)"
+  - "Bash(triage-graylog *)"
+  - "Bash(triage-gatus*)"
+  - "Read"
+  - "Grep"
+  - "Glob"
+
+# Deny wins over allow. Secrets: any kubectl line naming secrets or using
+# --raw, and Read of the credential dir, Claude's home and /proc (environ).
+triage_claude_kubectl_write_verbs: [exec, port-forward, proxy, edit, apply, delete, patch, scale, drain, cordon, uncordon, label, annotate, create, replace, rollout, set, taint, cp, attach, run, expose, debug, autoscale]
+triage_claude_talosctl_write_verbs: [reboot, shutdown, reset, upgrade, upgrade-k8s, apply-config, edit, patch, bootstrap, rotate-ca, cp, wipe]
+triage_claude_deny: >-
+  {{ ['Edit', 'Write', 'NotebookEdit', 'WebFetch', 'WebSearch',
+      'Bash(curl *)', 'Bash(wget *)', 'Bash(fetch *)', 'Bash(nc *)',
+      'Bash(ssh *)', 'Bash(scp *)',
+      'Bash(kubectl *secret*)', 'Bash(kubectl *Secret*)',
+      'Bash(kubectl *--raw*)', 'Bash(kubectl config *)',
+      'Bash(kubectl auth *)',
+      'Read(//usr/local/etc/triage/**)', 'Read(//var/db/triage/.claude/**)',
+      'Read(//var/db/triage/.claude.json)', 'Read(//proc/**)',
+      'Read(//compat/linux/proc/**)']
+     + (triage_claude_kubectl_write_verbs | map('regex_replace', '^', 'Bash(kubectl ') | map('regex_replace', '$', ' *)') | list)
+     + (triage_claude_kubectl_write_verbs | map('regex_replace', '^', 'Bash(kubectl * ') | map('regex_replace', '$', ' *)') | list)
+     + (triage_claude_talosctl_write_verbs | map('regex_replace', '^', 'Bash(talosctl ') | map('regex_replace', '$', ' *)') | list)
+     + (triage_claude_talosctl_write_verbs | map('regex_replace', '^', 'Bash(talosctl * ') | map('regex_replace', '$', ')') | list)
+     + (triage_claude_talosctl_write_verbs | map('regex_replace', '^', 'Bash(talosctl * ') | map('regex_replace', '$', ' *)') | list) }}
 
 # PATH for the Linux shell Claude Code's Bash tool spawns.
 triage_path: "{{ triage_lib_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
@@ -72,3 +121,30 @@ triage_linux_mounts:
   - { src: "tmpfs", path: "/compat/linux/dev/shm", fstype: "tmpfs", opts: "rw,mode=1777,size=256m" }
   - { src: "linprocfs", path: "/compat/linux/proc", fstype: "linprocfs", opts: "rw" }
   - { src: "linsysfs", path: "/compat/linux/sys", fstype: "linsysfs", opts: "rw" }
+
+# --- Receiver (Task 8) ---------------------------------------------------------
+triage_port: 8090
+triage_workdir: "{{ triage_home }}/work"
+triage_state_dir: "{{ triage_home }}/state"
+triage_schema_path: "{{ triage_lib_dir }}/schema.json"
+triage_config_path: "{{ triage_etc_dir }}/config.json"
+triage_token_path: "{{ triage_etc_dir }}/claude.token"
+triage_kubeconfig: "{{ triage_etc_dir }}/kubeconfig"
+triage_kube_server: "https://192.168.7.202:6443"
+triage_lang: "C.UTF-8"
+triage_pidfile: "/var/run/triage.pid"
+triage_receiver_log: "{{ triage_log_dir }}/receiver.log"
+triage_run_log_days: 30
+triage_model: null
+triage_max_turns: 25
+triage_timeout_s: 600
+triage_batch_window_s: 120
+triage_dedupe_s: 21600
+triage_daily_cap: 10
+triage_queue_max: 5
+triage_token_lifetime_days: 365
+triage_warn_days: 30
+# Required at run time, never committed: vault_triage_claude_token,
+# vault_triage_push_token, vault_triage_discord_webhook,
+# vault_triage_kube_token, vault_triage_kube_ca (PEM), and
+# triage_token_created (date part of cluster/triage-claude created_time).

@@ -1,0 +1,33 @@
+#!/bin/sh
+# Managed by Ansible (roles/bastille_triage).
+#
+# PROVIDE: triage
+# REQUIRE: LOGIN NETWORKING
+# KEYWORD: shutdown
+#
+# AI alert-triage receiver. Runs as {{ triage_user }} under a daemon(8)
+# supervisor with a cleared environment (no ANTHROPIC_API_KEY can leak in).
+
+. /etc/rc.subr
+
+name="triage"
+rcvar="triage_enable"
+
+load_rc_config $name
+
+: ${triage_enable:="NO"}
+
+pidfile="{{ triage_pidfile }}"
+procname="/usr/sbin/daemon"
+command="/usr/sbin/daemon"
+command_args="-P ${pidfile} -r -R 10 -H -o {{ triage_receiver_log }} \
+    -u {{ triage_user }} /usr/bin/env -i \
+    PATH={{ triage_path }} \
+    HOME={{ triage_home }} \
+    LANG={{ triage_lang }} \
+    SHELL=/bin/bash \
+    KUBECONFIG={{ triage_kubeconfig }} \
+    PYTHONPATH={{ triage_lib_dir }} \
+    {{ triage_python }} -P -m triage.server --config {{ triage_config_path }}"
+
+run_rc_command "$1"

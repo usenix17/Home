@@ -82,19 +82,55 @@ linuxulator that resolves to the jail path
 dir 0755). It is root-owned on purpose: `triage` owns `~/.claude`, so
 anything there could be rewritten by the agent itself.
 
-The file is rendered from `triage_claude_managed_settings`. Today it only
-sets `env` (no auto-update or `claude update`, no telemetry, error reports
-or nonessential traffic); the receiver's `permissions` get added to the
-same dict. To check it is in effect, run `claude doctor` as triage with an
-empty environment: it reports `Auto-updates: disabled (set by env:
-DISABLE_UPDATES)`, and `enabled` if the file is missing.
+The file is rendered from `triage_claude_managed_settings`: `env` (no
+auto-update or `claude update`, no telemetry, error reports or
+nonessential traffic) and the `permissions` (allow/deny lists,
+`defaultMode: dontAsk`, bypass mode disabled). With
+`allowManagedPermissionRulesOnly` and `allowManagedHooksOnly`, rules or
+hooks in `~triage/.claude/settings.json` are ignored, and the role keeps
+that file absent. Anything not allowed is denied without a prompt.
+Claude Code also auto-approves its own read-only utilities (`head`, `id`,
+...) as pipe filters, but the `Read(...)` denies cover them: `cat`/`wc`/`ls`
+on the credential dir, `~/.claude*` or `/proc` are denied, as is any
+`$VAR` or `$(...)` expansion of the token.
+
+To check it is in effect, run `claude doctor` as triage with an empty
+environment: it reports `Auto-updates: disabled (set by env:
+DISABLE_UPDATES)` (`enabled` if the file is missing). It also warns that
+`Bash(talosctl * logs *)` and `Bash(talosctl * get *)` match options at the
+wildcard; the talosctl write-verb denies cover every position.
+
+## Receiver
+
+`/usr/local/etc/rc.d/triage` runs `python3 -P -m triage.server --config
+/usr/local/etc/triage/config.json` as `triage` under a `daemon(8)`
+supervisor (restart on exit, stdout to `/var/log/triage/receiver.log`)
+with `env -i`, so only PATH, HOME, LANG, SHELL=/bin/bash, KUBECONFIG and
+PYTHONPATH reach it, and never `ANTHROPIC_API_KEY`. Port 8090.
+`/usr/local/etc/triage` (root:triage 0750) holds `config.json`,
+`claude.token` and `kubeconfig`, all 0400 triage. The work dir is
+root:triage 0750 with the runbook (`files/runbook.md`) as a root-owned
+`CLAUDE.md`, so the agent can't replace it. Run logs go to
+`/var/log/triage/YYYY-MM-DD/<id>.json`, pruned after 30 days by
+`/etc/cron.d/triage`; newsyslog rotates the receiver log.
 
 ## Run
 
     ansible-playbook -i inventory/inventory.yml playbooks/triage.yml \
-      -e ansible_host=192.168.1.99 --check --diff
+      -e ansible_host=192.168.1.99 -e @"$VARS" --check --diff
     ansible-playbook -i inventory/inventory.yml playbooks/triage.yml \
-      -e ansible_host=192.168.1.99
+      -e ansible_host=192.168.1.99 -e @"$VARS"
+    shred -u "$VARS"
+
+`$VARS` is a 0600 JSON file written from OpenBao by pipes (never echo
+values): `vault_triage_claude_token` (`cluster/triage-claude`
+`CLAUDE_CODE_OAUTH_TOKEN`), `vault_triage_push_token` and
+`vault_triage_discord_webhook` (`cluster/monitoring-secrets`
+`triagePushToken`, `discordWebhookUrl`), `vault_triage_kube_token` and
+`vault_triage_kube_ca` (`cluster/triage-agent` `KUBE_TOKEN`, `KUBE_CA`),
+and `triage_token_created`: the date part of `vault kv metadata get
+secret/cluster/triage-claude` `created_time`. The role asserts they are
+all set.
 
 Connect by IP to avoid the `*.starnix.net` cert-first ssh wildcard tripping
 the Wazuh sshd ban. A dry run against a host without the jail stops right
