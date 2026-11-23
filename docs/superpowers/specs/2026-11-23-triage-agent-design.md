@@ -70,9 +70,11 @@ Sasha opens the channel. Example of the intended output:
 - Sasha runs `claude setup-token` (browser login) and stores the token in
   OpenBao `secret/cluster/triage-claude` key `CLAUDE_CODE_OAUTH_TOKEN`
   (its own path, see Token lifetime).
-- Sasha confirmed Claude Code runs on FreeBSD. **If the pinned version turns
-  out not to run cleanly in a 15.1 jail, stop and ask** before reaching for
-  Linux compat or a bhyve VM (builder call: those change the lockdown).
+- **Claude Code runs on FreeBSD through Linux binary compatibility**
+  (linuxulator), per Sasha. beastyboi already has it on the host
+  (`linux_enable=YES`; `linux64`, `linprocfs`, `linsysfs` loaded;
+  `/compat/linux` present, checked 2026-11-23), so only the jail needs it. If
+  even that doesn't run cleanly, stop and ask before reaching for a bhyve VM.
 
 ## Architecture
 
@@ -146,8 +148,18 @@ Behaviour:
 
 ### The Claude Code run
 
-- Install Claude Code in the jail, **pinned version**, auto-update disabled
-  (`DISABLE_AUTOUPDATER=1`); upgrades happen by bumping the pin in the role.
+- Install the **Linux** Claude Code build in the jail under linuxulator,
+  **pinned version**, auto-update disabled (`DISABLE_AUTOUPDATER=1`);
+  upgrades happen by bumping the pin in the role. The jail needs a Linux
+  userland (e.g. a `linux_base` package inside the jail) and the
+  linprocfs/linsysfs (and likely fdescfs) mounts in its fstab, plus whatever
+  jail parameters linuxulator requires (`allow.mount.*`, `linux.osrelease`).
+- Claude Code's Bash tool starts a Linux shell, which then runs `kubectl`,
+  `talosctl` and the wrapper scripts. FreeBSD binaries can be exec'd from a
+  Linux process (the kernel picks the ABI per binary), but PATH resolution
+  under `/compat/linux` differs; the builder verifies each allowed command
+  actually resolves and runs, and that the permission rules match the
+  command strings Claude Code really issues.
 - Runs as user `triage` (never root), `HOME=/var/db/triage`, working
   directory `/var/db/triage/work` containing the runbook `CLAUDE.md`.
 - Environment: `CLAUDE_CODE_OAUTH_TOKEN` set; **`ANTHROPIC_API_KEY`
@@ -282,9 +294,10 @@ Use `vault kv patch` on existing multi-key paths, never `put`.
 
 ## Left to the builder
 
-- Claude Code install method on FreeBSD 15.1 and the exact pin; verify `-p`,
-  `--json-schema`, `dontAsk` and the permission-rule syntax against that
-  version.
+- The Linux userland choice and jail linuxulator wiring, Claude Code install
+  method and exact pin; verify `-p`, `--json-schema`, `dontAsk`, the
+  OAuth-token auth and the permission-rule syntax against that version under
+  linuxulator.
 - Exact allow/deny rule strings (keep the intent above), receiver internals,
   rc.d script, port (8090 suggested), log format.
 - Exact extra ClusterRole rules (start from what the runbook's checks need).
@@ -309,5 +322,6 @@ Use `vault kv patch` on existing multi-key paths, never `put`.
    alerts that are deliberately silenced are never triaged.
 3. The Claude token gets its own OpenBao path `cluster/triage-claude`, so its
    issue date is reliable and renewal is a safe single-key `put`.
-4. If Claude Code doesn't run cleanly in the jail, stop and ask rather than
-   switch to Linux compat or a VM.
+4. Claude Code runs via Linux compatibility in the jail (Sasha); the host
+   already has it. If that still doesn't run cleanly, stop and ask rather
+   than switch to a bhyve VM.
