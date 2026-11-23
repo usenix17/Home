@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+# pylint: disable=invalid-name
+"""Searches recent Graylog messages via the fixed Graylog server."""
+import argparse
+import base64
+import json
+import os
+import sys
+import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
+# pylint: disable=wrong-import-position
+from triage import wrapperlib
+
+URL = "http://192.168.1.151:9000/api/views/search/sync"
+TOKEN_FILE = "/usr/local/etc/triage/graylog.token"
+MAX_LIMIT = 200
+MSG_CHARS = 300
+
+
+def _limit(value: str) -> int:
+    """Validates --limit (>=1) and clamps it to MAX_LIMIT."""
+    try:
+        number = int(value)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError("must be an integer") from err
+    if number < 1:
+        raise argparse.ArgumentTypeError("must be >= 1")
+    return min(number, MAX_LIMIT)
+
+
+def _messages(result: dict) -> list[dict]:
+    """Extracts message dicts from a sync search response."""
+    found = []
+    for query in (result.get("results") or {}).values():
+        for stype in (query.get("search_types") or {}).values():
+            for item in stype.get("messages") or []:
+                found.append(item.get("message") or {})
+    return found
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.
+
+    Args:
+      argv: Argument list; defaults to sys.argv[1:].
+
+    Returns:
+      The process exit code.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("query", help="Graylog query string")
+    parser.add_argument("--minutes", type=wrapperlib.minutes_arg, default=15,
+                        help="look back N minutes (1..1440)")
+    parser.add_argument("--limit", type=_limit, default=50,
+                        help=f"max messages (capped at {MAX_LIMIT})")
+    args = parser.parse_args(argv)
+    path = os.environ.get("TRIAGE_GRAYLOG_TOKEN_FILE", TOKEN_FILE)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            token = handle.read().strip()
+    except OSError as err:
+        return wrapperlib.report_error(f"cannot read token: {err}")
+    auth = base64.b64encode(f"{token}:token".encode()).decode()
+    payload = {"queries": [{
+        "query": {"type": "elasticsearch",
+                  "query_string": args.query},
+        "timerange": {"type": "relative", "range": args.minutes * 60},
+        "search_types": [{"id": "msgs", "type": "messages",
+                          "limit": args.limit, "offset": 0}],
+    }]}
+    request = urllib.request.Request(
+        URL, data=json.dumps(payload).encode(), method="POST",
+        headers={"X-Requested-By": "triage",
+                 "Content-Type": "application/json",
+                 "Accept": "application/json",
+                 "Authorization": f"Basic {auth}"})
+    try:
+        result = json.loads(wrapperlib.fetch(request))
+    except wrapperlib.WrapperError as err:
+        return wrapperlib.report_error(err)
+    except ValueError as err:
+        return wrapperlib.report_error(f"bad JSON from graylog: {err}")
+    lines = []
+    for msg in _messages(result):
+        text = " ".join(str(msg.get("message", "")).split())
+        lines.append(f"{msg.get('timestamp', '')} "
+                     f"{msg.get('source', '')} {text[:MSG_CHARS]}")
+    wrapperlib.emit("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
