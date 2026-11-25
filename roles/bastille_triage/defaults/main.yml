@@ -32,17 +32,12 @@ triage_talosctl_version: "v1.14.5"
 triage_talosctl_url: "https://github.com/siderolabs/talos/releases/download/{{ triage_talosctl_version }}/talosctl-freebsd-amd64"
 triage_talosctl_sha256: "6657416d2160d15c1cf015c545228a317595b90b7bd8a63786d4dfb9f75691ee"
 
-triage_omnictl_version: "v1.12.2"
-triage_omnictl_url: "https://github.com/siderolabs/omni/releases/download/{{ triage_omnictl_version }}/omnictl-linux-amd64"
-triage_omnictl_sha256: "7e79fcfa6e8ad20b92bcfe3026d01edefcc65ce2fef927f54310a0ec0dfff0c4"
-
 # Install layout (jail paths). The wrappers in bin/ import the package from
 # their grandparent dir, so lib/triage/{triage,bin} must stay siblings.
 triage_lib_dir: "/usr/local/lib/triage"
 triage_claude_dir: "{{ triage_lib_dir }}/claude"
 triage_claude_bin: "{{ triage_claude_dir }}/claude"
 triage_talosctl_bin: "/usr/local/bin/talosctl"
-triage_omnictl_bin: "{{ triage_lib_dir }}/linux/omnictl"
 
 # Claude Code managed settings: root-owned, outrank user/project settings.
 # Linux path /etc/claude-code; the jail path below is what the Linux binary
@@ -69,7 +64,7 @@ triage_claude_managed_settings:
     deny: "{{ triage_claude_deny }}"
 
 # Only the wrappers: they fix the endpoint and credential and allowlist the
-# arguments. Raw kubectl/talosctl/omnictl are denied. Anything not allowed is
+# arguments. Raw kubectl and talosctl are denied. Anything not allowed is
 # denied (dontAsk).
 triage_claude_allow:
   - "Bash(triage-kubectl *)"
@@ -100,7 +95,60 @@ triage_claude_deny:
   - "Bash(kubectl *)"
   - "Bash(talosctl)"
   - "Bash(talosctl *)"
-  - "Bash(omnictl *)"
+  # Anything that lists environments or other processes: Claude's own
+  # environment holds the OAuth token, and it runs as this uid.
+  - "Bash(ps)"
+  - "Bash(ps *)"
+  - "Bash(procstat)"
+  - "Bash(procstat *)"
+  - "Bash(pgrep)"
+  - "Bash(pgrep *)"
+  - "Bash(pkill)"
+  - "Bash(pkill *)"
+  - "Bash(top)"
+  - "Bash(top *)"
+  - "Bash(w)"
+  - "Bash(w *)"
+  - "Bash(pwdx)"
+  - "Bash(pwdx *)"
+  - "Bash(fuser)"
+  - "Bash(fuser *)"
+  - "Bash(fstat)"
+  - "Bash(fstat *)"
+  - "Bash(sockstat)"
+  - "Bash(sockstat *)"
+  - "Bash(systat)"
+  - "Bash(systat *)"
+  - "Bash(truss)"
+  - "Bash(truss *)"
+  - "Bash(ktrace)"
+  - "Bash(ktrace *)"
+  - "Bash(kdump)"
+  - "Bash(kdump *)"
+  - "Bash(gcore)"
+  - "Bash(gcore *)"
+  - "Bash(lldb)"
+  - "Bash(lldb *)"
+  - "Bash(dtrace)"
+  - "Bash(dtrace *)"
+  - "Bash(lastcomm)"
+  - "Bash(lastcomm *)"
+  - "Bash(sysctl)"
+  - "Bash(sysctl *)"
+  - "Bash(env)"
+  - "Bash(env *)"
+  - "Bash(printenv)"
+  - "Bash(printenv *)"
+  - "Bash(kenv)"
+  - "Bash(kenv *)"
+  - "Bash(set)"
+  - "Bash(set *)"
+  - "Bash(export)"
+  - "Bash(export *)"
+  - "Bash(declare)"
+  - "Bash(declare *)"
+  - "Bash(typeset)"
+  - "Bash(typeset *)"
   - "Read(/{{ triage_etc_dir }}/**)"
   - "Read(/{{ triage_agent_etc_dir }}/**)"
   - "Read(/{{ triage_home }}/**)"
@@ -135,11 +183,13 @@ triage_state_dir: "{{ triage_home }}/state"
 triage_schema_path: "{{ triage_lib_dir }}/schema.json"
 triage_config_path: "{{ triage_etc_dir }}/config.json"
 triage_token_path: "{{ triage_etc_dir }}/claude.token"
+# Kubeconfig default only: triage-kubectl picks a reachable server.
 triage_kube_server: "https://192.168.7.202:6443"
 triage_lang: "C.UTF-8"
 triage_pidfile: "/var/run/triage.pid"
 triage_receiver_log: "{{ triage_log_dir }}/receiver.log"
 triage_run_log_days: 30
+triage_transcript_days: 30
 triage_model: null
 triage_max_turns: 25
 triage_timeout_s: 600
@@ -153,7 +203,7 @@ triage_warn_days: 30
 # vault_triage_push_token, vault_triage_discord_webhook,
 # vault_triage_kube_token, vault_triage_kube_ca (PEM),
 # vault_triage_omni_key, vault_triage_graylog_token, and
-# triage_token_created (date part of cluster/triage-claude created_time).
+# triage_token_created (date part of cluster/triage-claude updated_time).
 
 # --- Agent uid (R14) -----------------------------------------------------------
 # The receiver (triage) holds the secrets; Claude and its tools run as
@@ -180,7 +230,7 @@ triage_agent_timeout_s: "{{ triage_timeout_s - 15 }}"
 # pf inside the VNET jail needs /dev/pf: devfs ruleset 14 (bastille_net), from
 # roles/bastille with bastille_devfs_net_ruleset (fix/bastille-devfs).
 triage_devfs_ruleset: 14
-# R15 (Sasha, 2026-11-23): boot at 1 so pf can load, rc raises it to 2.
+# R15 (owner, 2026-11-23): boot at 1 so pf can load, rc raises it to 2.
 triage_jail_boot_securelevel: 1
 triage_jail_securelevel: 2
 # Anthropic API inbound ranges, from

@@ -3,6 +3,23 @@
 # linuxulator, pinned Linux Claude Code, read-only CLIs and the wrappers.
 # Idempotent: creates the jail only if missing, and every step is guarded.
 
+# --- Inputs ------------------------------------------------------------------
+
+- name: "Check the run-time secrets were passed"
+  ansible.builtin.assert:
+    that:
+      - vault_triage_claude_token | default('') | length > 0
+      - vault_triage_push_token | default('') | length > 0
+      - vault_triage_discord_webhook | default('') | length > 0
+      - vault_triage_kube_token | default('') | length > 0
+      - vault_triage_kube_ca | default('') is search('BEGIN CERTIFICATE')
+      - vault_triage_omni_key | default('') | trim | length > 0
+      - vault_triage_graylog_token | default('') | trim | length > 0
+      - triage_token_created | default('') is match('^\d{4}-\d{2}-\d{2}$')
+    fail_msg: "Pass the vault_triage_* secrets and triage_token_created (see README)."
+    quiet: true
+  no_log: true
+
 # --- Jail lifecycle ----------------------------------------------------------
 
 - name: "Check whether the jail already exists"
@@ -67,16 +84,6 @@
     env ASSUME_ALWAYS_YES=yes pkg install -y {{ triage_packages | join(' ') }}
   when: triage_pkg.rc != 0
   changed_when: true
-
-# The wrappers' `#!/usr/bin/env python3` needs a python3 on PATH; python311
-# only installs python3.11 (the lang/python3 meta-port just adds this link).
-- name: "Link python3 to the pinned Python"
-  ansible.builtin.file:
-    src: "{{ triage_python }}"
-    dest: "{{ triage_jail_root }}/usr/local/bin/python3"
-    state: link
-    owner: root
-    group: wheel
 
 # --- Linux ABI filesystems ---------------------------------------------------
 
@@ -221,9 +228,17 @@
     - "{{ triage_lib_dir }}"
     - "{{ triage_lib_dir }}/triage"
     - "{{ triage_lib_dir }}/bin"
-    - "{{ triage_lib_dir }}/linux"
     - "{{ triage_lib_dir }}/libexec"
     - "{{ triage_claude_dir }}"
+
+# Nothing used them: omnictl, and the link to the pinned Python.
+- name: "Remove retired files"
+  ansible.builtin.file:
+    path: "{{ triage_jail_root }}{{ item }}"
+    state: absent
+  loop:
+    - "{{ triage_lib_dir }}/linux"
+    - "/usr/local/bin/python3"
 
 # Globs (not a directory copy) so local __pycache__ never ships.
 - name: "Install the triage Python package"
@@ -306,31 +321,7 @@
     owner: root
     group: wheel
 
-- name: "Download omnictl {{ triage_omnictl_version }} (Linux amd64)"
-  ansible.builtin.get_url:
-    url: "{{ triage_omnictl_url }}"
-    dest: "{{ triage_jail_root }}{{ triage_omnictl_bin }}"
-    checksum: "sha256:{{ triage_omnictl_sha256 }}"
-    mode: "0755"
-    owner: root
-    group: wheel
-
 # --- Receiver: secrets, config, runbook, service -----------------------------
-
-- name: "Check the run-time secrets were passed"
-  ansible.builtin.assert:
-    that:
-      - vault_triage_claude_token | default('') | length > 0
-      - vault_triage_push_token | default('') | length > 0
-      - vault_triage_discord_webhook | default('') | length > 0
-      - vault_triage_kube_token | default('') | length > 0
-      - vault_triage_kube_ca | default('') is search('BEGIN CERTIFICATE')
-      - vault_triage_omni_key | default('') | trim | length > 0
-      - vault_triage_graylog_token | default('') | trim | length > 0
-      - triage_token_created | default('') is match('^\d{4}-\d{2}-\d{2}$')
-    fail_msg: "Pass the vault_triage_* secrets and triage_token_created (see README)."
-    quiet: true
-  no_log: true
 
 - name: "Install the runbook as the agent work dir's CLAUDE.md"
   ansible.builtin.copy:
@@ -613,12 +604,18 @@
   failed_when: triage_tools.rc != 0 or triage_tools.stdout_lines | length != 7
   when: not ansible_check_mode
 
+# 503 is fine if its only reason is the token's 30-day warning window, so a
+# deploy (such as the renewal itself) still works then.
 - name: "Check the receiver answers /health"
-  ansible.builtin.command: >-
-    jexec {{ triage_jail_name }} fetch -qo - http://127.0.0.1:{{ triage_port }}/health
+  ansible.builtin.uri:
+    url: "http://{{ triage_jail_ip }}:{{ triage_port }}/health"
+    status_code: [200, 503]
+    timeout: 10
   register: triage_health
-  changed_when: false
   retries: 10
   delay: 2
-  until: triage_health.rc == 0
+  until: >-
+    triage_health.json is defined and
+    triage_health.json.problems | reject('equalto', 'token near expiry')
+    | list | length == 0
   when: not ansible_check_mode

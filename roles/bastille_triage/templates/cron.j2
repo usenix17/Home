@@ -3,3 +3,5 @@
 SHELL=/bin/sh
 PATH=/bin:/usr/bin
 15	4	*	*	*	{{ triage_user }}	find {{ triage_log_dir }} -mindepth 2 -type f -mtime +{{ triage_run_log_days }} -delete; find {{ triage_log_dir }} -mindepth 1 -type d -empty -delete
+# Prune the agent's session transcripts after {{ triage_transcript_days }} days.
+25	4	*	*	*	{{ triage_agent_user }}	find {{ triage_agent_home }}/.claude/projects -type f -mtime +{{ triage_transcript_days }} -delete
