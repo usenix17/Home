@@ -1,6 +1,15 @@
 """Parse Alertmanager and Gatus webhook payloads into triggers."""
 import dataclasses
+import json
+import re
 from typing import Any
+
+_UNPARSABLE = "[unparsable, dropped]"
+# The fixed start of the watcher's body; error text only comes later.
+_GATUS_HEAD = re.compile(
+    rb'\s{0,16}\{\s{0,16}"endpoint"\s{0,16}:\s{0,16}'
+    rb'"([^"\\\x00-\x1f]{1,200})"\s{0,16},\s{0,16}"status"\s{0,16}:'
+    rb'\s{0,16}"(TRIGGERED|RESOLVED)"\s{0,16},')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -70,3 +79,32 @@ def parse_gatus(body: dict[str, Any]) -> list[Trigger]:
     return [Trigger("gatus", f"gatus:{endpoint}", endpoint, "critical",
                     {"description": body.get("description", ""),
                      "errors": body.get("errors", "")})]
+
+
+def load_gatus(raw: bytes) -> dict[str, Any]:
+    """Decodes a Gatus body, tolerating error text that breaks its JSON.
+
+    Gatus pastes errors into the body escaping only double quotes, so a
+    control character or a backslash there must not lose the alert.
+
+    Args:
+        raw: The request body.
+
+    Returns:
+        The decoded body, or the endpoint and status with the rest dropped.
+
+    Raises:
+        ValueError: If not even those can be recovered.
+    """
+    try:
+        body = json.loads(raw)
+    except (ValueError, RecursionError) as err:
+        found = _GATUS_HEAD.match(raw)
+        if not found:
+            raise ValueError("unrecoverable gatus body") from err
+        return {"endpoint": found.group(1).decode("utf-8", "replace"),
+                "status": found.group(2).decode(),
+                "description": _UNPARSABLE, "errors": _UNPARSABLE}
+    if not isinstance(body, dict):
+        raise ValueError("gatus body is not an object")
+    return body

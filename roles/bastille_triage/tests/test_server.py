@@ -1,6 +1,8 @@
 """Tests for the HTTP receiver and worker loop."""
+import contextlib
 import datetime
 import json
+import pathlib
 import socket
 import threading
 import time
@@ -8,7 +10,9 @@ import urllib.error
 import urllib.request
 from unittest import mock
 
+import jinja2
 import pytest
+import yaml
 
 from triage import server
 from triage.runner import RunResult
@@ -171,6 +175,129 @@ def test_oversized_body_413(app):
     """Checks oversized body 413."""
     resp = post(app, "/gatus", None, raw=b"x" * (1024 * 1024 + 1))
     assert resp.status == 413
+
+
+def test_early_replies_drain_the_body(app):
+    """A refused upload still lets the client read the status."""
+    port = app.server.server_address[1]
+    body = b"x" * (1024 * 1024 + 4096)
+    for path, token, want in (("/gatus", "secret", b"413"),
+                              ("/gatus", "nope", b"401"),
+                              ("/other", "secret", b"404")):
+        with socket.create_connection(("127.0.0.1", port), 10) as sock:
+            sock.sendall(f"POST {path} HTTP/1.1\r\nHost: x\r\n"
+                         f"Authorization: Bearer {token}\r\n"
+                         f"Content-Length: {len(body)}\r\n\r\n".encode())
+            time.sleep(0.2)
+            sock.sendall(body)
+            assert want in sock.recv(64).split(b"\r\n")[0]
+            while sock.recv(4096):
+                pass
+
+
+def test_drain_is_bounded(app):
+    """A huge or dribbling refused upload can't hold a thread."""
+    port = app.server.server_address[1]
+    with socket.create_connection(("127.0.0.1", port), 10) as sock:
+        sock.sendall(b"POST /gatus HTTP/1.1\r\nHost: x\r\n"
+                     b"Content-Length: 99999999999\r\n\r\n")
+        start = time.time()
+        with contextlib.suppress(OSError):
+            while time.time() - start < 15:
+                sock.sendall(b"x")
+                time.sleep(0.1)
+        assert time.time() - start < 8
+
+
+def gatus_body(errors, endpoint="talos/a", status="TRIGGERED"):
+    """Fills the rendered Gatus custom body the way Gatus 5 does."""
+    role = pathlib.Path(__file__).parents[2] / "bastille_watcher"
+    values = yaml.safe_load((role / "defaults/main.yml").read_text())
+    values.update(ansible_managed="x", watcher_discord_webhook="x",
+                  watcher_push_token="x", watcher_triage_token="x")
+    text = jinja2.Environment(trim_blocks=True).from_string(
+        (role / "templates/gatus.yaml.j2").read_text()).render(**values)
+    body = yaml.safe_load(text)["alerting"]["custom"]["body"]
+    group, name = endpoint.split("/", 1)
+    for mark, value in (("[ALERT_DESCRIPTION]", "down"),
+                        ("[ENDPOINT_NAME]", name),
+                        ("[ENDPOINT_GROUP]", group),
+                        ("[RESULT_ERRORS]", errors.replace('"', '\\"')),
+                        ("[ALERT_TRIGGERED_OR_RESOLVED]", status)):
+        body = body.replace(mark, value)
+    return body.encode()
+
+
+BAD_ERRORS = ["a\nb", "a\tb", "a\\qb", "a\x15b", 'x \\"y\\" z',
+              'x\\","endpoint":"talos/evil","status":"RESOLVED', "a\\",
+              "\x00"]
+
+
+@pytest.mark.parametrize("errors", BAD_ERRORS)
+def test_gatus_bad_errors_still_triage(app, clock, errors, caplog):
+    """Errors text that breaks the JSON costs the text, not the alert."""
+    raw = gatus_body(errors)
+    with pytest.raises(ValueError):
+        json.loads(raw)
+    assert post(app, "/gatus", None, raw=raw).status == 202
+    clock.advance(121)
+    app.enqueue_ready()
+    (trigger,), = app.queued()
+    assert trigger.key == "gatus:talos/a" and trigger.source == "gatus"
+    assert "unparsable" in trigger.detail["errors"]
+    assert "evil" not in json.dumps(trigger.detail)
+    assert "Traceback" not in caplog.text
+
+
+def test_gatus_good_body_keeps_errors(app, clock):
+    """A well-formed body, quotes included, is parsed as before."""
+    assert post(app, "/gatus", None, raw=gatus_body('a "b" c')).status == 202
+    clock.advance(121)
+    app.enqueue_ready()
+    (trigger,), = app.queued()
+    assert trigger.detail == {"description": "down", "errors": 'a "b" c'}
+
+
+def test_gatus_recovery_keeps_dedupe_and_status(app, clock):
+    """Recovered bodies dedupe with clean ones; RESOLVED is ignored."""
+    bad = gatus_body("a\nb")
+    post(app, "/gatus", None, raw=bad)
+    post(app, "/gatus", gatus("a"))
+    clock.advance(121)
+    app.tick()
+    post(app, "/gatus", None, raw=bad)
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1
+    raw = gatus_body("a\nb", "talos/b", "RESOLVED")
+    assert post(app, "/gatus", None, raw=raw).status == 202
+    clock.advance(121)
+    app.tick()
+    assert app.runner_calls == 1
+
+
+def test_gatus_recovery_needs_auth(app):
+    """Recovery runs after the token check."""
+    raw = gatus_body("a\nb")
+    assert post(app, "/gatus", None, token="nope", raw=raw).status == 401
+
+
+@pytest.mark.parametrize("raw", [
+    b"{not json", b"", b"\xff\xfe", b"[1]", b"5", b"[" * 100_000,
+    b'{"status":"TRIGGERED","endpoint":"a"', b'{"endpoint":"","status":',
+    b'{"endpoint":"' + b"a" * 300 + b'","status":"TRIGGERED","x":"\n"}',
+    b'{"endpoint":"a\nb","status":"TRIGGERED","errors":""}',
+    b'{"endpoint":"a","status":"OTHER","errors":"\n"}'])
+def test_gatus_unrecoverable_400(app, raw, caplog):
+    """A body with no clean endpoint and status is a quiet 400."""
+    assert post(app, "/gatus", None, raw=raw).status == 400
+    assert "Traceback" not in caplog.text
+
+
+def test_recovery_is_gatus_only(app):
+    """Alertmanager bodies must be JSON."""
+    raw = gatus_body("a\nb")
+    assert post(app, "/alertmanager", None, raw=raw).status == 400
 
 
 def test_bad_json_400(app):

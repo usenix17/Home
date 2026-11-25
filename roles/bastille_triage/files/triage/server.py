@@ -13,7 +13,8 @@ import time
 import urllib.request
 from typing import Any, Callable, Optional
 
-from triage.payloads import Trigger, parse_alertmanager, parse_gatus
+from triage.payloads import (Trigger, load_gatus, parse_alertmanager,
+                             parse_gatus)
 from triage.policy import Batcher, DailyCap, Deduper
 from triage.report import build_prompt, format_notice, format_report
 from triage.runner import RunResult, run_claude
@@ -21,7 +22,11 @@ from triage.runner import RunResult, run_claude
 LOG = logging.getLogger("triage")
 MAX_BODY = 1024 * 1024
 MAX_BATCH = 30
-PARSERS = {"/alertmanager": parse_alertmanager, "/gatus": parse_gatus}
+# Refused uploads are read up to this much, so the client sees the status.
+DRAIN_MAX = 2 * MAX_BODY
+DRAIN_S = 3
+ROUTES = {"/alertmanager": (json.loads, parse_alertmanager),
+          "/gatus": (load_gatus, parse_gatus)}
 
 
 def post_discord(url: str, content: str) -> None:
@@ -48,6 +53,30 @@ def _utc_date(now: float) -> datetime.date:
     """Returns the UTC date for an epoch time."""
     return datetime.datetime.fromtimestamp(
         now, datetime.timezone.utc).date()
+
+
+def _drain(handler: http.server.BaseHTTPRequestHandler,
+           length: int) -> None:
+    """Reads a bounded part of an unused request body.
+
+    Closing with unread data resets the connection, which can lose the
+    reply already sent.
+
+    Args:
+        handler: The request handler.
+        length: The declared body length.
+    """
+    left = min(length, DRAIN_MAX)
+    end = time.monotonic() + DRAIN_S
+    try:
+        while left > 0 and time.monotonic() < end:
+            handler.connection.settimeout(1)
+            data = handler.rfile.read1(min(left, 65536))
+            if not data:
+                break
+            left -= len(data)
+    except OSError:
+        pass
 
 
 class TriageApp:  # pylint: disable=too-many-instance-attributes
@@ -125,35 +154,46 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
                 code, body = app.health()
                 self._reply(code, body)
 
+            def _refuse(self, code: int, length: int) -> None:
+                """Replies without using the body."""
+                self._reply(code)
+                _drain(self, length)
+
             def do_POST(self) -> None:  # pylint: disable=invalid-name
                 """Accepts authenticated alert webhooks."""
-                parser = PARSERS.get(self.path)
-                if parser is None:
-                    self._reply(404)
-                    return
-                if not app._authorized(  # pylint: disable=protected-access
-                        self.headers.get("Authorization", "")):
-                    self._reply(401)
-                    return
                 try:
                     length = int(self.headers.get("Content-Length", "0"))
                 except ValueError:
                     length = -1
-                if length < 0:
-                    self._reply(400)
-                    return
-                if length > MAX_BODY:
-                    self._reply(413)
-                    return
+                route = ROUTES.get(self.path)
+                if route is None:
+                    self._refuse(404, length)
+                elif not app._authorized(  # pylint: disable=protected-access
+                        self.headers.get("Authorization", "")):
+                    self._refuse(401, length)
+                elif length < 0:
+                    self._refuse(400, length)
+                elif length > MAX_BODY:
+                    self._refuse(413, length)
+                else:
+                    self._accept_body(route, length)
+
+            def _accept_body(self, route: tuple, length: int) -> None:
+                """Reads and parses a body and queues its triggers."""
+                load, parse = route
                 try:
-                    body = json.loads(self.rfile.read(length))
+                    body = load(self.rfile.read(length))
                     # pylint: disable-next=protected-access
-                    app._accept(parser(body))
+                    app._accept(parse(body))
+                except (ValueError, OSError) as err:
+                    LOG.warning("rejected malformed payload: %s",
+                                type(err).__name__)
+                    self._reply(400)
                 except Exception:  # pylint: disable=broad-exception-caught
                     LOG.warning("rejected malformed payload", exc_info=True)
                     self._reply(400)
-                    return
-                self._reply(202)
+                else:
+                    self._reply(202)
 
         return Handler
 
