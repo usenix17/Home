@@ -1,0 +1,5 @@
+---
+# Extra swap devices for FreeBSD hosts, added to /etc/fstab and enabled live.
+# Use GPT label paths (/dev/gpt/<label>): da* numbering can shift on SAS HBAs.
+# Plain swap, no gmirror: a disk loss kills only the processes paged to it.
+freebsd_swap_devices: []

@@ -1,0 +1,35 @@
+---
+# Add swap devices to /etc/fstab and swapon any that are not active yet.
+
+- name: "Check the swap devices exist"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ freebsd_swap_devices }}"
+  register: freebsd_swap_stat
+
+- name: "Fail on a missing swap device"
+  ansible.builtin.assert:
+    that: item.stat.exists
+    fail_msg: "{{ item.item }} does not exist"
+    quiet: true
+  loop: "{{ freebsd_swap_stat.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: "Add swap devices to /etc/fstab"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^{{ item | regex_escape }}\s'
+    line: "{{ item }}\t\tnone\tswap\tsw\t\t0\t0"
+  loop: "{{ freebsd_swap_devices }}"
+
+- name: "List active swap devices"
+  ansible.builtin.command: swapctl -l
+  register: freebsd_swap_active
+  changed_when: false
+
+- name: "Enable swap devices that are not active"
+  ansible.builtin.command: "swapon {{ item }}"
+  loop: "{{ freebsd_swap_devices }}"
+  when: item not in freebsd_swap_active.stdout
+  changed_when: true
