@@ -24,8 +24,13 @@ watcher_gatus_port: 8080
 # Secrets, supplied at run time (OpenBao cluster/monitoring-secrets):
 #   discordWebhookUrl -> vault_watcher_discord_webhook
 #   watcherPushToken  -> vault_watcher_push_token (also used by Alertmanager)
+#   triagePushToken   -> vault_triage_push_token (also used by bastille_triage)
 watcher_discord_webhook: "{{ vault_watcher_discord_webhook | default('CHANGE_ME') }}"
 watcher_push_token: "{{ vault_watcher_push_token | default('CHANGE_ME') }}"
+watcher_triage_token: "{{ vault_triage_push_token | default('CHANGE_ME') }}"
+
+# AI triage receiver (roles/bastille_triage): alerted on every endpoint below.
+watcher_triage_url: "http://192.168.1.61:8090"
 
 # Alertmanager pushes its always-firing Watchdog every ~2 min; silence for
 # this long means in-cluster alerting is dead.
