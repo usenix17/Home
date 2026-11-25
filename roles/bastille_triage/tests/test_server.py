@@ -2,7 +2,9 @@
 import contextlib
 import datetime
 import json
+import os
 import pathlib
+import shutil
 import socket
 import threading
 import time
@@ -421,6 +423,7 @@ def test_discord_payload_suppresses_mentions():
         server.post_discord("http://x.invalid/h", "@everyone hi")
     req = opener.call_args[0][0]
     assert json.loads(req.data) == {"content": "@everyone hi",
+                                    "flags": 4,
                                     "allowed_mentions": {"parse": []}}
     assert opener.call_args[1]["timeout"] == 10
 
@@ -506,3 +509,199 @@ def test_queue_fills_during_long_run(harness, clock):
     release.set()
     worker.join(10)
     assert titles == [f"talos/q{i}" for i in range(1, 6)]
+
+
+def test_discord_payload_is_always_defanged():
+    """Whatever is posted, no link goes out."""
+    with mock.patch("triage.server.urllib.request.urlopen") as opener:
+        server.post_discord("http://x.invalid/h", "a https://evil b")
+    body = json.loads(opener.call_args[0][0].data)
+    assert "://" not in body["content"] and "evil" in body["content"]
+
+
+def http_error(code, retry_after=None):
+    """Builds an HTTPError with an optional Retry-After header."""
+    headers = {} if retry_after is None else {"Retry-After": retry_after}
+    return urllib.error.HTTPError("u", code, "x", headers, None)
+
+
+@pytest.mark.parametrize("effects, calls", [
+    ([429, None], 2), ([500, None], 2), ([503, 503, None], 2),
+    ([429, 500, None], 2), ([400], 1), ([401], 1), ([404], 1), ([None], 1)])
+def test_discord_retries_once(effects, calls):
+    """429 and 5xx get one retry, anything else none."""
+    side = [mock.MagicMock() if e is None else http_error(e)
+            for e in effects]
+    with mock.patch("triage.server.urllib.request.urlopen",
+                    side_effect=side) as opener, \
+            mock.patch("triage.server.time.sleep") as sleep:
+        server.post_discord("http://x.invalid/h", "hi")
+    assert opener.call_count == calls and sleep.call_count == calls - 1
+
+
+@pytest.mark.parametrize("header, low, high", [
+    ("3", 3, 3), ("0.5", 0.5, 0.5), ("99999", 1, 10), ("-4", 0, 10),
+    ("nan", 0, 10), ("inf", 0, 10), ("Wed, 21 Oct", 1, 10), (None, 1, 10)])
+def test_discord_retry_wait_is_bounded(header, low, high):
+    """The server's Retry-After is honoured within limits."""
+    with mock.patch("triage.server.urllib.request.urlopen",
+                    side_effect=[http_error(429, header),
+                                 mock.MagicMock()]), \
+            mock.patch("triage.server.time.sleep") as sleep:
+        server.post_discord("http://x.invalid/h", "hi")
+    assert low <= sleep.call_args[0][0] <= high
+
+
+def test_discord_failure_never_logs_the_url(caplog):
+    """A malformed webhook URL stays out of the log."""
+    server.post_discord("notaurl-webhooksecret", "hi")
+    server.post_discord("http://x\x7fwebhooksecret/h", "hi")
+    assert "webhooksecret" not in caplog.text and "failed" in caplog.text
+
+
+def fire(app, clock, name):
+    """Posts one Gatus alert and runs a worker step."""
+    assert post(app, "/gatus", gatus(name)).status == 202
+    clock.advance(121)
+    app.tick()
+
+
+def test_lost_state_dir_keeps_triaging(harness, clock, tmp_path):
+    """With the state unwritable, memory still dedupes and caps."""
+    app = harness(daily_cap=2)
+    shutil.rmtree(tmp_path / "state")
+    for name in ("a", "a", "b", "a", "c", "d"):
+        fire(app, clock, name)
+    assert app.runner_calls == 2
+    assert len([p for p in app.posts if "cap reached" not in p]) == 2
+    assert len([p for p in app.posts if "cap reached" in p]) == 1
+
+
+def test_inflight_is_cleared_before_the_state_write(harness, clock):
+    """A state failure can't leave a key suppressed."""
+    app = harness()
+    inner = app.app
+    seen = []
+
+    def mark(*_):
+        # pylint: disable-next=protected-access
+        seen.append(set(inner._batcher._inflight))
+        raise RuntimeError("boom")
+
+    # pylint: disable-next=protected-access
+    with mock.patch.object(inner._deduper, "mark", mark), \
+            contextlib.suppress(RuntimeError):
+        fire(app, clock, "a")
+    assert seen == [set()]
+
+
+@pytest.mark.parametrize("how", ["file", "missing"])
+def test_log_dir_failure_still_posts(harness, clock, tmp_path, how, caplog):
+    """A day dir that can't be made costs the log, not the triage."""
+    app = harness()
+    shutil.rmtree(tmp_path / "log")
+    if how == "file":
+        (tmp_path / "log").write_text("x")
+    else:
+        (tmp_path / "log").symlink_to(tmp_path / "gone" / "deeper")
+    fire(app, clock, "a")
+    assert len(app.posts) == 1
+    assert "run log write failed" in caplog.text
+    assert "Traceback" not in caplog.text
+
+
+def test_post_comes_before_the_log(harness, clock, tmp_path):
+    """The report is posted before the run log is written."""
+    app = harness()
+    logs = []
+    app.app._post = (  # pylint: disable=protected-access
+        lambda *_: logs.append(list((tmp_path / "log").rglob("*.json"))))
+    fire(app, clock, "a")
+    assert logs == [[]]
+    assert len(list((tmp_path / "log").rglob("*.json"))) == 1
+
+
+def test_post_failure_still_logs_the_run(harness, clock, tmp_path):
+    """An exception while posting does not lose the run log."""
+    app = harness()
+
+    def fail(*_):
+        raise RuntimeError("boom")
+
+    app.app._post = fail  # pylint: disable=protected-access
+    with contextlib.suppress(RuntimeError):
+        fire(app, clock, "a")
+    assert len(list((tmp_path / "log").rglob("*.json"))) == 1
+
+
+def test_health_degrades_when_state_is_unwritable(harness, tmp_path):
+    """Missing state dir: 503 with a reason, and 200 once it is back."""
+    app = harness()
+    assert app.health()[0] == 200
+    shutil.rmtree(tmp_path / "state")
+    code, body = app.health()
+    assert code == 503 and body["problems"] == ["state not writable"]
+    os.mkdir(tmp_path / "state")
+    assert app.health()[0] == 200
+
+
+@pytest.mark.parametrize("name", ["cap.json", "dedupe.json"])
+def test_health_degrades_when_a_state_file_is_stuck(
+        harness, clock, tmp_path, name):
+    """A single file that can't be replaced is noticed, then recovers."""
+    app = harness()
+    (tmp_path / "state" / name).mkdir()
+    fire(app, clock, "a")
+    assert len(app.posts) == 1
+    assert app.health()[0] == 503
+    (tmp_path / "state" / name).rmdir()
+    assert app.health()[0] == 200
+    assert json.loads((tmp_path / "state" / name).read_text())
+
+
+def test_startup_survives_unwritable_dirs(harness, clock, tmp_path):
+    """The receiver starts, triages and reports the problem."""
+    (tmp_path / "f").write_text("x")
+    app = harness(state_dir=str(tmp_path / "f" / "state"),
+                  log_dir=str(tmp_path / "f" / "log"))
+    assert app.health()[0] == 503
+    fire(app, clock, "a")
+    assert len(app.posts) == 1
+
+
+def test_dedupe_comes_before_the_batch_cap(app, clock):
+    """Known alerts don't push new ones out of a full batch."""
+    for i in range(30):
+        post(app, "/gatus", gatus(f"old{i}"))
+    clock.advance(121)
+    app.tick()
+    for i in range(30):
+        post(app, "/gatus", gatus(f"old{i}"))
+    for i in range(5):
+        post(app, "/gatus", gatus(f"new{i}"))
+    clock.advance(121)
+    app.enqueue_ready()
+    (batch,) = app.queued()
+    assert [t.title for t in batch] == [f"talos/new{i}" for i in range(5)]
+
+
+def test_all_known_batch_is_not_queued(app, clock):
+    """A batch with nothing new makes no queue entry."""
+    fire(app, clock, "a")
+    post(app, "/gatus", gatus("a"))
+    clock.advance(121)
+    app.enqueue_ready()
+    assert not app.queued()
+
+
+def test_omitted_note_alone_is_not_a_run(app, clock):
+    """If every queued alert is known by now, the note is not triaged."""
+    for i in range(35):
+        post(app, "/gatus", gatus(f"n{i}"))
+    clock.advance(121)
+    app.enqueue_ready()
+    for i in range(30):
+        # pylint: disable-next=protected-access
+        app.app._deduper.mark(f"gatus:talos/n{i}", clock())
+    app.tick()
+    assert app.runner_calls == 0

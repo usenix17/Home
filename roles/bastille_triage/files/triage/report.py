@@ -1,10 +1,18 @@
 """Build the triage prompt and the redacted Discord messages."""
 import json
 import re
+from typing import Any
 
+from triage import masking
 from triage.payloads import Trigger
 
 MAX_CHARS = 1900
+MAX_TITLES = 5
+TITLE_CHARS = 80
+HEADLINE_CHARS = 200
+FIELD_CHARS = 400
+# The prompt is one argv element, so it must stay well under ARG_MAX.
+PROMPT_BYTES = 100_000
 PREFIX = ":mag: Triage:"
 
 _PROMPT = """\
@@ -34,16 +42,8 @@ _NOTICES = {
     "cap": "skipped, daily triage cap reached",
 }
 
-_PATTERNS = [
-    re.compile(r"-----BEGIN[^\n]*?-----.*?(?:-----END[^\n]*?-----|\Z)",
-               re.DOTALL),
-    re.compile(r"https://(?:discord(?:app)?\.com/api/webhooks|"
-               r"hooks\.slack\.com/(?:services|workflows))/\S+"),
-    re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]+", re.IGNORECASE),
-    re.compile(r"github_pat_[A-Za-z0-9_]+"),
-    re.compile(r"sk-ant-[A-Za-z0-9_-]+"),
-    re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
-]
+_PEM = re.compile(
+    r"-----BEGIN[^\n]*?-----.*?(?:-----END[^\n]*?-----|\Z)", re.DOTALL)
 _BASE64 = re.compile(r"[A-Za-z0-9+/]{40,}={0,2}")
 
 
@@ -51,29 +51,8 @@ def _mask_base64(match: re.Match) -> str:
     """Masks a base64-like run only if it mixes letters and digits."""
     run = match.group(0)
     if any(c.isdigit() for c in run) and any(c.isalpha() for c in run):
-        return "[redacted]"
+        return masking.MASK
     return run
-
-
-def _titles(triggers: list[Trigger]) -> str:
-    """Joins trigger titles for display."""
-    return ", ".join(t.title for t in triggers)
-
-
-def build_prompt(triggers: list[Trigger]) -> str:
-    """Builds the triage prompt.
-
-    Args:
-        triggers: Alerts to triage in one run.
-
-    Returns:
-        The prompt with all triggers in one JSON data block.
-    """
-    data = [{"title": t.title, "severity": t.severity, "source": t.source,
-             "detail": t.detail} for t in triggers]
-    body = json.dumps(data, indent=2, default=str)
-    body = body.replace("<", "\\u003c").replace(">", "\\u003e")
-    return _PROMPT % body
 
 
 def redact(text: str) -> str:
@@ -85,9 +64,80 @@ def redact(text: str) -> str:
     Returns:
         The text with secrets replaced by "[redacted]".
     """
-    for pattern in _PATTERNS:
-        text = pattern.sub("[redacted]", text)
+    text = masking.mask_tokens(_PEM.sub(masking.MASK, text))
     return _BASE64.sub(_mask_base64, text)
+
+
+def defang(text: str) -> str:
+    """Breaks every link, so that nothing posted can be followed."""
+    return text.replace("://", "[:]//")
+
+
+def _clean(value: Any) -> str:
+    """Makes one value safe to post: masked, redacted and defanged."""
+    return defang(redact(masking.mask(str(value))))
+
+
+def _cut(text: str, limit: int) -> str:
+    """Shortens cleaned text with an ellipsis."""
+    return text if len(text) <= limit else text[:limit - 1] + "…"
+
+
+def _title(value: Any) -> str:
+    """Cleans an alert title onto one short line.
+
+    A title without digits gets a lead-in while it is masked, since the
+    masking takes a long word alone on its line for a secret.
+    """
+    text = " ".join(str(value).split())
+    if not any(c.isdigit() for c in text):
+        text = "- " + text
+    return _cut(" ".join(_clean(text).removeprefix("- ").split()),
+                TITLE_CHARS)
+
+
+def _titles(triggers: list[Trigger]) -> str:
+    """Joins the first trigger titles and counts the rest."""
+    real = [t for t in triggers if "omitted" not in t.detail]
+    more = len(real[MAX_TITLES:]) + sum(
+        t.detail["omitted"] for t in triggers if "omitted" in t.detail)
+    shown = [_title(t.title) for t in real[:MAX_TITLES]]
+    return ", ".join(shown + ([f"+{more} more"] if more else []))
+
+
+def build_prompt(triggers: list[Trigger]) -> str:
+    """Builds the triage prompt, at most PROMPT_BYTES long.
+
+    Args:
+        triggers: Alerts to triage in one run.
+
+    Returns:
+        The prompt with all triggers in one JSON data block. Details are
+        shortened evenly if the prompt would be too long.
+    """
+    limit = None
+    while True:
+        data = []
+        for trig in triggers:
+            detail: Any = trig.detail
+            text = json.dumps(detail, default=str)
+            if limit is not None and len(text) > limit:
+                detail = text[:limit] + " [cut]"
+            data.append({"title": trig.title[:200],
+                         "severity": trig.severity[:50],
+                         "source": trig.source, "detail": detail})
+        body = json.dumps(data, indent=2, default=str)
+        body = body.replace("<", "\\u003c").replace(">", "\\u003e")
+        prompt = _PROMPT % body
+        if len(prompt) <= PROMPT_BYTES or limit == 0:
+            return prompt
+        limit = PROMPT_BYTES // len(triggers) if limit is None else limit // 2
+
+
+def _evidence(value: Any) -> str:
+    """Cleans the evidence list, also across neighbouring items."""
+    items = value if isinstance(value, list) else [value] if value else []
+    return _clean("\n".join(f"- {_clean(item)}" for item in items))
 
 
 def format_report(result: dict, triggers: list[Trigger]) -> str:
@@ -99,20 +149,19 @@ def format_report(result: dict, triggers: list[Trigger]) -> str:
         triggers: The alerts that were triaged.
 
     Returns:
-        Redacted text of at most 1900 characters.
+        Cleaned text of at most 1900 characters, most useful lines first.
     """
-    evidence = "\n".join(f"- {e}" for e in result.get("evidence") or [])
+    def field(name: str, limit: int, default: str = "") -> str:
+        return _cut(_clean(result.get(name, default)), limit)
+
     text = (f"{PREFIX} {_titles(triggers)}\n"
-            f"**{result.get('title', '')}**\n"
-            f"{result.get('summary', '')}\n\n"
-            f"**Evidence**\n{evidence}\n\n"
-            f"**Likely cause:** {result.get('likely_cause', '')}\n"
-            f"**Next step:** {result.get('suggested_next_step', '')}\n"
-            f"**Confidence:** {result.get('confidence', 'unknown')}")
-    text = redact(text)
-    if len(text) > MAX_CHARS:
-        text = text[:MAX_CHARS - 1] + "…"
-    return text
+            f"**{field('title', HEADLINE_CHARS)}**\n"
+            f"**Likely cause:** {field('likely_cause', FIELD_CHARS)}\n"
+            f"**Next step:** {field('suggested_next_step', FIELD_CHARS)}\n"
+            f"**Confidence:** {field('confidence', 20, 'unknown')}\n\n"
+            f"{_clean(result.get('summary', ''))}\n\n"
+            f"**Evidence**\n{_evidence(result.get('evidence'))}")
+    return _cut(text, MAX_CHARS)
 
 
 def format_notice(kind: str, triggers: list[Trigger]) -> str:
@@ -126,4 +175,4 @@ def format_notice(kind: str, triggers: list[Trigger]) -> str:
         A one-line Discord message.
     """
     reason = _NOTICES.get(kind, _NOTICES["error"])
-    return redact(f"{PREFIX} {_titles(triggers)}: {reason}")[:MAX_CHARS]
+    return _cut(f"{PREFIX} {_titles(triggers)}: {reason}", MAX_CHARS)

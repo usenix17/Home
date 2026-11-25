@@ -3,6 +3,7 @@ import argparse
 import dataclasses
 import datetime
 import hmac
+import http.client
 import http.server
 import json
 import logging
@@ -10,13 +11,15 @@ import os
 import secrets
 import threading
 import time
+import urllib.error
 import urllib.request
 from typing import Any, Callable, Optional
 
 from triage.payloads import (Trigger, load_gatus, parse_alertmanager,
                              parse_gatus)
-from triage.policy import Batcher, DailyCap, Deduper
-from triage.report import build_prompt, format_notice, format_report
+from triage.policy import Batcher, DailyCap, Deduper, writable
+from triage.report import (build_prompt, defang, format_notice,
+                           format_report)
 from triage.runner import RunResult, run_claude
 
 LOG = logging.getLogger("triage")
@@ -25,28 +28,59 @@ MAX_BATCH = 30
 # Refused uploads are read up to this much, so the client sees the status.
 DRAIN_MAX = 2 * MAX_BODY
 DRAIN_S = 3
+SUPPRESS_EMBEDS = 4
+RETRY_S = 2.0
+RETRY_MAX_S = 10.0
 ROUTES = {"/alertmanager": (json.loads, parse_alertmanager),
           "/gatus": (load_gatus, parse_gatus)}
 
 
+def _retry_wait(err: urllib.error.HTTPError) -> float:
+    """Returns how long to wait before the retry, within limits."""
+    try:
+        wait = float((err.headers or {}).get("Retry-After", RETRY_S))
+    except ValueError:
+        return RETRY_S
+    return wait if 0 <= wait <= RETRY_MAX_S else RETRY_MAX_S
+
+
 def post_discord(url: str, content: str) -> None:
-    """Posts a message to a Discord webhook without allowing mentions.
+    """Posts a message to a Discord webhook without mentions or embeds.
+
+    A rate limit or a server error gets one retry.
 
     Args:
         url: Webhook URL.
         content: Message text.
     """
-    body = json.dumps({"content": content,
+    body = json.dumps({"content": defang(content),
+                       "flags": SUPPRESS_EMBEDS,
                        "allowed_mentions": {"parse": []}}).encode()
-    req = urllib.request.Request(
-        url, data=body, method="POST",
-        headers={"Content-Type": "application/json",
-                 "User-Agent": "triage-agent/1"})
+    for last in (False, True):
+        try:
+            req = urllib.request.Request(
+                url, data=body, method="POST",
+                headers={"Content-Type": "application/json",
+                         "User-Agent": "triage-agent/1"})
+            with urllib.request.urlopen(req, timeout=10):
+                return
+        except urllib.error.HTTPError as err:
+            LOG.error("discord post failed: HTTP %d", err.code)
+            if last or not (err.code == 429 or err.code >= 500):
+                return
+            time.sleep(_retry_wait(err))
+        except (OSError, ValueError, http.client.HTTPException) as err:
+            # The text of some of these holds the (secret) URL.
+            LOG.error("discord post failed: %s", type(err).__name__)
+            return
+
+
+def _make_dir(path: str) -> None:
+    """Creates a directory; a failure is logged and shows in /health."""
     try:
-        with urllib.request.urlopen(req, timeout=10):
-            pass
-    except (OSError, ValueError) as err:
-        LOG.error("discord post failed: %s", err)
+        os.makedirs(path, exist_ok=True)
+    except OSError as err:
+        LOG.error("cannot create %s: %s", path, err.strerror)
 
 
 def _utc_date(now: float) -> datetime.date:
@@ -98,8 +132,8 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
         self._post = post
         self._clock = clock
         state_dir = cfg["state_dir"]
-        os.makedirs(state_dir, exist_ok=True)
-        os.makedirs(cfg["log_dir"], exist_ok=True)
+        _make_dir(state_dir)
+        _make_dir(cfg["log_dir"])
         self._lock = threading.Lock()
         self._batcher = Batcher(cfg["batch_window_s"])
         self._deduper = Deduper(cfg["dedupe_s"],
@@ -197,18 +231,24 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
 
         return Handler
 
+    def _fresh(self, batch: list[Trigger], now: float) -> list[Trigger]:
+        """Drops triggers that were triaged recently."""
+        return [t for t in batch
+                if not self._deduper.seen_recently(t.key, now)]
+
     def enqueue_ready(self) -> None:
         """Moves a ready batch into the queue, dropping the oldest."""
         now = self._clock()
         with self._lock:
-            batch = self._batcher.ready(now)
+            batch = self._fresh(self._batcher.ready(now) or [], now)
             if not batch:
                 return
             if len(batch) > MAX_BATCH:
                 extra = len(batch) - MAX_BATCH
                 batch = batch[:MAX_BATCH] + [Trigger(
                     "triage", f"triage:omitted:{int(now)}",
-                    f"+{extra} more alerts omitted", "", {})]
+                    f"+{extra} more alerts omitted", "",
+                    {"omitted": extra})]
             self._queue.append(batch)
             while len(self._queue) > self._cfg["queue_max"]:
                 dropped = self._queue.pop(0)
@@ -224,12 +264,12 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
         """Writes one run log file."""
         day_dir = os.path.join(self._cfg["log_dir"],
                                _utc_date(now).isoformat())
-        os.makedirs(day_dir, exist_ok=True)
         run_id = f"{int(now)}-{secrets.token_hex(3)}"
         record = {"triggers": [dataclasses.asdict(t) for t in triggers],
                   "prompt": prompt, "raw": res.raw, "kind": res.kind,
                   "duration_s": res.duration_s, "result": res.result}
         try:
+            os.makedirs(day_dir, exist_ok=True)
             with open(os.path.join(day_dir, f"{run_id}.json"), "w",
                       encoding="utf-8") as fh:
                 json.dump(record, fh)
@@ -248,38 +288,40 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
                 return
             popped = self._queue.pop(0)
         now = self._clock()
-        batch = [t for t in popped
-                 if not self._deduper.seen_recently(t.key, now)]
-        if not batch:
+        batch = self._fresh(popped, now)
+        if all("omitted" in t.detail for t in batch):
             return
         if not self._cap.try_take(now):
             if self._cap.notice_due(now):
                 self._say(format_notice("cap", batch))
             return
         keys = {t.key for t in batch}
+        prompt = build_prompt(batch)
         with self._lock:
             self._batcher.set_inflight(keys)
-        prompt = build_prompt(batch)
         try:
             res = self._runner(prompt, self._cfg)
         finally:
+            with self._lock:
+                self._batcher.set_inflight(None)
             done = self._clock()
             for key in keys:
                 self._deduper.mark(key, done)
-            with self._lock:
-                self._batcher.set_inflight(None)
-        self._write_log(batch, prompt, res, done)
-        if res.kind == "ok":
-            self._say(format_report(res.result or {}, batch))
-        else:
-            self._say(format_notice(res.kind, batch))
+        try:
+            if res.kind == "ok":
+                self._say(format_report(res.result or {}, batch))
+            else:
+                self._say(format_notice(res.kind, batch))
+        finally:
+            self._write_log(batch, prompt, res, done)
 
     def health(self) -> tuple[int, dict[str, Any]]:
         """Reports readiness and token lifetime.
 
         Returns:
             (HTTP status, body). 503 when the token is missing, claude is
-            not executable or the token is inside its warning window.
+            not executable, the state can't be saved or the token is
+            inside its warning window.
         """
         cfg = self._cfg
         problems = []
@@ -291,6 +333,9 @@ class TriageApp:  # pylint: disable=too-many-instance-attributes
             problems.append("token file missing")
         if not os.access(cfg["claude_bin"], os.X_OK):
             problems.append("claude not executable")
+        saved = [self._deduper.saved(), self._cap.saved()]
+        if not (all(saved) and writable(cfg["state_dir"])):
+            problems.append("state not writable")
         created = datetime.date.fromisoformat(cfg["token_created"])
         expires = created + datetime.timedelta(
             days=cfg["token_lifetime_days"])

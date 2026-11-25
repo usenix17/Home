@@ -1,10 +1,14 @@
 """Dedupe, daily cap and batching policy for triage runs."""
 import json
+import logging
 import os
 import tempfile
+import threading
 from typing import Any, Optional
 
 from triage.payloads import Trigger
+
+LOG = logging.getLogger("triage")
 
 
 def _load(path: str) -> dict[str, Any]:
@@ -31,6 +35,55 @@ def _save(path: str, data: dict[str, Any]) -> None:
         raise
 
 
+def writable(directory: str) -> bool:
+    """Returns True if a file with content can be written in directory."""
+    try:
+        with tempfile.NamedTemporaryFile(dir=directory,
+                                         suffix=".tmp") as fh:
+            fh.write(b"probe")
+    except OSError:
+        return False
+    return True
+
+
+class _State:
+    """A JSON object held in memory and saved when possible.
+
+    Memory is authoritative: a failed save is logged and retried. Each
+    change is a new dict, so readers on other threads need no lock.
+    """
+
+    def __init__(self, path: str) -> None:
+        """Loads the state from path."""
+        self._path = path
+        self._lock = threading.Lock()
+        self._dirty = False
+        self.data: dict[str, Any] = _load(path)
+
+    def set(self, data: dict[str, Any]) -> None:
+        """Replaces the state and tries to save it."""
+        with self._lock:
+            self.data = data
+            self._dirty = True
+            self._flush()
+
+    def saved(self) -> bool:
+        """Retries a failed save; returns True if nothing is unsaved."""
+        with self._lock:
+            if self._dirty:
+                self._flush()
+            return not self._dirty
+
+    def _flush(self) -> None:
+        """Saves the state, logging a failure."""
+        try:
+            _save(self._path, self.data)
+        except OSError as err:
+            LOG.error("state write failed: %s", err)
+        else:
+            self._dirty = False
+
+
 class Deduper:
     """Remembers recently triaged keys across restarts."""
 
@@ -42,21 +95,26 @@ class Deduper:
             path: JSON state file.
         """
         self._window = window_s
-        self._path = path
-        self._seen: dict[str, float] = _load(path)
+        self._state = _State(path)
+
+    def _recent(self, mark: Any, now: float) -> bool:
+        """Returns True if a mark is within the window of now."""
+        return isinstance(mark, (int, float)) and (
+            abs(now - mark) <= self._window)
 
     def seen_recently(self, key: str, now: float) -> bool:
         """Returns True if key was marked within the window."""
-        ts = self._seen.get(key)
-        return isinstance(ts, (int, float)) and now - ts <= self._window
+        return self._recent(self._state.data.get(key), now)
 
     def mark(self, key: str, now: float) -> None:
         """Records key at now and prunes expired entries."""
-        self._seen = {k: v for k, v in self._seen.items()
-                      if isinstance(v, (int, float))
-                      and now - v <= self._window}
-        self._seen[key] = now
-        _save(self._path, self._seen)
+        kept = {k: v for k, v in self._state.data.items()
+                if self._recent(v, now)}
+        self._state.set({**kept, key: now})
+
+    def saved(self) -> bool:
+        """Returns True if the marks are on disk, retrying if not."""
+        return self._state.saved()
 
 
 class DailyCap:
@@ -70,33 +128,35 @@ class DailyCap:
             path: JSON state file.
         """
         self._limit = limit
-        self._path = path
-        self._state = _load(path)
+        self._state = _State(path)
 
-    def _roll(self, now: float) -> None:
-        """Resets counters when the UTC day changes."""
+    def _today(self, now: float) -> dict[str, Any]:
+        """Returns the counters, new ones when the UTC day changed."""
         day = int(now // 86400)
-        if self._state.get("day") != day:
-            self._state = {"day": day, "count": 0, "noticed": False}
+        if self._state.data.get("day") != day:
+            return {"day": day, "count": 0, "noticed": False}
+        return self._state.data
 
     def try_take(self, now: float) -> bool:
         """Consumes one run if budget remains today."""
-        self._roll(now)
-        if self._state.get("count", 0) >= self._limit:
+        today = self._today(now)
+        count = today.get("count", 0)
+        if count >= self._limit:
             return False
-        self._state["count"] = self._state.get("count", 0) + 1
-        _save(self._path, self._state)
+        self._state.set({**today, "count": count + 1})
         return True
 
     def notice_due(self, now: float) -> bool:
         """Returns True once per UTC day after the cap is exhausted."""
-        self._roll(now)
-        if (self._state.get("count", 0) < self._limit
-                or self._state.get("noticed")):
+        today = self._today(now)
+        if today.get("count", 0) < self._limit or today.get("noticed"):
             return False
-        self._state["noticed"] = True
-        _save(self._path, self._state)
+        self._state.set({**today, "noticed": True})
         return True
+
+    def saved(self) -> bool:
+        """Returns True if the counters are on disk, retrying if not."""
+        return self._state.saved()
 
 
 class Batcher:

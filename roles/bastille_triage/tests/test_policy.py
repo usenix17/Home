@@ -1,4 +1,10 @@
 """Tests for dedupe, daily cap and batching."""
+import json
+import shutil
+
+import pytest
+
+from triage import policy
 from triage.payloads import Trigger
 from triage.policy import Batcher, DailyCap, Deduper
 
@@ -84,3 +90,57 @@ def test_batch_during_inflight_run():
     b.set_inflight(None)
     b.add(t1, 300)
     assert b.ready(420) == [t1]
+
+
+def test_dedupe_future_mark_expires():
+    """A mark from a clock that ran ahead does not suppress for long."""
+    d = Deduper(100, "/nonexistent/d.json")
+    d.mark("k", 10_000)
+    assert not d.seen_recently("k", 5_000)
+    assert d.seen_recently("k", 9_950)
+    d.mark("other", 5_000)
+    assert not d.seen_recently("k", 10_000)
+
+
+@pytest.mark.parametrize("make", [
+    lambda p: Deduper(100, p), lambda p: DailyCap(3, p)])
+def test_write_errors_are_caught_and_retried(tmp_path, make, caplog):
+    """A failed save is logged, kept in memory, and saved later."""
+    state = tmp_path / "state"
+    state.mkdir()
+    store = make(str(state / "s.json"))
+
+    def change():
+        if isinstance(store, Deduper):
+            store.mark("k", 1000)
+        else:
+            store.try_take(1000)
+
+    assert store.saved()
+    shutil.rmtree(state)
+    change()
+    assert not store.saved()
+    assert "state" in caplog.text and "Traceback" not in caplog.text
+    if isinstance(store, Deduper):
+        assert store.seen_recently("k", 1001)
+    else:
+        assert store.try_take(1001) and store.try_take(1002)
+        assert not store.try_take(1003)
+        assert store.notice_due(1004) and not store.notice_due(1005)
+    state.mkdir()
+    assert store.saved()
+    assert json.loads((state / "s.json").read_text())
+
+
+def test_failed_replace_leaves_no_temp_file(tmp_path):
+    """A target that can't be replaced is reported, without litter."""
+    (tmp_path / "s.json").mkdir()
+    cap = DailyCap(3, str(tmp_path / "s.json"))
+    assert cap.try_take(1) and not cap.saved()
+    assert [p.name for p in tmp_path.iterdir()] == ["s.json"]
+
+
+def test_writable_probe(tmp_path):
+    """The probe writes a real file and removes it."""
+    assert policy.writable(str(tmp_path)) and not list(tmp_path.iterdir())
+    assert not policy.writable(str(tmp_path / "absent"))
