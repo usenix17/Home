@@ -17,3 +17,8 @@
 # role defaults (roles/bastille_minio/defaults/main.yml), e.g.:
 # minio_jail_ip: "192.168.1.150"
 # bastille_zfs_zpool: "Store"
+
+# Second boot-SSD swap slice (da12p2), plain swap next to ada0p2. See
+# roles/freebsd_swap.
+freebsd_swap_devices:
+  - /dev/gpt/swap1

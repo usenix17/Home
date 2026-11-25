@@ -1,0 +1,8 @@
+---
+# Extra swap on the storage host (mimir). The 2G boot swap fills from the
+# Graylog jail and OpenSearch; this adds the idle second SSD swap slice.
+- name: "Extra swap on mimir"
+  hosts: "storage"
+  become: true
+  roles:
+    - role: "freebsd_swap"
