@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(
 from triage import wrapperlib
 
 URL = "http://192.168.1.151:9000/api/views/search/sync"
-TOKEN_FILE = "/usr/local/etc/triage/graylog.token"
+TOKEN_FILE = "/usr/local/etc/triage-agent/graylog.token"
 MAX_LIMIT = 200
 MSG_CHARS = 300
 

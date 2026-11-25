@@ -3,6 +3,7 @@ import argparse
 import sys
 import urllib.error
 import urllib.request
+from typing import Iterator
 
 TIMEOUT_S = 15
 MAX_OUTPUT = 50 * 1024
@@ -12,6 +13,30 @@ NOTE = "\n[output truncated at 50 KB]\n"
 
 class WrapperError(Exception):
     """A failure to report as a single stderr line."""
+
+
+class Refused(Exception):
+    """An argument outside a wrapper's read-only allowlist."""
+
+
+def split_flag(arg: str) -> tuple[str, str | None]:
+    """Splits --flag=value, -fvalue and -f=value into (flag, value)."""
+    if arg.startswith("--"):
+        flag, sep, value = arg.partition("=")
+        return flag, value if sep else None
+    flag, rest = arg[:2], arg[2:]
+    if not rest:
+        return flag, None
+    return flag, rest[1:] if rest.startswith("=") else rest
+
+
+def flag_value(flag: str, value: str | None, rest: Iterator[str]) -> str:
+    """Returns a flag's attached value, or takes the next argument."""
+    if value is None:
+        value = next(rest, None)
+    if value is None:
+        raise Refused(f"flag needs a value: {flag}")
+    return value
 
 
 def fetch(request: urllib.request.Request) -> bytes:

@@ -2,7 +2,7 @@
 
 Read-only AI alert-triage jail: a Bastille VNET jail `triage` on beastyboi
 (192.168.1.61) running the **Linux** Claude Code build under linuxulator.
-Alertmanager and the watcher's Gatus will post alerts to a small receiver in
+Alertmanager and the watcher's Gatus post alerts to a small receiver in
 here, which runs `claude -p` with read-only credentials and posts the
 diagnosis to Discord. Kept apart from the `watcher` jail so a wedged or
 compromised triage jail can't take the dead man's switch with it. Design:
@@ -68,7 +68,8 @@ path missing under `/compat/linux` falls back to the jail's own. With
     PATH=/usr/local/lib/triage/bin:/usr/local/bin:/usr/bin:/bin
 
 the allowed tools resolve to `/usr/local/bin/kubectl`,
-`/usr/local/bin/talosctl` and `/usr/local/lib/triage/bin/triage-{promql,gatus,graylog}`.
+`/usr/local/bin/talosctl` and
+`/usr/local/lib/triage/bin/triage-{kubectl,talosctl,promql,gatus,graylog}`.
 omnictl is not on PATH; call it by full path. The user's login shell is
 nologin, so whoever starts Claude Code must set `SHELL=/bin/bash`.
 
@@ -94,7 +95,8 @@ keeps that file absent. Anything not allowed is denied without a prompt.
 The wrappers run as `#!/usr/local/bin/python3.11 -I`, so PYTHONPATH and
 user site-packages from the Bash tool's env can't load code into them.
 The only Bash allows are the wrappers (`triage-kubectl`, `triage-promql`,
-`triage-gatus`, `triage-graylog`); raw `kubectl`/`talosctl` are denied.
+`triage-talosctl`, `triage-gatus`, `triage-graylog`); raw `kubectl`, `talosctl`
+and `omnictl` are denied.
 Claude Code also auto-approves its own read-only utilities (`head`, `id`,
 ...) as pipe filters; the `Read(...)` denies fence them away from the
 credential dirs, `~/.claude*` and `/proc`.
@@ -110,9 +112,11 @@ DISABLE_UPDATES)` (`enabled` if the file is missing).
   `claude.token`, both 0400 triage.
 - `triage-agent` (uid 1062) runs Claude Code and every tool it calls. Home
   `/var/db/triage-agent`, work dir `work/` (root:triage-agent 0750) with the
-  runbook (`files/runbook.md`) as a root-owned `CLAUDE.md`, and
-  `/usr/local/etc/triage-agent/kubeconfig` (0440 root:triage-agent, so the
-  agent can read but never rewrite it), used only by `triage-kubectl`. It cannot read triage's files.
+  runbook (`files/runbook.md`) as a root-owned `CLAUDE.md`, and the tool
+  credentials in `/usr/local/etc/triage-agent` (0440 root:triage-agent, so
+  the agent can read but never rewrite them): `kubeconfig` for
+  `triage-kubectl`, `talosconfig` and `omni.key` for `triage-talosctl`,
+  `graylog.token` for `triage-graylog`. It cannot read triage's files.
 - The receiver starts the agent with `doas -n -u triage-agent
   /usr/local/lib/triage/libexec/triage-agent-run`, the only rule in
   `/usr/local/etc/doas.conf`. The launcher reads the OAuth token from
@@ -141,6 +145,31 @@ contexts, impersonation, `--raw`, `--cache-dir`), as is the Secrets
 resource in any case or form. It runs `/usr/local/bin/kubectl` with
 `--kubeconfig=` the fixed agent kubeconfig and a clean environment.
 
+## triage-talosctl
+
+Verbs `services [NAME]` (state only), `dmesg`, `logs SERVICE`, `get TYPE
+[ID]`, `version`, `memory`, `processes`, `mounts`; `-n` must name one of
+192.168.7.201-205. Flags: `--tail 1..500` (`dmesg`, `logs`; default 200),
+`-o table|yaml|json` (`get`), `--sort rss|cpu` (`processes`). Resource types
+are allowlisted by exact name, so machine config, the kernel command line and
+every secrets type are out. No follow or watch, no file reads, no output
+paths, no endpoint, context or credential flags. It runs `talosctl` with the
+fixed talosconfig, a clean environment and a 45s timeout, passes the Omni key
+in `SIDERO_SERVICE_ACCOUNT_KEY`, and masks token-like values in the output
+(the node's dmesg holds the SideroLink join token).
+
+The key is an Omni service account `triage-agent` with the **Reader** role,
+which is the second layer: Omni refuses file reads, sensitive resources and
+every admin call (PermissionDenied).
+
+## triage-graylog
+
+Searches the Graylog sync API as the user `triage-agent` (role Reader, view
+granted on the Default Stream only). Every stream but `Suricata (huginn)`
+and the event streams also writes there. The API token (`triage-jail`)
+expires 365 days after 2026-11-25: create a new one for the user, `kv patch`
+it in and rerun the role.
+
 ## Jail egress (pf)
 
 The jail runs its own pf (VNET), which needs `/dev/pf`: the jail uses
@@ -153,7 +182,8 @@ re-rules the running jail). `/etc/pf.conf` blocks and logs everything
 - out, triage-agent: the Anthropic API ranges on 443 (from
   https://platform.claude.com/docs/en/api/ip-addresses), the k8s API
   192.168.7.202-204:6443, Prometheus 192.168.7.207:443, the watcher
-  192.168.1.60:8080, Graylog 192.168.1.151:9000;
+  192.168.1.60:8080, Graylog 192.168.1.151:9000, Omni `triage_omni_ip`:443
+  (by IP: if the SaaS address moves, Talos lookups fail closed);
 - out, triage: tcp 443 anywhere (the Discord webhook);
 - out, root: tcp 80/443 (pkg).
 Watch drops with `jexec triage tcpdump -n -e -ttt -i pflog0`.
@@ -180,8 +210,10 @@ reload. The "Start pf" task still fails closed if pf is not enabled.
 values): `vault_triage_claude_token` (`cluster/triage-claude`
 `CLAUDE_CODE_OAUTH_TOKEN`), `vault_triage_push_token` and
 `vault_triage_discord_webhook` (`cluster/monitoring-secrets`
-`triagePushToken`, `discordWebhookUrl`), `vault_triage_kube_token` and
-`vault_triage_kube_ca` (`cluster/triage-agent` `KUBE_TOKEN`, `KUBE_CA`),
+`triagePushToken`, `discordWebhookUrl`), `vault_triage_kube_token`,
+`vault_triage_kube_ca`, `vault_triage_omni_key` and
+`vault_triage_graylog_token` (`cluster/triage-agent` `KUBE_TOKEN`,
+`KUBE_CA`, `OMNI_SA_KEY`, `GRAYLOG_TOKEN`),
 and `triage_token_created`: the date part of `vault kv metadata get
 secret/cluster/triage-claude` `created_time`. The role asserts they are
 all set.

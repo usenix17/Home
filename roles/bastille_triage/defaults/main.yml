@@ -69,10 +69,11 @@ triage_claude_managed_settings:
     deny: "{{ triage_claude_deny }}"
 
 # Only the wrappers: they fix the endpoint and credential and allowlist the
-# arguments. Raw kubectl/talosctl are denied (talosctl returns as a wrapper
-# in Task 10). Anything not allowed is denied (dontAsk).
+# arguments. Raw kubectl/talosctl/omnictl are denied. Anything not allowed is
+# denied (dontAsk).
 triage_claude_allow:
   - "Bash(triage-kubectl *)"
+  - "Bash(triage-talosctl *)"
   - "Bash(triage-promql *)"
   - "Bash(triage-graylog *)"
   - "Bash(triage-gatus*)"
@@ -150,7 +151,8 @@ triage_token_lifetime_days: 365
 triage_warn_days: 30
 # Required at run time, never committed: vault_triage_claude_token,
 # vault_triage_push_token, vault_triage_discord_webhook,
-# vault_triage_kube_token, vault_triage_kube_ca (PEM), and
+# vault_triage_kube_token, vault_triage_kube_ca (PEM),
+# vault_triage_omni_key, vault_triage_graylog_token, and
 # triage_token_created (date part of cluster/triage-claude created_time).
 
 # --- Agent uid (R14) -----------------------------------------------------------
@@ -162,6 +164,13 @@ triage_agent_home: "/var/db/triage-agent"
 triage_agent_workdir: "{{ triage_agent_home }}/work"
 triage_agent_etc_dir: "/usr/local/etc/triage-agent"
 triage_agent_kubeconfig: "{{ triage_agent_etc_dir }}/kubeconfig"
+triage_agent_talosconfig: "{{ triage_agent_etc_dir }}/talosconfig"
+triage_agent_omni_key: "{{ triage_agent_etc_dir }}/omni.key"
+triage_agent_graylog_token: "{{ triage_agent_etc_dir }}/graylog.token"
+# Talos API through Omni, as a Reader service account.
+triage_omni_endpoint: ""
+triage_omni_cluster: ""
+triage_omni_identity: "triage-agent@serviceaccount.omni.sidero.dev"
 triage_agent_launcher: "{{ triage_lib_dir }}/libexec/triage-agent-run"
 triage_doas: "/usr/local/bin/doas"
 # The launcher's own hard timeout, under the receiver's so it fires first.
@@ -179,7 +188,7 @@ triage_jail_securelevel: 2
 triage_anthropic_api_v4: ["160.79.104.0/23", "153.61.224.0/22"]
 triage_anthropic_api_v6: ["2607:6bc0::/48"]
 # Tool endpoints for triage-agent: k8s API, Prometheus via Traefik,
-# watcher Gatus, Graylog.
+# watcher Gatus, Graylog, and Omni (R18, by IP: fails closed if it moves).
 triage_agent_egress:
   - { to: "192.168.7.202", port: 6443 }
   - { to: "192.168.7.203", port: 6443 }
@@ -187,5 +196,6 @@ triage_agent_egress:
   - { to: "192.168.7.207", port: 443 }
   - { to: "192.168.1.60", port: 8080 }
   - { to: "192.168.1.151", port: 9000 }
+  - { to: "{{ triage_omni_ip }}", port: 443 }
 # Who may reach the receiver: the LAN (watcher) and the cluster nodes.
 triage_ingress_from: ["192.168.1.0/24", "192.168.7.0/24"]

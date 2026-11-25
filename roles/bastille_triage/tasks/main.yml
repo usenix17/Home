@@ -325,6 +325,8 @@
       - vault_triage_discord_webhook | default('') | length > 0
       - vault_triage_kube_token | default('') | length > 0
       - vault_triage_kube_ca | default('') is search('BEGIN CERTIFICATE')
+      - vault_triage_omni_key | default('') | trim | length > 0
+      - vault_triage_graylog_token | default('') | trim | length > 0
       - triage_token_created | default('') is match('^\d{4}-\d{2}-\d{2}$')
     fail_msg: "Pass the vault_triage_* secrets and triage_token_created (see README)."
     quiet: true
@@ -371,6 +373,29 @@
     mode: "0440"
     owner: root
     group: "{{ triage_agent_uid }}"
+  no_log: true
+
+# Only triage-talosctl uses it (raw talosctl is denied to the agent).
+- name: "Install the agent talosconfig (0440 root:triage-agent)"
+  ansible.builtin.template:
+    src: talosconfig.j2
+    dest: "{{ triage_jail_root }}{{ triage_agent_talosconfig }}"
+    mode: "0440"
+    owner: root
+    group: "{{ triage_agent_uid }}"
+
+- name: "Install the agent API credentials (0440 root:triage-agent)"
+  ansible.builtin.copy:
+    content: "{{ item.value | trim }}\n"
+    dest: "{{ triage_jail_root }}{{ item.path }}"
+    mode: "0440"
+    owner: root
+    group: "{{ triage_agent_uid }}"
+  loop:
+    - { path: "{{ triage_agent_omni_key }}", value: "{{ vault_triage_omni_key }}" }
+    - { path: "{{ triage_agent_graylog_token }}", value: "{{ vault_triage_graylog_token }}" }
+  loop_control:
+    label: "{{ item.path }}"
   no_log: true
 
 - name: "Install the agent launcher"
@@ -581,10 +606,11 @@
   ansible.builtin.command: >-
     jexec -l -U {{ triage_user }} {{ triage_jail_name }}
     env PATH={{ triage_path }} /compat/linux/bin/bash -c
-    'command -v kubectl talosctl triage-promql triage-gatus triage-graylog'
+    'command -v kubectl talosctl triage-kubectl triage-talosctl triage-promql
+    triage-gatus triage-graylog'
   register: triage_tools
   changed_when: false
-  failed_when: triage_tools.rc != 0 or triage_tools.stdout_lines | length != 5
+  failed_when: triage_tools.rc != 0 or triage_tools.stdout_lines | length != 7
   when: not ansible_check_mode
 
 - name: "Check the receiver answers /health"

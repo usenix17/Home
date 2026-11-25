@@ -130,6 +130,12 @@ def test_graylog_fixed_endpoint_and_auth(tokenfile):
     assert out is not None
 
 
+def test_graylog_token_is_the_agents():
+    """The token sits with the agent's credentials, not the receiver's."""
+    assert load("triage-graylog").TOKEN_FILE == (
+        "/usr/local/etc/triage-agent/graylog.token")
+
+
 def test_graylog_prints_messages(tokenfile):
     """Messages print one per line, message text truncated."""
     assert tokenfile
@@ -181,7 +187,8 @@ def test_http_error_one_line_exit1(capsys):
 
 
 @pytest.mark.parametrize("name", [
-    "triage-kubectl", "triage-promql", "triage-gatus", "triage-graylog"])
+    "triage-kubectl", "triage-promql", "triage-gatus", "triage-graylog",
+    "triage-talosctl"])
 def test_wrapper_shebang_is_pinned_and_isolated(name):
     """Wrappers ignore PYTHONPATH/user site: pinned python in -I mode."""
     with open(os.path.join(BIN, name), encoding="utf-8") as handle:
@@ -191,4 +198,5 @@ def test_wrapper_shebang_is_pinned_and_isolated(name):
 def test_every_wrapper_is_covered():
     """The shebang test lists every wrapper in files/bin."""
     assert sorted(n for n in os.listdir(BIN) if n.startswith("triage-")) == [
-        "triage-gatus", "triage-graylog", "triage-kubectl", "triage-promql"]
+        "triage-gatus", "triage-graylog", "triage-kubectl", "triage-promql",
+        "triage-talosctl"]

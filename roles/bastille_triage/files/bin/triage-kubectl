@@ -8,6 +8,12 @@ impersonation flags are refused, as is any Secrets resource.
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
+# pylint: disable=wrong-import-position
+from triage import wrapperlib  # noqa: E402
+from triage.wrapperlib import Refused  # noqa: E402
+
 KUBECTL = "/usr/local/bin/kubectl"
 KUBECONFIG = "/usr/local/etc/triage-agent/kubeconfig"
 VERBS = frozenset({"get", "describe", "logs", "top", "events"})
@@ -23,27 +29,12 @@ SHORT = {short: name for name, short in {**VALUED, **BOOLEAN}.items()
 SECRET_KINDS = frozenset({"secret", "secrets"})
 
 
-class Refused(Exception):
-    """An argument outside the read-only allowlist."""
-
-
 def _canonical(flag: str) -> str:
     """Maps a short flag to its long name; refuses unknown flags."""
     name = SHORT.get(flag, flag)
     if name not in VALUED and name not in BOOLEAN:
         raise Refused(f"flag not allowed: {flag}")
     return name
-
-
-def _split(arg: str) -> tuple[str, str | None]:
-    """Splits --flag=value, -fvalue and -f=value into (flag, value)."""
-    if arg.startswith("--"):
-        flag, sep, value = arg.partition("=")
-        return flag, value if sep else None
-    flag, rest = arg[:2], arg[2:]
-    if not rest:
-        return flag, None
-    return flag, rest[1:] if rest.startswith("=") else rest
 
 
 def _check_value(name: str, value: str) -> None:
@@ -81,17 +72,14 @@ def build_argv(args: list[str]) -> list[str]:
             _check_resource(arg)
             out.append(arg)
             continue
-        flag, value = _split(arg)
+        flag, value = wrapperlib.split_flag(arg)
         name = _canonical(flag)
         if name in BOOLEAN:
             if value is not None:
                 raise Refused(f"flag takes no value: {flag}")
             out.append(name)
             continue
-        if value is None:
-            value = next(rest, None)
-            if value is None:
-                raise Refused(f"flag needs a value: {flag}")
+        value = wrapperlib.flag_value(flag, value, rest)
         _check_value(name, value)
         out.append(f"{name}={value}")
     return out

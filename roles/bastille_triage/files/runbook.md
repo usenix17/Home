@@ -16,14 +16,22 @@ variable expansion, redirects and anything not listed here are denied.
   `triage-kubectl get pods -A -o wide`,
   `triage-kubectl logs -n NS POD --tail=100`. Plain `kubectl` is denied,
   and Secrets are never readable.
+- `triage-talosctl VERB ... -n NODE_IP`: a read-only Talos API client, one
+  node (192.168.7.201-205) per call. Verbs: `services [NAME]`,
+  `dmesg [--tail N]`, `logs SERVICE [--tail N]` (N up to 500, default 200),
+  `get TYPE [ID] [-o table|yaml|json]` (types: `members`, `disks`, `links`,
+  `addresses`, `routes`, `mountstatus`, `volumestatus`, `machinestatus`,
+  `staticpodstatus`, `etcdmembers`, `timestatus`, `diagnostics` and a few
+  more, listed if refused), `version`, `memory`, `processes [--sort cpu]`,
+  `mounts`. It works when the Kubernetes API is down, so use it for NotReady
+  nodes: `triage-talosctl dmesg -n 192.168.7.203 --tail 100`. Plain
+  `talosctl` is denied.
 - `triage-promql '<PromQL>'` (instant query) and
   `triage-promql --range N '<PromQL>'` (last N minutes).
 - `triage-gatus` (all watcher endpoints) and `triage-gatus --failing`.
-- `triage-graylog '<query>' --minutes N` (may not be configured yet).
+- `triage-graylog '<query>' --minutes N` (Default stream: cluster, host and
+  network logs). Narrow the query: `source:talos-p93-8cq AND level:<=4`.
 - Read, Grep and Glob on files.
-
-There is no Talos access yet. If the node itself needs inspecting, say so
-in the next step.
 
 ## Topology
 
@@ -48,8 +56,10 @@ in the next step.
 ## Known failure modes and how to tell them apart
 
 - **Node NotReady / unreachable.** `triage-kubectl describe node` conditions
-  and last heartbeat; `triage-kubectl get pods -A -o wide --field-selector
-  spec.nodeName=<node>`. A whole node freezing with no kernel panic on a Proxmox
+  and last heartbeat; `triage-talosctl services` and `dmesg` on the node (a
+  timeout there means the node itself is down);
+  `triage-kubectl get pods -A -o wide --field-selector spec.nodeName=<node>`.
+  A whole node freezing with no kernel panic on a Proxmox
   mini-PC is usually a ZFS txg_sync stall on the USB SSD under Longhorn write
   load (it comes back after a power cycle). If the node is `talos-hb1-9mk`,
   also check the MetalLB speaker there (next item).
