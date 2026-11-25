@@ -14,11 +14,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(
 # pylint: disable=wrong-import-position
 from triage import boundedrun  # noqa: E402
 from triage import masking  # noqa: E402
+from triage import toolrun  # noqa: E402
 from triage import wrapperlib  # noqa: E402
 from triage.wrapperlib import Refused  # noqa: E402
 
 TALOSCTL = "/usr/local/bin/talosctl"
-TIMEOUT = "/usr/bin/timeout"
 TALOSCONFIG = "/usr/local/etc/triage-agent/talosconfig"
 KEY_FILE = "/usr/local/etc/triage-agent/omni.key"
 TIMEOUT_S = 45
@@ -29,7 +29,6 @@ TAIL_MAX = 500
 TAIL_CONTEXT = 100
 MAX_CAPTURE = 2 * 1024 * 1024
 MAX_STDERR = 64 * 1024
-OLDER = "[older output cut]\n"
 OUTPUTS = frozenset({"table", "yaml", "json"})
 SORTS = frozenset({"rss", "cpu"})
 # Verb -> (talosctl verb, min positionals, max positionals, flags).
@@ -152,11 +151,6 @@ def build_argv(args: list[str]) -> list[str]:
     return _argv(*_parse(args))
 
 
-def bounded(cmd: list[str]) -> list[str]:
-    """Adds a backstop limit that outlives a SIGKILLed wrapper."""
-    return [TIMEOUT, "-k", "2", str(TIMEOUT_S + 2), *cmd]
-
-
 def _processes(text: str) -> str | None:
     """Reduces the process table to numbers and executable names.
 
@@ -187,27 +181,6 @@ def _processes(text: str) -> str | None:
     return "\n".join(out) + "\n"
 
 
-def _tail(text: str, lines: int) -> str:
-    """Keeps a masked log's last whole lines, within the output cap."""
-    text = "".join(text.splitlines(keepends=True)[-lines:])
-    if len(text) > wrapperlib.MAX_OUTPUT:
-        text = text[len(OLDER) - wrapperlib.MAX_OUTPUT:]
-        text = OLDER + text.partition("\n")[2]
-    return text
-
-
-def _drop_orphans(text: str) -> str:
-    """Drops first lines that could be a value whose key was rotated out."""
-    lines = text.splitlines(keepends=True)
-    while lines:
-        start, indent = masking.split_head(lines[0])
-        body = lines[0][start:].strip()
-        if not indent and (" " in body or body.startswith("{")):
-            break
-        lines.pop(0)
-    return "".join(lines)
-
-
 def render(verb: str, flags: dict[str, str], raw: bytes,
            cut: bool) -> str | None:
     """Turns captured talosctl output into text that is safe to print.
@@ -221,9 +194,7 @@ def render(verb: str, flags: dict[str, str], raw: bytes,
     Returns:
       The text, or None if it can't be printed safely.
     """
-    if cut:
-        raw = raw.rpartition(b"\n")[0] + b"\n"
-    text = raw.decode("utf-8", "replace")
+    text = toolrun.decode(raw, cut)
     if verb == "processes":
         text = _processes(text)
         return None if text is None else masking.mask(text)
@@ -232,40 +203,7 @@ def render(verb: str, flags: dict[str, str], raw: bytes,
     # talosctl prefixes each log line with the (only) node.
     text = re.sub(rf"^{re.escape(flags['--nodes'])}: ", "", text,
                   flags=re.MULTILINE)
-    text = masking.mask(_drop_orphans(text))
-    return _tail(text, int(flags["--tail"]))
-
-
-def _fail(message: object, code: int = 1) -> int:
-    """Reports a masked one-line error."""
-    wrapperlib.report_error(masking.mask(str(message))[:1000])
-    return code
-
-
-def _error_text(res: boundedrun.Result) -> str:
-    """Returns the masked end of talosctl's stderr."""
-    raw = res.err.rpartition(b"\n")[0] if res.err_cut else res.err
-    text = masking.mask(raw.decode("utf-8", "replace")).strip()
-    return f"talosctl failed ({res.code}): {' '.join(text.split()[-150:])}"
-
-
-def _report(verb: str, flags: dict[str, str], res: boundedrun.Result) -> int:
-    """Prints the masked outcome of a run; returns the exit code."""
-    if res.signum is not None:
-        return 128 + res.signum
-    if res.timed_out:
-        return _fail(f"talosctl timed out after {TIMEOUT_S}s "
-                     "(node unreachable?)")
-    text = render(verb, flags, res.out, res.cut)
-    if text:
-        wrapperlib.emit(text)
-    if res.cut:
-        return _fail("output too long, stopped early")
-    if res.code:
-        return _fail(_error_text(res))
-    if text is None:
-        return _fail("process table not recognised, not shown")
-    return 0
+    return toolrun.log_tail(text, int(flags["--tail"]))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -280,18 +218,20 @@ def main(argv: list[str] | None = None) -> int:
     try:
         verb, names, flags = _parse(sys.argv[1:] if argv is None else argv)
     except Refused as err:
-        return _fail(err, 2)
+        return toolrun.fail(err, 2)
     try:
         with open(KEY_FILE, encoding="utf-8") as handle:
             key = handle.read().strip()
         res = boundedrun.run(
-            bounded(_argv(verb, names, flags)),
+            toolrun.bounded(_argv(verb, names, flags), TIMEOUT_S),
             {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/nonexistent",
              "LANG": "C.UTF-8", "SIDERO_SERVICE_ACCOUNT_KEY": key},
             TIMEOUT_S, MAX_CAPTURE, MAX_STDERR)
     except OSError as err:
-        return _fail(f"cannot read the key or run talosctl: {err}")
-    return _report(verb, flags, res)
+        return toolrun.fail(f"cannot read the key or run talosctl: {err}")
+    return toolrun.report(
+        "talosctl", res, TIMEOUT_S,
+        lambda raw, cut: render(verb, flags, raw, cut))
 
 
 if __name__ == "__main__":

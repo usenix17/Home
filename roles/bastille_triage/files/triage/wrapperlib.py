@@ -5,8 +5,13 @@ import urllib.error
 import urllib.request
 from typing import Iterator
 
+from triage import masking
+
 TIMEOUT_S = 15
 MAX_OUTPUT = 50 * 1024
+# Far more than is printed, so a cut here can't unmask what is.
+MAX_MASK = 2 * 1024 * 1024
+CUT = "[rest of the output cut]"
 MAX_READ = 8 * 1024 * 1024
 NOTE = "\n[output truncated at 50 KB]\n"
 
@@ -60,17 +65,24 @@ def fetch(request: urllib.request.Request) -> bytes:
         raise WrapperError(f"request failed: {err}") from err
 
 
-def emit(text: str) -> None:
-    """Prints text, truncated to the output cap with a note."""
+def write(text: str) -> None:
+    """Prints masked text, truncated to the output cap with a note."""
     data = text.encode("utf-8", "replace")
     if len(data) > MAX_OUTPUT:
         text = data[:MAX_OUTPUT].decode("utf-8", "ignore") + NOTE
     sys.stdout.write(text if text.endswith("\n") else text + "\n")
 
 
+def emit(text: str) -> None:
+    """Masks text whole, then prints it within the output cap."""
+    if len(text) > MAX_MASK:
+        text = masking.drop_partial(text[:MAX_MASK]) + CUT
+    write(masking.mask(text))
+
+
 def report_error(err: object) -> int:
-    """Writes a one-line error to stderr and returns exit code 1."""
-    line = " ".join(str(err).split())
+    """Writes a masked one-line error to stderr and returns exit code 1."""
+    line = " ".join(masking.mask(str(err)).split())
     sys.stderr.write(f"error: {line}\n")
     return 1
 

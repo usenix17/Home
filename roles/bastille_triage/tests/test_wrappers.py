@@ -140,7 +140,7 @@ def test_graylog_prints_messages(tokenfile):
     """Messages print one per line, message text truncated."""
     assert tokenfile
     msgs = [{"message": {"timestamp": "T1", "source": "h1",
-                         "message": "x" * 500}}]
+                         "message": "abcde fghi" * 50}}]
     resp = {"results": {"q": {"search_types": {"s": {
         "messages": msgs}}}}}
     _, out, _ = run("triage-graylog", ["q"], resp)
@@ -151,9 +151,165 @@ def test_graylog_prints_messages(tokenfile):
 
 def test_output_capped():
     """Output over 50 KB is truncated with a note."""
-    _, out, _ = run("triage-promql", ["up"], b"a" * 100_000)
-    assert len(out.encode()) <= 50 * 1024 + 200
+    _, out, _ = run("triage-promql", ["up"], b"a b c d e\n" * 10_000)
+    assert 50_000 < len(out.encode()) <= 50 * 1024 + 200
     assert "truncated" in out
+
+
+SECRET = "S3cr3tV4lueXq"
+
+
+def leaks(text):
+    """Returns True if any 4-character piece of SECRET is in text."""
+    return any(SECRET[i:i + 4] in text for i in range(len(SECRET) - 3))
+
+
+def vector(*metrics):
+    """Builds an instant-query response."""
+    return {"status": "success", "data": {
+        "resultType": "vector",
+        "result": [{"metric": m, "value": [1, "1"]} for m in metrics]}}
+
+
+def test_emit_masks_before_the_cut(capsys):
+    """The output cap may land anywhere around a secret."""
+    lib = load("triage-promql").wrapperlib
+    for pad in range(0, 60):
+        fill = "y z\n" * (lib.MAX_OUTPUT // 4 - 12) + "w" * pad
+        lib.emit(f"{fill} password={SECRET} x\nend\n")
+        assert not leaks(capsys.readouterr().out)
+
+
+def test_emit_bounds_what_it_masks():
+    """Very long output is cut at a line before masking."""
+    lib = load("triage-promql").wrapperlib
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out), \
+            mock.patch.object(lib.masking, "mask", side_effect=str) as mask:
+        lib.emit("a b\n" * 2_000_000)
+    assert len(mask.call_args[0][0]) <= lib.MAX_MASK + 100
+    assert mask.call_args[0][0].split("\n")[-2] in ("a b", lib.CUT)
+
+
+@pytest.mark.parametrize("text", ["x" * 9000, "x" * 5_000_000,
+                                  "{" + "'a':1," * 900_000])
+def test_emit_one_huge_line_says_so(capsys, text):
+    """One overlong line becomes a marker, never silence."""
+    lib = load("triage-promql").wrapperlib
+    lib.emit(text)
+    assert lib.masking.TOO_LONG in capsys.readouterr().out
+
+
+def test_report_error_is_masked(capsys):
+    """Error text is masked too."""
+    lib = load("triage-promql").wrapperlib
+    lib.report_error(f"bad url http://u:{SECRET}@h/ token={SECRET}")
+    assert not leaks(capsys.readouterr().err)
+
+
+@pytest.mark.parametrize("name, argv, body", [
+    ("triage-promql", ["up"], vector({"password": SECRET})),
+    ("triage-promql", ["up"], vector({"url": f"http://u:{SECRET}@h/"})),
+    ("triage-promql", ["up"], f"x password={SECRET}\n".encode()),
+    ("triage-gatus", [], [{"name": "n", "results": [
+        {"success": False, "errors": [f"Get http://u:{SECRET}@h/"]}]}]),
+    ("triage-gatus", [], [{"name": f"token={SECRET}", "results": []}]),
+])
+def test_wrappers_mask_their_output(name, argv, body):
+    """Promql and Gatus output is masked."""
+    _, out, _ = run(name, argv, body)
+    assert not leaks(out) and "[redacted]" in out
+
+
+def graylog(*texts):
+    """Runs triage-graylog over messages; returns its output."""
+    msgs = [{"message": {"timestamp": "T1", "source": "h1", "message": t}}
+            for t in texts]
+    resp = {"results": {"q": {"search_types": {"s": {"messages": msgs}}}}}
+    return run("triage-graylog", ["q"], resp)[1]
+
+
+def test_graylog_masks_before_the_message_cut(tokenfile):
+    """The 300-character cut may land anywhere around a secret."""
+    assert tokenfile
+    for pad in range(0, 320):
+        assert not leaks(graylog("y" * pad + f" password={SECRET} end"))
+
+
+@pytest.mark.parametrize("text", [
+    f"a\npassword:\n  {SECRET}\nb", f"password: two {SECRET}",
+    f"x http://u:{SECRET}@h", f"{{\"token\":\"{SECRET}\"}}"])
+def test_graylog_masks_messages(tokenfile, text):
+    """A message's own lines are masked before they are joined."""
+    assert tokenfile
+    assert not leaks(graylog("ok a", text, "ok b"))
+
+
+def test_graylog_overlong_message_is_marked(tokenfile):
+    """One overlong message shows a marker and hides no other."""
+    assert tokenfile
+    out = graylog("ok a", "x" * 9000, "ok b").splitlines()
+    assert out[0] == "T1 h1 ok a" and out[2] == "T1 h1 ok b"
+    assert out[1] == "T1 h1 [line over 8192 characters not shown]"
+
+
+def test_promql_prints_one_series_per_line():
+    """Each series is its own JSON line, so one can't hide the rest."""
+    metrics = [{"__name__": "up", "instance": f"n{i}"} for i in range(500)]
+    _, out, _ = run("triage-promql", ["up"], vector(*metrics))
+    lines = [x for x in out.splitlines() if '"metric"' in x]
+    assert len(lines) == 500 and "[line over" not in out
+    assert json.loads(lines[7])["metric"]["instance"] == "n7"
+    assert "vector" in out.splitlines()[0] and "500" in out.splitlines()[0]
+
+
+def test_promql_one_huge_series_hides_only_itself():
+    """A series with an overlong label is marked; the others show."""
+    _, out, _ = run("triage-promql", ["up"], vector(
+        {"a": "1"}, {"b": "x" * 9000}, {"c": "3"}))
+    lines = out.splitlines()
+    assert json.loads(lines[1])["metric"] == {"a": "1"}
+    assert lines[2].startswith("[line over")
+    assert json.loads(lines[-1])["metric"] == {"c": "3"}
+
+
+@pytest.mark.parametrize("key", ["values", "histograms"])
+def test_promql_long_range_series_is_split(key):
+    """A range series over the line limit prints in parts."""
+    points = [[1795584309.123 + i, "0.12345678901234567890"]
+              for i in range(400)]
+    body = {"status": "success", "data": {
+        "resultType": "matrix",
+        "result": [{"metric": {"a": "1"}, key: points}]}}
+    _, out, _ = run("triage-promql", ["up", "--range", "60"], body)
+    lines = [json.loads(x) for x in out.splitlines()[1:]]
+    assert lines[0]["metric"] == {"a": "1"} and "[line over" not in out
+    assert [p for x in lines for p in x.get(key, [])] == points
+
+
+@pytest.mark.parametrize("data, want", [
+    ({"resultType": "scalar", "result": [1, "2"]}, '[1,"2"]'),
+    ({"resultType": "vector", "result": []}, "0 series")])
+def test_promql_other_results(data, want):
+    """Scalars and empty results are shown, never silent."""
+    _, out, _ = run("triage-promql", ["up"],
+                    {"status": "success", "data": data})
+    assert want in out
+
+
+def test_promql_warnings_are_shown():
+    """Prometheus warnings still reach the agent."""
+    body = dict(vector({"a": "1"}), warnings=["partial data"])
+    assert "partial data" in run("triage-promql", ["up"], body)[1]
+
+
+@pytest.mark.parametrize("body", [[1], "x", 5, None, {}, {"data": 3},
+                                  {"data": {"result": {"a": 1}}},
+                                  {"data": {"result": [1, "a"]}}])
+def test_promql_odd_bodies_are_shown(body):
+    """Unexpected JSON is printed as it is."""
+    code, out, _ = run("triage-promql", ["up"], json.dumps(body).encode())
+    assert code == 0 and out.strip()
 
 
 def test_gatus_failing_filter():

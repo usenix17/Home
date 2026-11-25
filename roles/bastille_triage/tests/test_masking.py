@@ -51,6 +51,11 @@ VALUE = "S3cr3tV4lue"
     '"psk":"{v}"', "wpa_psk={v}", "psk {v}", "preshared-key {v}",
     # control characters between key and value
     "token\x1b[0m=\x1b[1m{v}", "tok\x00en={v}",
+    # webhooks
+    "https://discord.com/api/webhooks/123/{v}",
+    "https://canary.discordapp.com/api/v10/webhooks/123/{v}",
+    "https:\\/\\/discord.com\\/api\\/webhooks\\/1\\/{v}",
+    "https://hooks.slack.com/services/T0/B0/{v}",
     # PEM
     "-----BEGIN PRIVATE KEY-----\n{v}\n-----END PRIVATE KEY-----",
     "-----BEGIN PRIVATE KEY-----\n{v}", "{v}\n-----END PRIVATE KEY-----",
@@ -93,6 +98,7 @@ def test_multi_line_mask_stops():
 @pytest.mark.parametrize("chunk", [
     "a" * 1000, "-" * 1000, "://", "token", "secret=\"", "eyJ", "a:b@",
     "-----BEGIN x", "[\"", "\\", "token:\n", "--token ", "authorization:",
+    "https://discord.com/api/webhooks/", "https://a.a.a.a.",
     " \t", "{"])
 def test_mask_is_fast(head, chunk):
     """No input makes the patterns backtrack badly."""

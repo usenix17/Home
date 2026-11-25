@@ -13,10 +13,61 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.dirname(
     os.path.realpath(__file__))))
 # pylint: disable=wrong-import-position
-from triage import wrapperlib
+from triage import masking  # noqa: E402
+from triage import wrapperlib  # noqa: E402
 
 BASE = "https://prometheus.starnix.net/api/v1"
 MAX_POINTS = 200
+# Points per line when a series is too long for one line.
+CHUNK = 50
+
+
+def _compact(value: object) -> str:
+    """Returns value as JSON on one line."""
+    return json.dumps(value, separators=(",", ":"))
+
+
+def _series(item: dict) -> list[str]:
+    """Prints a series on one line, or in parts if that is too long."""
+    line = _compact(item)
+    if len(line) <= masking.MAX_LINE:
+        return [line]
+    lines = [_compact({k: v for k, v in item.items()
+                       if not isinstance(v, list)})]
+    for key, value in item.items():
+        if isinstance(value, list):
+            lines += [_compact({key: value[i:i + CHUNK]})
+                      for i in range(0, len(value), CHUNK)]
+    return lines
+
+
+def render(text: str) -> str:
+    """Puts each series of a response on its own line.
+
+    The masking hides an overlong line whole, so one line for everything
+    would hide every result.
+
+    Args:
+      text: The response body.
+
+    Returns:
+      The text to print.
+    """
+    try:
+        body = json.loads(text)
+    except ValueError:
+        return text
+    data = body.get("data") if isinstance(body, dict) else None
+    found = data.get("result") if isinstance(data, dict) else None
+    if not isinstance(found, list) or not all(
+            isinstance(item, dict) for item in found):
+        return _compact(body)
+    lines = [f"{data.get('resultType')}: {len(found)} series"]
+    lines += [f"{key}: {_compact(body[key])}"
+              for key in ("warnings", "infos") if body.get(key)]
+    for item in found:
+        lines += _series(item)
+    return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -48,12 +99,7 @@ def main(argv: list[str] | None = None) -> int:
             urllib.request.Request(url, method="GET"))
     except wrapperlib.WrapperError as err:
         return wrapperlib.report_error(err)
-    text = body.decode("utf-8", "replace")
-    try:
-        text = json.dumps(json.loads(text), separators=(",", ":"))
-    except ValueError:
-        pass
-    wrapperlib.emit(text)
+    wrapperlib.emit(render(body.decode("utf-8", "replace")))
     return 0
 
 

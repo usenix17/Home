@@ -14,8 +14,9 @@ variable expansion, redirects and anything not listed here are denied.
   `--field-selector`, `-o wide|json|yaml|name`, `--tail`, `--since`,
   `--previous`, `-c`/`--container`, `--sort-by`. Examples:
   `triage-kubectl get pods -A -o wide`,
-  `triage-kubectl logs -n NS POD --tail=100`. Plain `kubectl` is denied,
-  and Secrets are never readable.
+  `triage-kubectl logs -n NS POD --tail=100` (up to 5000, default 500).
+  Plain `kubectl` is denied, and Secrets are never readable. It picks a
+  reachable API server by itself.
 - `triage-talosctl VERB ... -n NODE_IP`: a read-only Talos API client, one
   node (192.168.7.201-205) per call. Verbs: `services [NAME]`,
   `dmesg [--tail N]`, `logs SERVICE [--tail N]` (N up to 500, default 200),
@@ -33,6 +34,9 @@ variable expansion, redirects and anything not listed here are denied.
 - `triage-graylog '<query>' --minutes N` (Default stream: cluster, host and
   network logs). Narrow the query: `source:talos-p93-8cq AND level:<=4`.
 - Read, Grep and Glob on files.
+
+Secrets in tool output show as `[redacted]`, and a line over 8192 characters
+as a marker: ask for less (one object, fewer columns) if you need it.
 
 ## Topology
 

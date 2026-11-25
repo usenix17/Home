@@ -1,4 +1,4 @@
-"""Masks secrets in command output. Prefers hiding too much."""
+"""Masks secrets in text. Prefers hiding too much."""
 import re
 
 MASK = "[redacted]"
@@ -35,7 +35,19 @@ _PEM_HEADER = re.compile(r"[A-Za-z-]{1,40}: |\Z")
 _BLOB = re.compile(r"(?<![\w+/=-])[A-Za-z0-9+/]{40,}={0,2}(?![\w+/-])")
 _BLOB_LINE = re.compile(r"^[ \t]*[A-Za-z0-9+/_-]{40,}={0,2}[ \t]*$",
                         re.MULTILINE)
-# Each keeps group 1 and masks the rest of the match.
+# Secrets known by their own shape. Each rule here and in _RULES keeps
+# group 1 and masks the rest of the match.
+_TOKEN_RULES = [re.compile(text, _FLAGS) for text in (
+    r"()https?:(?:\\?/){2}(?:[\w-]{1,63}\.){0,3}(?:discord(?:app)?\.com"
+    r"\\?/api(?:\\?/v\d{1,3})?\\?/webhooks"
+    r"|hooks\.slack\.com\\?/(?:services|workflows|triggers))\\?/"
+    r"[^\s\"'<>]+",
+    r"(\bbearer[ \t]+)(?!token\b)[\w.~+/=-]+",
+    r"(\bbasic[ \t]+)(?=[\w+/-]*(?-i:[0-9A-Z=]))[\w+/=-]{8,}",
+    r"(\b)eyJ[\w-]{6,}(?:\.[\w-]*)*",
+    r"(\b)(?:gh[pousr]_\w{20,}|github_pat_\w+|sk-ant-[\w-]+"
+    r"|hvs\.[\w-]+|xox[a-z]-[\w-]+|AKIA[0-9A-Z]{16})",
+)]
 _RULES = [re.compile(text, _FLAGS) for text in (
     r"((?:authorization|cookie)" + _QUOTE + _ASSIGN + r")"
     r"(?=[\"'\\\[{])" + _VALUE,
@@ -51,11 +63,6 @@ _RULES = [re.compile(text, _FLAGS) for text in (
     r"(\b(?:requirepass|masterauth|" + _PSK + r")[ \t]+)" + _VALUE,
     r"(://)[^\s\"'<>/:@]{0,256}:[^\s\"'<>]{0,256}@",
     r"(://)[^\s\"'<>/@]{1,256}@",
-    r"(\bbearer[ \t]+)(?!token\b)[\w.~+/=-]+",
-    r"(\bbasic[ \t]+)(?=[\w+/-]*(?-i:[0-9A-Z=]))[\w+/=-]{8,}",
-    r"(\b)eyJ[\w-]{6,}(?:\.[\w-]*)*",
-    r"(\b)(?:gh[pousr]_\w{20,}|github_pat_\w+|sk-ant-[\w-]+"
-    r"|hvs\.[\w-]+|xox[a-z]-[\w-]+|AKIA[0-9A-Z]{16})",
 )]
 # A key at the end of a line: its value is on the following lines.
 _DANGLING = re.compile(
@@ -92,6 +99,20 @@ def _mask_following(lines: list[str]) -> list[str]:
             depth, first = indent, True
         out.append(line if len(line) <= MAX_LINE else TOO_LONG)
     return out
+
+
+def mask_tokens(text: str) -> str:
+    """Replaces secrets that are known by their own shape.
+
+    Args:
+        text: Text of any kind.
+
+    Returns:
+        The text with tokens and webhook URLs replaced.
+    """
+    for rule in _TOKEN_RULES:
+        text = rule.sub(lambda found: found.group(1) + MASK, text)
+    return text
 
 
 def _mask_pem_inline(line: str, marks: list[re.Match]) -> str:
@@ -182,4 +203,37 @@ def mask(text: str) -> str:
     text = "\n".join(_mask_pem(_mask_following(text.split("\n"))))
     for rule in _RULES:
         text = rule.sub(lambda found: found.group(1) + MASK, text)
-    return _BLOB_LINE.sub(MASK, text)
+    return _BLOB_LINE.sub(MASK, mask_tokens(text))
+
+
+def drop_partial(text: str) -> str:
+    """Drops a line that was cut short, or marks it if overlong.
+
+    Args:
+        text: Text cut at any character.
+
+    Returns:
+        The text's whole lines.
+    """
+    head, sep, last = text.rpartition("\n")
+    return head + sep + (TOO_LONG + "\n" if len(last) > MAX_LINE else "")
+
+
+def drop_orphans(text: str) -> str:
+    """Drops first lines that could be a value whose key was cut off.
+
+    Args:
+        text: Unmasked log text whose start may be missing.
+
+    Returns:
+        The text from the first line that stands on its own.
+    """
+    lines = text.splitlines(keepends=True)
+    while lines:
+        start, indent = split_head(lines[0])
+        body = lines[0][start:].strip()
+        if len(lines[0]) > MAX_LINE or (
+                not indent and (" " in body or body.startswith("{"))):
+            break
+        lines.pop(0)
+    return "".join(lines)

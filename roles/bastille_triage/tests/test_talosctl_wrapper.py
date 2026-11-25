@@ -1,17 +1,13 @@
 """Tests for the triage-talosctl allowlist wrapper."""
 import contextlib
 import io
-import json
-import os
-import shlex
 import signal
-import subprocess
-import sys
 import time
 from unittest import mock
 
 import pytest
 
+import stubs
 from test_wrappers import load
 
 TC = load("triage-talosctl")
@@ -31,30 +27,17 @@ def refused(args):
 def run_main(args, keyfile, stdout="ok\n", stderr="", code=0, **consts):
     """Runs main against a real stub talosctl; returns (rc, out, err, log).
 
-    The stub records its argv and environment in log, if it was started.
+    The log is the stub's argv and environment, if it was started.
     """
-    base = keyfile.parent
-    (base / "out").write_bytes(
-        stdout if isinstance(stdout, bytes) else stdout.encode())
-    (base / "err").write_text(stderr)
-    log = base / "log"
-    log.unlink(missing_ok=True)
-    stub = base / "talosctl"
-    stub.write_text(
-        f"#!{sys.executable} -I\n"
-        "import json, os, sys\n"
-        f"json.dump([sys.argv, dict(os.environ)], open({str(log)!r}, 'w'))\n"
-        f"sys.stdout.buffer.write(open({str(base / 'out')!r}, 'rb').read())\n"
-        f"sys.stderr.write(open({str(base / 'err')!r}).read())\n"
-        f"sys.exit({code})\n")
-    stub.chmod(0o755)
+    stub = keyfile.parent / "talosctl"
+    stubs.python_stub(stub, (stdout, stderr), code)
     consts = {"KEY_FILE": str(keyfile), "TALOSCTL": str(stub), **consts}
     out, err = io.StringIO(), io.StringIO()
     with mock.patch.multiple(TC, **consts), \
             contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
         status = TC.main(args)
-    started = json.loads(log.read_text()) if log.exists() else None
-    return status, out.getvalue(), err.getvalue(), started
+    return (status, out.getvalue(), err.getvalue(),
+            stubs.started(keyfile.parent))
 
 
 @pytest.fixture(name="keyfile")
@@ -479,87 +462,73 @@ def test_hostile_long_line_is_fast(keyfile, cmd):
     assert out.startswith("a b\n") and out.endswith("\nc d\n")
 
 
-def start_wrapper(tmp_path, body, timeout_s):
+def start_talosctl(tmp_path, body, timeout_s):
     """Starts the wrapper as a process with a shell-stub talosctl."""
-    (tmp_path / "omni.key").write_text("k\n")
-    stub = tmp_path / "talosctl"
-    pid = shlex.quote(str(tmp_path / "pid"))
-    stub.write_text(f"#!/bin/sh\necho $$ > {pid}\n{body}\n")
-    stub.chmod(0o755)
-    here = os.path.dirname(os.path.abspath(__file__))
-    code = (f"import sys; sys.path[:0] = [{here!r}]\n"
-            "from test_wrappers import load\n"
-            "TC = load('triage-talosctl')\n"
-            f"TC.TALOSCTL = {str(stub)!r}\n"
-            f"TC.KEY_FILE = {str(tmp_path / 'omni.key')!r}\n"
-            f"TC.TIMEOUT_S = {timeout_s}\n"
-            "sys.exit(TC.main(['version', '-n', '192.168.7.203']))\n")
-    return subprocess.Popen([sys.executable, "-c", code], text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            start_new_session=True)
-
-
-def child_gone(tmp_path, wait_s=5):
-    """Waits until the stub is gone; returns False if it stays alive."""
-    pid = int((tmp_path / "pid").read_text())
-    for _ in range(wait_s * 10):
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return True
-        time.sleep(0.1)
-    return False
+    key = tmp_path / "omni.key"
+    key.write_text("k\n")
+    return stubs.start_wrapper(
+        tmp_path, "triage-talosctl",
+        f"M.TALOSCTL = {{stub}}; M.KEY_FILE = {str(key)!r}; "
+        f"M.TIMEOUT_S = {timeout_s}",
+        ["version", "-n", "192.168.7.203"], body)
 
 
 def test_real_timeout(tmp_path):
     """A hanging talosctl is killed; its partial output is not printed."""
-    start = time.monotonic()
-    with start_wrapper(tmp_path, f"echo x token={SECRET}; sleep 60",
-                       1) as proc:
+    begin = time.monotonic()
+    body = f"echo x token={SECRET}; sleep 60"
+    with start_talosctl(tmp_path, body, 1) as proc:
         out, err = proc.communicate(timeout=20)
     assert proc.returncode == 1 and not out and "timed out" in err
-    assert SECRET not in err and time.monotonic() - start < 15
-    assert child_gone(tmp_path)
+    assert SECRET not in err and time.monotonic() - begin < 15
+    assert stubs.gone(stubs.child_pid(tmp_path))
 
 
 def test_real_sigterm(tmp_path):
     """SIGTERM to the wrapper kills talosctl, even one that ignores it."""
-    with start_wrapper(tmp_path, "trap '' TERM; sleep 60 & wait; sleep 60",
-                       60) as proc:
-        for _ in range(100):
-            if (tmp_path / "pid").exists():
-                break
-            time.sleep(0.1)
-        time.sleep(0.5)
+    with start_talosctl(tmp_path, "trap '' TERM; sleep 60 & wait; sleep 60",
+                        60) as proc:
+        pid = stubs.child_pid(tmp_path)
         proc.send_signal(signal.SIGTERM)
         out, _ = proc.communicate(timeout=20)
     assert proc.returncode == 128 + signal.SIGTERM and not out
-    assert child_gone(tmp_path)
+    assert stubs.gone(pid)
 
 
 def test_group_sigkill_leaves_no_talosctl(tmp_path):
     """If the wrapper's group is SIGKILLed, talosctl still ends in time."""
-    with start_wrapper(tmp_path, "trap '' TERM; while :; do sleep 1; done",
-                       2) as proc:
-        for _ in range(100):
-            if (tmp_path / "pid").exists():
-                break
-            time.sleep(0.1)
-        time.sleep(0.5)
-        os.killpg(proc.pid, signal.SIGKILL)
-        proc.wait()
-    pid = int((tmp_path / "pid").read_text())
-    try:
-        os.kill(pid, 0)
-        assert child_gone(tmp_path, 15)
-    finally:
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(pid, signal.SIGKILL)
+    with start_talosctl(tmp_path, stubs.STUBBORN, 2) as proc:
+        assert stubs.ends_after_sigkill(proc, tmp_path)
 
 
 def test_outer_limit_is_just_above_the_wrappers():
     """The backstop ends talosctl soon after the wrapper's own limit."""
-    argv = TC.bounded(["talosctl", "version"])
+    argv = TC.toolrun.bounded(["talosctl", "version"], TC.TIMEOUT_S)
     assert argv == ["/usr/bin/timeout", "-k", "2", str(TC.TIMEOUT_S + 2),
                     "talosctl", "version"]
     assert TC.TIMEOUT_S == 45
+
+
+@pytest.mark.parametrize("cmd", [["logs", "etcd"], ["dmesg"], ["mounts"],
+                                 ["get", "routes", "-o", "json"]])
+@pytest.mark.parametrize("text", ["x" * 20_000, "x" * 3_000_000,
+                                  '["' + "x" * 20_000 + '"]\n'])
+def test_one_huge_line_is_marked(keyfile, cmd, text):
+    """One overlong line becomes a marker, never silence."""
+    _, out, _, _ = run_main([*cmd, *AT], keyfile, text)
+    assert "[line over 8192 characters not shown]" in out
+    assert "xxxx" not in out
+
+
+def test_orphan_only_output_is_marked(keyfile):
+    """If the only line could be a secret's value, the output says so."""
+    _, out, _, _ = run_main(["logs", "etcd", *AT], keyfile, SECRET + "\n")
+    assert SECRET not in out and "hidden" in out
+
+
+def test_render_does_not_mask_twice(keyfile):
+    """Masked output is printed as it is."""
+    with mock.patch.object(TC.wrapperlib.masking, "mask",
+                           side_effect=TC.wrapperlib.masking.mask) as mask:
+        run_main(["mounts", *AT], keyfile, "a b\n")
+    assert mask.call_count == 1

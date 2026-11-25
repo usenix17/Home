@@ -11,12 +11,15 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.dirname(
     os.path.realpath(__file__))))
 # pylint: disable=wrong-import-position
-from triage import wrapperlib
+from triage import masking  # noqa: E402
+from triage import wrapperlib  # noqa: E402
 
 URL = "http://192.168.1.151:9000/api/views/search/sync"
 TOKEN_FILE = "/usr/local/etc/triage-agent/graylog.token"
 MAX_LIMIT = 200
 MSG_CHARS = 300
+# Far more than is shown, so a cut here can't unmask what is.
+MSG_READ = 16 * 1024
 
 
 def _limit(value: str) -> int:
@@ -38,6 +41,14 @@ def _messages(result: dict) -> list[dict]:
             for item in stype.get("messages") or []:
                 found.append(item.get("message") or {})
     return found
+
+
+def _short(message: object) -> str:
+    """Masks a message, then joins and shortens its lines."""
+    text = str(message)
+    if len(text) > MSG_READ:
+        text = masking.drop_partial(text[:MSG_READ])
+    return " ".join(masking.mask(text).split())[:MSG_CHARS]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -84,9 +95,9 @@ def main(argv: list[str] | None = None) -> int:
         return wrapperlib.report_error(f"bad JSON from graylog: {err}")
     lines = []
     for msg in _messages(result):
-        text = " ".join(str(msg.get("message", "")).split())
         lines.append(f"{msg.get('timestamp', '')} "
-                     f"{msg.get('source', '')} {text[:MSG_CHARS]}")
+                     f"{msg.get('source', '')} "
+                     f"{_short(msg.get('message', ''))}")
     wrapperlib.emit("\n".join(lines))
     return 0
 
