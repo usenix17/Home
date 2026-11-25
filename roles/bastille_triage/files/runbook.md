@@ -22,10 +22,11 @@ variable expansion, redirects and anything not listed here are denied.
   `get TYPE [ID] [-o table|yaml|json]` (types: `members`, `disks`, `links`,
   `addresses`, `routes`, `mountstatus`, `volumestatus`, `machinestatus`,
   `staticpodstatus`, `etcdmembers`, `timestatus`, `diagnostics` and a few
-  more, listed if refused), `version`, `memory`, `processes [--sort cpu]`,
-  `mounts`. It works when the Kubernetes API is down, so use it for NotReady
-  nodes: `triage-talosctl dmesg -n 192.168.7.203 --tail 100`. Plain
-  `talosctl` is denied.
+  more, listed if refused), `version`, `memory`, `processes [--sort cpu]`
+  (no arguments shown), `mounts`. Secrets show as `[redacted]`. It works
+  when the Kubernetes API is down, so use it for NotReady nodes:
+  `triage-talosctl dmesg -n 192.168.7.203 --tail 100`. Plain `talosctl` is
+  denied.
 - `triage-promql '<PromQL>'` (instant query) and
   `triage-promql --range N '<PromQL>'` (last N minutes).
 - `triage-gatus` (all watcher endpoints) and `triage-gatus --failing`.

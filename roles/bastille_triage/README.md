@@ -154,9 +154,16 @@ Verbs `services [NAME]` (state only), `dmesg`, `logs SERVICE`, `get TYPE
 are allowlisted by exact name, so machine config, the kernel command line and
 every secrets type are out. No follow or watch, no file reads, no output
 paths, no endpoint, context or credential flags. It runs `talosctl` with the
-fixed talosconfig, a clean environment and a 45s timeout, passes the Omni key
-in `SIDERO_SERVICE_ACCOUNT_KEY`, and masks token-like values in the output
-(the node's dmesg holds the SideroLink join token).
+fixed talosconfig and a clean environment, and passes the Omni key in
+`SIDERO_SERVICE_ACCOUNT_KEY`. `triage/boundedrun.py` bounds it: 45s, 2 MiB of
+output, own process group, killed on any limit or signal.
+
+Output is masked whole, before any cut (`triage/masking.py`; the node's dmesg
+holds the SideroLink join token). `logs` fetches 100 extra lines so a value's
+key is seen before the tail cut, and a first line that could be the rest of a
+value is dropped. `processes` prints numbers and the executable's basename,
+never arguments (Kubernetes expands secrets into them), and fails on an
+unknown table format. `links` is table only (WireGuard keys).
 
 The key is an Omni service account `triage-agent` with the **Reader** role,
 which is the second layer: Omni refuses file reads, sensitive resources and
@@ -169,6 +176,13 @@ granted on the Default Stream only). Every stream but `Suricata (huginn)`
 and the event streams also writes there. The API token (`triage-jail`)
 expires 365 days after 2026-11-25: create a new one for the user, `kv patch`
 it in and rerun the role.
+
+## Malformed Gatus bodies
+
+Gatus pastes error text into the JSON body escaping only `"`. If that breaks
+the JSON, `/gatus` (after the token and size checks) still takes the endpoint
+and status from the start of the body and drops the rest. `/alertmanager`
+must be valid JSON.
 
 ## Jail egress (pf)
 

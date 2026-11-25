@@ -1,7 +1,13 @@
 """Tests for the triage-talosctl allowlist wrapper."""
 import contextlib
 import io
+import json
+import os
+import shlex
+import signal
 import subprocess
+import sys
+import time
 from unittest import mock
 
 import pytest
@@ -12,6 +18,7 @@ TC = load("triage-talosctl")
 NODE = "192.168.7.203"
 FIXED = [TC.TALOSCTL, f"--talosconfig={TC.TALOSCONFIG}"]
 AT = ["-n", NODE]
+SECRET = "S3cr3tV4lueXq"
 
 
 def refused(args):
@@ -21,16 +28,33 @@ def refused(args):
     return True
 
 
-def run_main(args, keyfile, stdout="ok\n", side_effect=None, code=0):
-    """Runs main against a fake talosctl; returns (rc, out, err, mock)."""
+def run_main(args, keyfile, stdout="ok\n", stderr="", code=0, **consts):
+    """Runs main against a real stub talosctl; returns (rc, out, err, log).
+
+    The stub records its argv and environment in log, if it was started.
+    """
+    base = keyfile.parent
+    (base / "out").write_bytes(
+        stdout if isinstance(stdout, bytes) else stdout.encode())
+    (base / "err").write_text(stderr)
+    log = base / "log"
+    log.unlink(missing_ok=True)
+    stub = base / "talosctl"
+    stub.write_text(
+        f"#!{sys.executable} -I\n"
+        "import json, os, sys\n"
+        f"json.dump([sys.argv, dict(os.environ)], open({str(log)!r}, 'w'))\n"
+        f"sys.stdout.buffer.write(open({str(base / 'out')!r}, 'rb').read())\n"
+        f"sys.stderr.write(open({str(base / 'err')!r}).read())\n"
+        f"sys.exit({code})\n")
+    stub.chmod(0o755)
+    consts = {"KEY_FILE": str(keyfile), "TALOSCTL": str(stub), **consts}
     out, err = io.StringIO(), io.StringIO()
-    done = subprocess.CompletedProcess([], code, stdout, "boom\n")
-    with mock.patch.object(TC, "KEY_FILE", str(keyfile)), \
-            mock.patch("subprocess.run", return_value=done,
-                       side_effect=side_effect) as sub, \
+    with mock.patch.multiple(TC, **consts), \
             contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
         status = TC.main(args)
-    return status, out.getvalue(), err.getvalue(), sub
+    started = json.loads(log.read_text()) if log.exists() else None
+    return status, out.getvalue(), err.getvalue(), started
 
 
 @pytest.fixture(name="keyfile")
@@ -46,11 +70,12 @@ def keyfile_fixture(tmp_path):
     (["services", "kubelet"], ["service", "kubelet"]),
     (["dmesg"], ["dmesg"]),
     (["dmesg", "--tail", "50"], ["dmesg"]),
-    (["logs", "etcd"], ["logs", "etcd", "--tail=200"]),
-    (["logs", "etcd", "--tail=10"], ["logs", "etcd", "--tail=10"]),
+    (["logs", "etcd"], ["logs", "etcd", "--tail=300"]),
+    (["logs", "etcd", "--tail=10"], ["logs", "etcd", "--tail=110"]),
     (["get", "members"], ["get", "members"]),
-    (["get", "links", "eth0", "-o", "yaml"],
-     ["get", "links", "eth0", "--output=yaml"]),
+    (["get", "links", "eth0"], ["get", "links", "eth0"]),
+    (["get", "links", "-o", "table"], ["get", "links", "--output=table"]),
+    (["get", "routes", "-o", "yaml"], ["get", "routes", "--output=yaml"]),
     (["get", "disks", "-ojson"], ["get", "disks", "--output=json"]),
     (["version"], ["version"]),
     (["memory"], ["memory"]),
@@ -201,97 +226,299 @@ def test_paths_are_fixed():
     assert TC.TALOSCTL == "/usr/local/bin/talosctl"
 
 
-def test_main_refuses_before_running(keyfile):
+def test_exact_allowlists():
+    """The allowlists hold these entries and no others."""
+    assert sorted(TC.VERBS) == [
+        "dmesg", "get", "logs", "memory", "mounts", "processes", "services",
+        "version"]
+    assert {name: spec[0] for name, spec in TC.VERBS.items()} == {
+        "services": "service", "dmesg": "dmesg", "logs": "logs",
+        "get": "get", "version": "version", "memory": "memory",
+        "processes": "processes", "mounts": "mounts"}
+    assert sorted(TC.NODES) == [
+        "192.168.7.201", "192.168.7.202", "192.168.7.203", "192.168.7.204",
+        "192.168.7.205"]
+    assert sorted(TC.RESOURCES) == [
+        "addresses", "blockdevices", "cpustats", "diagnostics",
+        "discoveredvolumes", "disks", "etcdmembers", "extensions",
+        "hostname", "kubeletstatuses", "links", "machinestatus", "members",
+        "memorystats", "mountstatus", "nodename", "nodestatuses",
+        "resolvers", "routes", "services", "staticpodstatus", "systemdisk",
+        "timeservers", "timestatus", "volumestatus"]
+    assert TC.TABLE_ONLY == {"links"}
+
+
+@pytest.mark.parametrize("out", ["yaml", "json"])
+def test_links_table_only(out):
+    """Link yaml and json can hold WireGuard keys."""
+    assert refused(["get", "links", *AT, "-o", out])
+    assert refused(["get", "-o", out, *AT, "links", "wg0"])
+
+
+@pytest.mark.parametrize("verb", [
+    "reboot", "shutdown", "reset", "upgrade", "apply-config", "rollback",
+    "read", "kubeconfig", "etcd", "wipe", "bootstrap", "service"])
+def test_main_refuses_before_running(keyfile, verb):
     """A refused command never reads the key or starts talosctl."""
     keyfile.unlink()
-    for verb in ("reboot", "shutdown", "reset", "upgrade", "apply-config",
-                 "rollback", "read", "kubeconfig"):
-        code, out, err, sub = run_main([verb, *AT], keyfile)
-        assert code == 2 and not out and "verb must be one of" in err
-        sub.assert_not_called()
+    code, out, err, started = run_main([verb, *AT], keyfile)
+    assert code == 2 and not out and "verb must be one of" in err
+    assert started is None
+
+
+@pytest.mark.parametrize("action", ["start", "stop", "restart"])
+def test_main_refuses_service_actions(keyfile, action):
+    """A service action never starts talosctl."""
+    code, _, _, started = run_main(
+        ["services", "kubelet", action, *AT], keyfile)
+    assert code == 2 and started is None
 
 
 def test_main_env_and_argv(keyfile):
     """The key goes through a minimal env, stripped, and never in argv."""
     with mock.patch.dict("os.environ", {"SIDEROV1_KEYS_DIR": "/x",
                                         "TALOSCONFIG": "/x"}):
-        code, out, _, sub = run_main(["version", *AT], keyfile)
+        code, out, _, (argv, env) = run_main(["version", *AT], keyfile)
     assert code == 0 and out == "ok\n"
-    argv, kwargs = sub.call_args[0][0], sub.call_args[1]
-    assert "s3cret" not in " ".join(argv)
-    assert kwargs["env"] == {"PATH": "/usr/local/bin:/usr/bin:/bin",
-                             "HOME": "/nonexistent", "LANG": "C.UTF-8",
-                             "SIDERO_SERVICE_ACCOUNT_KEY": "s3cret"}
-    assert kwargs["timeout"] == TC.TIMEOUT_S
-    assert kwargs["stdin"] is subprocess.DEVNULL
+    assert argv[1:] == [FIXED[1], f"--nodes={NODE}", "version"]
+    env.pop("LC_CTYPE", None)  # set by the stub's Python itself
+    assert env == {"PATH": "/usr/local/bin:/usr/bin:/bin",
+                   "HOME": "/nonexistent", "LANG": "C.UTF-8",
+                   "SIDERO_SERVICE_ACCOUNT_KEY": "s3cret"}
 
 
 def test_main_tails_dmesg(keyfile):
     """dmesg has no line limit of its own, so the wrapper keeps the end."""
-    text = "".join(f"line{i}\n" for i in range(1000))
-    _, out, _, _ = run_main(["dmesg", "--tail=2", *AT], keyfile, text)
-    assert out == "line998\nline999\n"
+    text = "".join(f"a line{i}\n" for i in range(1000))
+    _, out, _, started = run_main(["dmesg", "--tail=2", *AT], keyfile, text)
+    assert out == "a line998\na line999\n"
+    assert "--tail" not in " ".join(started[0])
     _, out, _, _ = run_main(["dmesg", *AT], keyfile, text)
     assert len(out.splitlines()) == 200
 
 
-@pytest.mark.parametrize("line", [
-    "siderolink.api=https://x:8090?jointoken=ABC123secret foo",
-    "x?grpc_tunnel=true&jointoken=ABC123secret&y=1",
-    "x%26jointoken%3DABC123secret", '"token":"ABC123secret"',
-    "password: ABC123secret", "client_secret=ABC123secret",
-    "JOINTOKEN=ABC123secret", "Authorization: Bearer ABC123secret",
-    '\\"token\\":\\"ABC123secret\\"', "jointoken=x%2BABC123secret%3D",
-    "api_key=ABC123secret", "privateKey: ABC123secret"])
-def test_main_redacts(keyfile, line):
-    """Kernel command lines hold the SideroLink join token: mask it."""
-    _, out, _, _ = run_main(["logs", "machined", *AT], keyfile, line + "\n")
-    assert "ABC123secret" not in out and "[redacted]" in out
+def test_main_strips_the_node_prefix(keyfile):
+    """The node prefix can't hide that a value follows its key."""
+    text = (f"{NODE}: a b\n{NODE}: password:\n"
+            f"{NODE}:   {SECRET}\n{NODE}: c d\n")
+    _, out, _, _ = run_main(["logs", "etcd", *AT], keyfile, text)
+    assert out == "a b\npassword:\n  [redacted]\nc d\n"
 
 
-@pytest.mark.parametrize("line", [
-    'secret "default/foo" not found', "token expired for node",
-    "failed to get configmap: key not found", "MetadataToken rotation ok"])
-def test_main_keeps_plain_text(keyfile, line):
-    """Prose that only mentions a secret or token is left alone."""
-    _, out, _, _ = run_main(["logs", "kubelet", *AT], keyfile, line + "\n")
-    assert out == line + "\n"
+@pytest.mark.parametrize("cmd", [["logs", "etcd"], ["dmesg"], ["mounts"],
+                                 ["get", "routes", "-o", "yaml"]])
+def test_main_redacts_stdout(keyfile, cmd):
+    """Every output path is masked."""
+    text = f"x a?jointoken={SECRET} b\nok c\n"
+    _, out, _, _ = run_main([*cmd, *AT], keyfile, text)
+    assert SECRET not in out and "[redacted]" in out and "ok c" in out
 
 
 def test_main_redacts_stderr(keyfile):
-    """Error text is masked too."""
-    fail = subprocess.CompletedProcess([], 1, "", "jointoken=ABC123secret")
-    code, _, err, _ = run_main(["version", *AT], keyfile,
-                               side_effect=[fail])
-    assert code == 1 and "ABC123secret" not in err
+    """Error text is masked before it is shortened."""
+    for pad in range(0, 1100, 7):
+        text = "e " * pad + f"jointoken={SECRET} end"
+        code, _, err, _ = run_main(["version", *AT], keyfile, "", text, 1)
+        assert code == 1 and not leaks(err)
 
 
-def test_main_failure_and_timeout(keyfile):
-    """talosctl errors and hangs become one stderr line."""
-    code, _, err, _ = run_main(["version", *AT], keyfile, "", code=1)
-    assert code == 1 and "boom" in err
+def test_main_redacts_refusals(keyfile):
+    """Arguments echoed in a refusal are masked too."""
+    _, _, err, _ = run_main(["version", f"--token={SECRET}", *AT], keyfile)
+    assert SECRET not in err
+
+
+def leaks(text):
+    """Returns True if any 4-character piece of SECRET is in text."""
+    return any(SECRET[i:i + 4] in text for i in range(len(SECRET) - 3))
+
+
+@pytest.mark.parametrize("cmd", [["dmesg"], ["mounts"], ["logs", "etcd"]])
+def test_capture_cut_at_every_offset(keyfile, cmd):
+    """The capture limit may land anywhere in a key=value pair."""
+    for secret in (f"jointoken={SECRET}", f"http://u:{SECRET}@host",
+                   f"password:\n  {SECRET}", f"eyJh{SECRET}.{SECRET}.x"):
+        text = f"one two\n{'x ' * 10}{secret} more\nlast line\n"
+        for limit in range(8, len(text) + 2, 1):
+            raw = text.encode()[:limit]
+            flags = {"--nodes": NODE, "--tail": "50"}
+            if cmd == ["mounts"]:
+                flags.pop("--tail")
+            out = TC.render(cmd[0], flags, raw, limit < len(text))
+            assert not leaks(out), (secret, limit)
     code, out, err, _ = run_main(
-        ["version", *AT], keyfile,
-        side_effect=subprocess.TimeoutExpired("talosctl", 1))
-    assert code == 1 and not out and "timed out" in err
+        [*cmd, *AT], keyfile, f"one two\nx jointoken={SECRET}\n",
+        MAX_CAPTURE=25)
+    assert code == 1 and not leaks(out) and "too long" in err
+
+
+@pytest.mark.parametrize("secret", [
+    f"jointoken={SECRET}", f"password:\n  {SECRET}",
+    f"token: |\n  a\n  {SECRET}", f"password:\n{SECRET}"])
+def test_tail_cut_at_every_line(keyfile, secret):
+    """--tail may drop the key line but never unmask its value."""
+    text = f"a b\nc d\nk {secret}\ne f\n"
+    for count in range(1, 9):
+        for cmd in (["dmesg"], ["logs", "etcd"]):
+            _, out, _, _ = run_main(
+                [*cmd, "--tail", str(count), *AT], keyfile, text)
+            assert not leaks(out)
+
+
+def test_output_cap_at_every_offset():
+    """The 50 KB cap may land anywhere around a masked value."""
+    flags = {"--nodes": NODE, "--tail": "500"}
+    for pad in range(-40, 40):
+        fill = "y " * ((TC.wrapperlib.MAX_OUTPUT + pad) // 2)
+        raw = f"a b\nx jointoken={SECRET} {fill[:30]}\n{fill}\nz z\n"
+        out = TC.render("logs", flags, raw.encode(), False)
+        assert not leaks(out) and out.endswith("z z\n")
+
+
+@pytest.mark.parametrize("first", [
+    f"  {SECRET}", SECRET, f"kern: info: [2026-11-25T00:00:00Z]:   {SECRET}",
+    f"kern: info: [2026-11-25T00:00:00Z]: {SECRET}", f"{NODE}: {SECRET}"])
+@pytest.mark.parametrize("cmd", [["dmesg"], ["logs", "etcd"]])
+def test_first_line_may_be_an_orphan_value(keyfile, first, cmd):
+    """A value whose key was rotated out is not shown."""
+    _, out, _, _ = run_main([*cmd, *AT], keyfile, f"{first}\na b\n")
+    assert out == "a b\n"
+
+
+PROCS = """\
+NODE            PID      STATE   THREADS   CPU-TIME   VIRTMEM   RESMEM   \
+LABEL                             COMMAND
+192.168.7.203   9559     S       1         0.00       234 kB    0 B      \
+system_u:system_r:pod_t:s0        /package/s6-supervise svc --token {v}
+192.168.7.203   12       D       14        1234.56    1.2 GB    113 MB   \
+system_u:system_r:pod_t:s0:c1,c2  redis-server --requirepass {v}
+192.168.7.203   2        S       1         0.10       0 B       0 B      \
+                                  kthreadd
+192.168.7.203   77       S       1         0.10       0 B       0 B      \
+system_u:system_r:pod_t:s0        /bin/sh -c export A=1
+PASSWORD={v}
+   {v}
+192.168.7.203   78       S       1         0.10       0 B       0 B      \
+system_u:system_r:pod_t:s0        TOKEN={v} x
+192.168.7.203   79       S       1         0.10       0 B       0 B      \
+system_u:system_r:pod_t:s0        eyJhbGciOi{v}
+"""
+
+
+def test_processes_drops_args(keyfile):
+    """Only numbers and the executable's basename are printed."""
+    _, out, _, _ = run_main(["processes", *AT], keyfile,
+                            PROCS.format(v=SECRET))
+    assert out.splitlines() == [
+        "PID STATE THREADS CPU-TIME VIRTMEM RESMEM NAME",
+        "9559 S 1 0.00 234kB 0B s6-supervise",
+        "12 D 14 1234.56 1.2GB 113MB redis-server",
+        "2 S 1 0.10 0B 0B kthreadd",
+        "77 S 1 0.10 0B 0B sh",
+        "78 S 1 0.10 0B 0B ?",
+        "79 S 1 0.10 0B 0B [redacted]"]
+
+
+@pytest.mark.parametrize("text", [
+    "", "\n", f"junk {SECRET}\n",
+    PROCS.replace("LABEL", "ARGS "), PROCS.replace("NODE  ", "HOST  "),
+    PROCS.replace(" S       1 ", " 1 "), PROCS.split("\n", 1)[1],
+    PROCS.split("\n", 1)[0] + "\n"])
+def test_processes_unknown_format(keyfile, text):
+    """An unrecognised process table prints nothing and fails."""
+    code, out, err, _ = run_main(["processes", *AT], keyfile, text)
+    assert code == 1 and not out and "not recognised" in err
+
+
+def test_main_failure(keyfile):
+    """A talosctl error becomes one stderr line."""
+    code, out, err, _ = run_main(["version", *AT], keyfile, "", "bo\nom\n", 1)
+    assert code == 1 and not out
+    assert err.count("\n") == 1 and "bo om" in err
 
 
 def test_main_missing_key(keyfile):
     """A missing key file is reported without running talosctl."""
     keyfile.unlink()
-    code, _, err, sub = run_main(["version", *AT], keyfile)
-    assert code == 1 and "key" in err
-    sub.assert_not_called()
+    code, _, err, started = run_main(["version", *AT], keyfile)
+    assert code == 1 and "key" in err and started is None
+
+
+def test_main_missing_binary(keyfile):
+    """A missing talosctl is reported."""
+    code, _, err, _ = run_main(["version", *AT], keyfile,
+                               TALOSCTL="/nonexistent/talosctl")
+    assert code == 1 and "talosctl" in err
 
 
 def test_main_output_capped(keyfile):
     """Output is limited to the shared cap."""
-    _, out, _, _ = run_main(["mounts", *AT], keyfile, "a" * 100_000)
-    assert len(out) <= 50 * 1024 + 200
+    _, out, _, _ = run_main(["mounts", *AT], keyfile, "a b\n" * 30_000)
+    assert 50_000 < len(out) <= 50 * 1024 + 200
 
 
 def test_main_logs_keep_the_newest(keyfile):
     """Oversized logs lose their oldest lines, not the newest."""
-    text = "a" * 100_000 + "\nnewest\n"
-    _, out, _, _ = run_main(["logs", "etcd", *AT], keyfile, text)
-    assert out.endswith("newest\n") and out.startswith("[older output")
+    text = "a b\n" + "a b" * 100 + "\n"
+    text = text * 490 + "the newest\n"
+    _, out, _, _ = run_main(["logs", "etcd", "--tail=500", *AT], keyfile,
+                            text)
+    assert out.endswith("the newest\n") and out.startswith("[older output")
+    assert len(out) <= 50 * 1024
+
+
+def start_wrapper(tmp_path, body, timeout_s):
+    """Starts the wrapper as a process with a shell-stub talosctl."""
+    (tmp_path / "omni.key").write_text("k\n")
+    stub = tmp_path / "talosctl"
+    pid = shlex.quote(str(tmp_path / "pid"))
+    stub.write_text(f"#!/bin/sh\necho $$ > {pid}\n{body}\n")
+    stub.chmod(0o755)
+    here = os.path.dirname(os.path.abspath(__file__))
+    code = (f"import sys; sys.path[:0] = [{here!r}]\n"
+            "from test_wrappers import load\n"
+            "TC = load('triage-talosctl')\n"
+            f"TC.TALOSCTL = {str(stub)!r}\n"
+            f"TC.KEY_FILE = {str(tmp_path / 'omni.key')!r}\n"
+            f"TC.TIMEOUT_S = {timeout_s}\n"
+            "sys.exit(TC.main(['version', '-n', '192.168.7.203']))\n")
+    return subprocess.Popen([sys.executable, "-c", code], text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+def child_gone(tmp_path):
+    """Waits until the stub is gone; returns False if it stays alive."""
+    pid = int((tmp_path / "pid").read_text())
+    for _ in range(50):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return True
+        time.sleep(0.1)
+    return False
+
+
+def test_real_timeout(tmp_path):
+    """A hanging talosctl is killed; its partial output is not printed."""
+    start = time.monotonic()
+    with start_wrapper(tmp_path, f"echo x token={SECRET}; sleep 60",
+                       1) as proc:
+        out, err = proc.communicate(timeout=20)
+    assert proc.returncode == 1 and not out and "timed out" in err
+    assert SECRET not in err and time.monotonic() - start < 15
+    assert child_gone(tmp_path)
+
+
+def test_real_sigterm(tmp_path):
+    """SIGTERM to the wrapper kills talosctl, even one that ignores it."""
+    with start_wrapper(tmp_path, "trap '' TERM; sleep 60 & wait; sleep 60",
+                       60) as proc:
+        for _ in range(100):
+            if (tmp_path / "pid").exists():
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
+        proc.send_signal(signal.SIGTERM)
+        out, _ = proc.communicate(timeout=20)
+    assert proc.returncode == 128 + signal.SIGTERM and not out
+    assert child_gone(tmp_path)
