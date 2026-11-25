@@ -176,8 +176,7 @@ every admin call (PermissionDenied).
 Searches the Graylog sync API as the user `triage-agent` (role Reader, view
 granted on the Default Stream only). Every stream but `Suricata (huginn)`
 and the event streams also writes there. The API token (`triage-jail`)
-expires 365 days after 2026-11-25: create a new one for the user, `kv patch`
-it in and rerun the role.
+expires 2027-11-25 (see Renewals).
 
 ## Malformed Gatus bodies
 
@@ -230,13 +229,74 @@ values): `vault_triage_claude_token` (`cluster/triage-claude`
 `vault_triage_kube_ca`, `vault_triage_omni_key` and
 `vault_triage_graylog_token` (`cluster/triage-agent` `KUBE_TOKEN`,
 `KUBE_CA`, `OMNI_SA_KEY`, `GRAYLOG_TOKEN`),
-and `triage_token_created`: the date part of `vault kv metadata get
-secret/cluster/triage-claude` `created_time`. The role asserts they are
-all set.
+and `triage_token_created`: the date part of `updated_time` from `vault kv
+metadata get secret/cluster/triage-claude` (its current version's date; see
+Renewals). The role asserts they are all set.
 
 Connect by IP to avoid the `*.starnix.net` cert-first ssh wildcard tripping
 the Wazuh sshd ban. A dry run against a host without the jail stops right
 after the (skipped) `bastille create`.
+
+## Operations
+
+Each run leaves two records. `/var/log/triage/YYYY-MM-DD/<id>.json` (pruned
+after 30 days) holds the triggers, the prompt, the result and, in `raw`,
+`session_id` and `permission_denials`. It does **not** list the tool calls
+that were allowed: for those read the transcript, as jail root,
+`/var/db/triage-agent/.claude/projects/-var-db-triage-agent-work/<session_id>.jsonl`.
+Count only its `assistant` and `user` entries; `api-request-blob` entries
+repeat the same calls. The transcripts are not pruned, belong to
+triage-agent, and can hold anything a tool printed.
+
+- **State**: `/var/db/triage/state/cap.json` (runs used this UTC day, and
+  whether the cap note was sent: one note per day) and `dedupe.json` (keys
+  triaged in the last 6 hours). Don't edit them to free up budget; raise
+  `triage_daily_cap` and rerun the role.
+- **Restart**: `jexec triage service triage restart`. Alerts still waiting
+  in the 2-minute window or the queue are lost; first check that
+  `jexec triage pgrep -u triage-agent` prints nothing.
+- **Health**: `jexec triage fetch -qo - http://127.0.0.1:8090/health`. 503
+  names the problem: token file missing or empty, claude not executable, or
+  the token within 30 days of expiry. The watcher alerts on it.
+- **Test alert**: post an Alertmanager v4 body to `/alertmanager` from inside
+  the jail as `triage`, letting the process that sends it read `push_token`
+  from `config.json`. Use a made-up `groupKey`, since a real one would
+  suppress the real alert for 6 hours, and say it is synthetic. Never send a
+  test `KubeNodeNotReady` or `KubeNodeUnreachable` through Alertmanager: it
+  also pages PagerDuty.
+- **Omni by IP**: pf lets triage-agent reach Omni at `triage_omni_ip` only. If
+  every `triage-talosctl` call fails, compare
+  `drill <the Omni host>` with the pin, update
+  `triage_agent_egress` and rerun the role (it restarts the jail).
+
+## Renewals
+
+| Credential | OpenBao `secret/cluster/` | Expires |
+|---|---|---|
+| Claude OAuth token | `triage-claude` `CLAUDE_CODE_OAUTH_TOKEN` | 365 days after issue |
+| Omni (Talos) Reader key | `triage-agent` `OMNI_SA_KEY` | 2027-11-25 |
+| Graylog API token | `triage-agent` `GRAYLOG_TOKEN` | 2027-11-25 |
+
+Only the Claude token is watched by `/health`. When the Omni key or the
+Graylog token lapses, triage still runs but loses those lookups, so renew
+them by hand before the date.
+
+**Claude token** (`/health` turns 503 at 30 days left). Run
+`claude setup-token`, then store it (`put` is safe here: the path has this
+one key) and rerun the role:
+
+    read -rs T && vault kv put secret/cluster/triage-claude \
+      CLAUDE_CODE_OAUTH_TOKEN="$T"; unset T
+
+`triage_token_created` must be the date of the **current** version: use
+`updated_time`. The metadata's own `created_time` stays at version 1's date
+across a `put` (checked 2026-11-25), so using it would leave `/health` at 503
+after a renewal.
+
+**Omni key**: make a new key for the Reader service account `triage-agent`.
+**Graylog token**: make a new one for the Graylog user `triage-agent`.
+Store either with `vault kv patch secret/cluster/triage-agent` (never `put`,
+which would drop the other keys) and rerun the role.
 
 ## Upgrading a pin
 
