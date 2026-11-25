@@ -467,6 +467,18 @@ def test_main_logs_keep_the_newest(keyfile):
     assert len(out) <= 50 * 1024
 
 
+@pytest.mark.parametrize("cmd", [["mounts"], ["logs", "etcd"], ["dmesg"]])
+def test_hostile_long_line_is_fast(keyfile, cmd):
+    """A long line built to slow the masking is hidden, quickly."""
+    evil = 'basic token=["\\=\\"'
+    text = "a b\n" + evil * (262_144 // len(evil)) + "\nc d\n"
+    start = time.monotonic()
+    code, out, _, _ = run_main([*cmd, *AT], keyfile, text)
+    assert time.monotonic() - start < 2
+    assert code == 0 and "token" not in out
+    assert out.startswith("a b\n") and out.endswith("\nc d\n")
+
+
 def start_wrapper(tmp_path, body, timeout_s):
     """Starts the wrapper as a process with a shell-stub talosctl."""
     (tmp_path / "omni.key").write_text("k\n")
@@ -483,13 +495,14 @@ def start_wrapper(tmp_path, body, timeout_s):
             f"TC.TIMEOUT_S = {timeout_s}\n"
             "sys.exit(TC.main(['version', '-n', '192.168.7.203']))\n")
     return subprocess.Popen([sys.executable, "-c", code], text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            start_new_session=True)
 
 
-def child_gone(tmp_path):
+def child_gone(tmp_path, wait_s=5):
     """Waits until the stub is gone; returns False if it stays alive."""
     pid = int((tmp_path / "pid").read_text())
-    for _ in range(50):
+    for _ in range(wait_s * 10):
         try:
             os.kill(pid, 0)
         except ProcessLookupError:
@@ -522,3 +535,31 @@ def test_real_sigterm(tmp_path):
         out, _ = proc.communicate(timeout=20)
     assert proc.returncode == 128 + signal.SIGTERM and not out
     assert child_gone(tmp_path)
+
+
+def test_group_sigkill_leaves_no_talosctl(tmp_path):
+    """If the wrapper's group is SIGKILLed, talosctl still ends in time."""
+    with start_wrapper(tmp_path, "trap '' TERM; while :; do sleep 1; done",
+                       2) as proc:
+        for _ in range(100):
+            if (tmp_path / "pid").exists():
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
+        os.killpg(proc.pid, signal.SIGKILL)
+        proc.wait()
+    pid = int((tmp_path / "pid").read_text())
+    try:
+        os.kill(pid, 0)
+        assert child_gone(tmp_path, 15)
+    finally:
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGKILL)
+
+
+def test_outer_limit_is_just_above_the_wrappers():
+    """The backstop ends talosctl soon after the wrapper's own limit."""
+    argv = TC.bounded(["talosctl", "version"])
+    assert argv == ["/usr/bin/timeout", "-k", "2", str(TC.TIMEOUT_S + 2),
+                    "talosctl", "version"]
+    assert TC.TIMEOUT_S == 45

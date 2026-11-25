@@ -2,6 +2,10 @@
 import re
 
 MASK = "[redacted]"
+# Longer lines are hidden whole: the rules cost up to a line squared, and
+# cutting a line could part a value from its key.
+MAX_LINE = 8192
+TOO_LONG = f"[line over {MAX_LINE} characters not shown]"
 
 _CONTROL = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|[\x00-\x08\x0b-\x1f\x7f]")
 _QUOTE = r"[\"'\\]{0,16}"
@@ -16,16 +20,19 @@ _FLAG = r"(?<![\w-])-{1,2}[\w.-]{0,40}?" + _KEY
 # literal, or a run without spaces.
 _VALUE = (
     r"(?:(?P<q>\\{0,8}[\"'])(?:(?!(?<!\\)(?P=q))(?:\\.|[^\n]))*(?:(?P=q)|$)"
-    r"|\[(?:\"(?:\\.|[^\"\\\n])*\"|[^\]\n\"])*(?:\]|$)"
+    r"|\[(?:\"(?:\\.|[^\"\\\n])*\"|[^\]\n\"])*(?:\]|[^\n]*)"
     r"|\{[^\n]*\}|\{[^\n]*"
     r"|(?:null|true|false|-?\d+(?:\.\d+)?)(?=[,}\]])"
     r"|(?:(?:basic|bearer|digest|token)[ \t]+)?"
     r"(?:\\.|\"(?![,}\]:\s]|$)|[^\s&\"\\])+)")
 _FLAGS = re.IGNORECASE | re.MULTILINE
 
-_PEM = re.compile(r"-----BEGIN[^\n]{0,80}?-----.*?"
-                  r"(?:-----END[^\n]{0,80}?-----|\Z)", re.DOTALL)
-_PEM_TAIL = re.compile(r"\A.*-----END[^\n]{0,80}-----", re.DOTALL)
+_PEM_MARK = re.compile(r"-----(BEGIN|END) [^\n-]{1,64}-----")
+_B64 = ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        "0123456789+/=")
+_BODY = re.compile(r"[A-Za-z0-9+/]{1,76}={0,2}\Z")
+_PEM_HEADER = re.compile(r"[A-Za-z-]{1,40}: |\Z")
+_BLOB = re.compile(r"(?<![\w+/=-])[A-Za-z0-9+/]{40,}={0,2}(?![\w+/-])")
 _BLOB_LINE = re.compile(r"^[ \t]*[A-Za-z0-9+/_-]{40,}={0,2}[ \t]*$",
                         re.MULTILINE)
 # Each keeps group 1 and masks the rest of the match.
@@ -67,21 +74,95 @@ def split_head(line: str) -> tuple[int, int]:
 
 
 def _mask_following(lines: list[str]) -> list[str]:
-    """Masks the lines holding the value of a key that ends a line."""
+    """Hides overlong lines and masks the values under a dangling key."""
     out: list[str] = []
     depth = None  # indent of the key whose value is being masked
     first = False  # its first value line is still to come
     for line in lines:
-        start, indent = split_head(line)
+        start, indent = split_head(line[:MAX_LINE])
         if depth is not None and line.strip():
             if first or indent > depth:
                 first = False
                 out.append(line[:start] + MASK)
                 continue
             depth = None
-        if depth is None and _DANGLING.search(line.rstrip()):
+        # The end of a hidden line can hold the key of the next one.
+        end = line if len(line) <= MAX_LINE else line[-512:]
+        if depth is None and _DANGLING.search(end.rstrip()):
             depth, first = indent, True
-        out.append(line)
+        out.append(line if len(line) <= MAX_LINE else TOO_LONG)
+    return out
+
+
+def _mask_pem_inline(line: str, marks: list[re.Match]) -> str:
+    """Masks key bodies that share a line with PEM markers."""
+    out = []
+    pos, kind = 0, ""
+    for mark in [*marks, None]:
+        gap = line[pos:mark.start() if mark else len(line)]
+        if mark and mark.group(1) == "END":
+            kept = "" if kind == "BEGIN" else gap.rstrip(_B64 + "\\")
+            gap = kept + MASK if len(kept) < len(gap) else gap
+        elif kind == "BEGIN":
+            rest = gap.lstrip(_B64 + "\\")
+            gap = MASK + rest if len(rest) < len(gap) else gap
+        out.append(gap)
+        if mark:
+            out.append(mark.group(0))
+            pos, kind = mark.end(), mark.group(1)
+    return "".join(out)
+
+
+def _is_blob(text: str) -> bool:
+    """Returns True if text mixes cases and digits like base64."""
+    return (any(c.isupper() for c in text) and any(c.islower() for c in text)
+            and any(c.isdigit() for c in text))
+
+
+def _mask_blob(found: re.Match) -> str:
+    """Masks a long run only if it looks like base64."""
+    return MASK if _is_blob(found.group(0)) else found.group(0)
+
+
+def _words_before(line: str, mark: re.Match) -> int:
+    """Counts the words before a marker, ignoring an opening quote."""
+    return len(line[:mark.start()].rstrip("\"'").split())
+
+
+def _mask_pem(lines: list[str]) -> list[str]:
+    """Masks PEM bodies, whole or cut at either end.
+
+    Full-length body lines are masked wherever they are. A short body line
+    is masked only next to one or to a marker, behind the same number of
+    words, so log lines near a lone marker stay.
+    """
+    out = list(lines)
+    marks = [list(_PEM_MARK.finditer(line)) for line in lines]
+    words = None  # leading words of a line that may precede a short one
+    for num, line in enumerate(lines):
+        if marks[num]:
+            out[num] = _BLOB.sub(_mask_blob,
+                                 _mask_pem_inline(line, marks[num]))
+            words = None
+            if marks[num][-1].group(1) == "BEGIN":
+                words = _words_before(line, marks[num][-1])
+            continue
+        full = _BLOB.sub(_mask_blob, line)
+        tokens = line.split()
+        if full != line:
+            out[num], words = full, len(tokens) - 1
+            continue
+        counts = {words}
+        if num + 1 < len(lines) and marks[num + 1] and (
+                marks[num + 1][0].group(1) == "END"):
+            counts.add(_words_before(lines[num + 1], marks[num + 1][0]))
+        if tokens and len(tokens) - 1 in counts:
+            last = tokens[-1].strip("\"',\\")
+            if _BODY.match(last):
+                head, _, tail = line.rpartition(last)
+                out[num] = head + MASK + tail
+        if not (words is not None and _PEM_HEADER.match(line)):
+            words = None
     return out
 
 
@@ -94,12 +175,11 @@ def mask(text: str) -> str:
         text: Text of any kind.
 
     Returns:
-        The text with secret values replaced and control codes dropped.
+        The text with secret values replaced, control codes dropped and
+        overlong lines hidden.
     """
     text = _CONTROL.sub("", text)
-    text = _PEM.sub(MASK, text)
-    text = _PEM_TAIL.sub(MASK, text)
-    text = "\n".join(_mask_following(text.split("\n")))
+    text = "\n".join(_mask_pem(_mask_following(text.split("\n"))))
     for rule in _RULES:
         text = rule.sub(lambda found: found.group(1) + MASK, text)
     return _BLOB_LINE.sub(MASK, text)

@@ -18,6 +18,7 @@ from triage import wrapperlib  # noqa: E402
 from triage.wrapperlib import Refused  # noqa: E402
 
 TALOSCTL = "/usr/local/bin/talosctl"
+TIMEOUT = "/usr/bin/timeout"
 TALOSCONFIG = "/usr/local/etc/triage-agent/talosconfig"
 KEY_FILE = "/usr/local/etc/triage-agent/omni.key"
 TIMEOUT_S = 45
@@ -151,6 +152,11 @@ def build_argv(args: list[str]) -> list[str]:
     return _argv(*_parse(args))
 
 
+def bounded(cmd: list[str]) -> list[str]:
+    """Adds a backstop limit that outlives a SIGKILLed wrapper."""
+    return [TIMEOUT, "-k", "2", str(TIMEOUT_S + 2), *cmd]
+
+
 def _processes(text: str) -> str | None:
     """Reduces the process table to numbers and executable names.
 
@@ -279,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
         with open(KEY_FILE, encoding="utf-8") as handle:
             key = handle.read().strip()
         res = boundedrun.run(
-            _argv(verb, names, flags),
+            bounded(_argv(verb, names, flags)),
             {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/nonexistent",
              "LANG": "C.UTF-8", "SIDERO_SERVICE_ACCOUNT_KEY": key},
             TIMEOUT_S, MAX_CAPTURE, MAX_STDERR)

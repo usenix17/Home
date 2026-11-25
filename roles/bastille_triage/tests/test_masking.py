@@ -1,8 +1,11 @@
 """Tests for the secret masking used on talosctl output."""
+import base64
+import random
 import time
 
 import pytest
 
+from triage import masking
 from triage.masking import mask
 
 VALUE = "S3cr3tV4lue"
@@ -97,3 +100,112 @@ def test_mask_is_fast(head, chunk):
     start = time.monotonic()
     mask(text)
     assert time.monotonic() - start < 5
+
+
+EVIL = 'basic token=["\\=\\"'
+
+
+def timed(text):
+    """Returns (seconds, masked text)."""
+    start = time.monotonic()
+    out = mask(text)
+    return time.monotonic() - start, out
+
+
+def test_long_line_is_fast_and_hidden_whole():
+    """A 256 KB line costs nothing and shows nothing."""
+    took, out = timed("a b\n" + EVIL * (262_144 // len(EVIL)) + "\nc d\n")
+    assert took < 2
+    assert out == f"a b\n{masking.TOO_LONG}\nc d\n"
+
+
+@pytest.mark.parametrize("unit", [
+    EVIL, 'token=["', "token=[", 'token="', "token=\\\"", "token={", "a://b:",
+    "--token ", "authorization: ", '"token=', "psk ", "basic a", "eyJ ",
+    "-----BEGIN a-----", "-----END a-----", "x-----", "name: a_token, ",
+    "token%3d", "token    ", "token,", "Aa1" * 13])
+def test_many_long_lines_are_bounded(unit):
+    """2 MiB of 8 KB lines stays well under the wrapper's time limit."""
+    line = (unit * (8192 // len(unit) + 1))[:8191] + "\n"
+    took, _ = timed(line * 256)
+    assert took < 10
+
+
+@pytest.mark.parametrize("size, hidden", [(8192, False), (8193, True)])
+def test_line_limit_edge(size, hidden):
+    """Only lines over the limit are replaced."""
+    assert (mask(("a " * size)[:size]) == masking.TOO_LONG) is hidden
+
+
+def test_long_line_ending_in_a_key():
+    """The value under a hidden line's trailing key is still masked."""
+    out = mask("x " * 5000 + f"password:\n  {VALUE}\nc d")
+    assert out == f"{masking.TOO_LONG}\n  [redacted]\nc d"
+
+
+def pem(lines=26, last="Qk9MbA=="):
+    """Returns the lines of a fake PEM key."""
+    rng = random.Random(1)
+    body = [base64.b64encode(rng.randbytes(48)).decode()
+            for _ in range(lines)]
+    return ["-----BEGIN RSA PRIVATE KEY-----", *body, last,
+            "-----END RSA PRIVATE KEY-----"]
+
+
+@pytest.mark.parametrize("prefix", [
+    "", "  ", "kern: info: [2026-11-25T00:00:00Z]: ", "2026-11-25Z stdout F ",
+    '    "'])
+def test_pem_cut_anywhere_is_masked(prefix):
+    """A PEM key masks whole or with any lines missing at either end."""
+    key = pem()
+    for first in range(len(key) + 1):
+        for end in (first + 1, first + 2, len(key) - 1, len(key)):
+            part = key[first:end]
+            out = mask("\n".join(["a b c", *(prefix + x for x in part),
+                                  "d e f"]))
+            lone = len(part) == 1 and part[0] == key[-2]
+            for item in part:
+                if not item.startswith("-----") and not lone:
+                    assert item not in out, (first, end)
+            assert out.startswith("a b c\n") and out.endswith("\nd e f")
+
+
+@pytest.mark.parametrize("sep", ["\\n", "\\\\n", " ", "\\r\\n"])
+def test_pem_on_one_line_is_masked(sep):
+    """A PEM key in an escaped string masks whole or cut at either end."""
+    key = pem(6)
+    for part in (key, key[:-1], key[1:]):
+        out = mask('{"msg":"got ' + sep.join(part) + '","level":"info"}')
+        if sep == " " and part is not key:
+            part = part[:-1] if part[-1] == "Qk9MbA==" else part
+        for item in part:
+            if not item.startswith("-----") and not (
+                    sep == " " and item == "Qk9MbA=="):
+                assert item not in out
+        assert "info" in out
+
+
+def test_encrypted_pem_is_masked():
+    """PEM headers do not hide the body."""
+    key = pem()
+    key[1:1] = ["Proc-Type: 4,ENCRYPTED", "DEK-Info: AES-256-CBC,00", ""]
+    out = mask("\n".join(key))
+    assert not any(item in out for item in key[4:-1])
+
+
+@pytest.mark.parametrize("marker", [
+    "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----",
+    "got -----BEGIN x----- here", "got -----END x----- here"])
+def test_unmatched_pem_marker_hides_nothing_else(marker):
+    """A lone marker does not blank the lines around it."""
+    before = [f"log line {i} before" for i in range(300)]
+    after = [f"log line {i} after" for i in range(300)]
+    out = mask("\n".join([*before, marker, *after])).split("\n")
+    assert out[:300] == before and out[301:] == after
+
+
+def test_lines_between_distant_markers_are_kept():
+    """Only a key's body is masked between markers."""
+    mid = [f"log line {i} middle" for i in range(50)]
+    out = mask("\n".join(["-----BEGIN A-----", *mid, "-----END A-----"]))
+    assert all(line in out for line in mid)

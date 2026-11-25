@@ -156,10 +156,12 @@ every secrets type are out. No follow or watch, no file reads, no output
 paths, no endpoint, context or credential flags. It runs `talosctl` with the
 fixed talosconfig and a clean environment, and passes the Omni key in
 `SIDERO_SERVICE_ACCOUNT_KEY`. `triage/boundedrun.py` bounds it: 45s, 2 MiB of
-output, own process group, killed on any limit or signal.
+output, own process group, killed on any limit or signal. An outer
+`timeout -k 2 47` ends talosctl if the wrapper itself is SIGKILLed.
 
 Output is masked whole, before any cut (`triage/masking.py`; the node's dmesg
-holds the SideroLink join token). `logs` fetches 100 extra lines so a value's
+holds the SideroLink join token). A line over 8192 characters is hidden
+whole, which keeps the masking fast. `logs` fetches 100 extra lines so a value's
 key is seen before the tail cut, and a first line that could be the rest of a
 value is dropped. `processes` prints numbers and the executable's basename,
 never arguments (Kubernetes expands secrets into them), and fails on an
