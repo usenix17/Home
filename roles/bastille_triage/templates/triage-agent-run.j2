@@ -1,0 +1,21 @@
+#!/bin/sh
+# Managed by Ansible (roles/bastille_triage).
+#
+# Runs Claude Code as {{ triage_agent_user }} (the receiver calls this via
+# doas). The OAuth token arrives on stdin so it is never in an argv, on disk
+# for this uid, or in the receiver's doas environment. Hard timeout here,
+# since the receiver's uid cannot signal this one.
+umask 077
+IFS= read -r token || exit 70
+[ -n "$token" ] || exit 70
+cd {{ triage_agent_workdir }} || exit 71
+unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN KUBECONFIG
+export PATH="{{ triage_path }}"
+export HOME="{{ triage_agent_home }}"
+export LANG="{{ triage_lang }}"
+export SHELL=/bin/bash
+export DISABLE_AUTOUPDATER=1
+export CLAUDE_CODE_OAUTH_TOKEN="$token"
+unset token
+exec /usr/bin/timeout -k 5 {{ triage_agent_timeout_s }} \
+    {{ triage_claude_bin }} "$@" </dev/null

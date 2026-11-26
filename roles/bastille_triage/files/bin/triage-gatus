@@ -1,0 +1,56 @@
+#!/usr/local/bin/python3.11 -I
+# pylint: disable=invalid-name
+"""Lists Gatus endpoint health from the fixed Gatus instance."""
+import argparse
+import json
+import os
+import sys
+import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
+# pylint: disable=wrong-import-position
+from triage import wrapperlib  # noqa: E402
+
+URL = "http://192.168.1.60:8080/api/v1/endpoints/statuses"
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.
+
+    Args:
+      argv: Argument list; defaults to sys.argv[1:].
+
+    Returns:
+      The process exit code.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--failing", action="store_true",
+                        help="only show failing endpoints")
+    args = parser.parse_args(argv)
+    try:
+        body = wrapperlib.fetch(urllib.request.Request(URL, method="GET"))
+        statuses = json.loads(body)
+    except wrapperlib.WrapperError as err:
+        return wrapperlib.report_error(err)
+    except ValueError as err:
+        return wrapperlib.report_error(f"bad JSON from gatus: {err}")
+    lines = []
+    for item in statuses:
+        results = item.get("results") or []
+        last = results[-1] if results else {}
+        ok = bool(last.get("success", True))
+        if ok and args.failing:
+            continue
+        name = f"{item.get('group') or '-'}/{item.get('name', '?')}"
+        errors = last.get("errors") or []
+        if ok:
+            lines.append(f"{name} OK")
+        else:
+            lines.append(f"{name} FAIL {errors[0] if errors else ''}".rstrip())
+    wrapperlib.emit("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

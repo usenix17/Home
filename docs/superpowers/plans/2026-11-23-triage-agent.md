@@ -297,7 +297,7 @@ def test_queue_drops_oldest(app, clock):               # cfg queue_max=2, runner
 
 **Files:** Create `templates/config.json.j2`, `templates/settings.json.j2`, `templates/triage.rc.j2`, `templates/kubeconfig.j2`, `templates/newsyslog.conf.j2`, `files/schema.json`, `files/runbook.md`; Modify `tasks/main.yml`.
 
-**Interfaces — Consumes:** Tasks 1–5 code, Task 6 secrets, Task 7 jail. Secrets at run time: `vault_triage_claude_token` (`cluster/triage-claude`), `vault_triage_push_token` (`cluster/monitoring-secrets` `triagePushToken`, created in Task 9 Step 1 — do that first), `vault_triage_discord_webhook`, `vault_triage_kube_token`/`vault_triage_kube_ca`, `vault_triage_graylog_token`; `triage_token_created` from the `cluster/triage-claude` metadata `created_time`.
+**Interfaces — Consumes:** Tasks 1–5 code, Task 6 secrets, Task 7 jail. Secrets at run time: `vault_triage_claude_token` (`cluster/triage-claude`), `vault_triage_push_token` (`cluster/monitoring-secrets` `triagePushToken`, created in Task 9 Step 1 — do that first), `vault_triage_discord_webhook`, `vault_triage_kube_token`/`vault_triage_kube_ca`, `vault_triage_graylog_token`; `triage_token_created` from the `cluster/triage-claude` metadata `updated_time` of the current version (not `created_time`, which stays at version 1).
 
 - [ ] **Step 1:** `settings.json.j2` → `/var/db/triage/.claude/settings.json`: the spec's allow/deny lists (using the command strings recorded in Task 7), `permissions.denyInsteadOfPrompting: true`, `env.DISABLE_AUTOUPDATER: "1"`. Kubeconfig points at `https://192.168.7.202:6443` with the SA token.
 - [ ] **Step 2:** `runbook.md` per the spec's runbook section (topology, failure modes, output rules); grep it for secrets and names before commit.

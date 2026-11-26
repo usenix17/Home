@@ -1,0 +1,3 @@
+# Managed by Ansible (roles/bastille_triage).
+# The receiver may start only the agent launcher, as the agent uid.
+permit nopass {{ triage_user }} as {{ triage_agent_user }} cmd {{ triage_agent_launcher }}

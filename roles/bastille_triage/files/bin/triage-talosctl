@@ -1,0 +1,238 @@
+#!/usr/local/bin/python3.11 -I
+# pylint: disable=invalid-name
+"""Runs a read-only talosctl query against one cluster node.
+
+Only allowlisted verbs, resource types and flags pass. The Omni key goes to
+talosctl by environment. Output is bounded, and masked before any cut.
+"""
+import os
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
+# pylint: disable=wrong-import-position
+from triage import boundedrun  # noqa: E402
+from triage import masking  # noqa: E402
+from triage import toolrun  # noqa: E402
+from triage import wrapperlib  # noqa: E402
+from triage.wrapperlib import Refused  # noqa: E402
+
+TALOSCTL = "/usr/local/bin/talosctl"
+TALOSCONFIG = "/usr/local/etc/triage-agent/talosconfig"
+KEY_FILE = "/usr/local/etc/triage-agent/omni.key"
+TIMEOUT_S = 45
+NODES = frozenset(f"192.168.7.{last}" for last in range(201, 206))
+TAIL_DEFAULT = 200
+TAIL_MAX = 500
+# Extra log lines to fetch, so a value's key is seen before the tail cut.
+TAIL_CONTEXT = 100
+MAX_CAPTURE = 2 * 1024 * 1024
+MAX_STDERR = 64 * 1024
+OUTPUTS = frozenset({"table", "yaml", "json"})
+SORTS = frozenset({"rss", "cpu"})
+# Verb -> (talosctl verb, min positionals, max positionals, flags).
+VERBS = {
+    "services": ("service", 0, 1, frozenset()),
+    "dmesg": ("dmesg", 0, 0, frozenset({"--tail"})),
+    "logs": ("logs", 1, 1, frozenset({"--tail"})),
+    "get": ("get", 1, 2, frozenset({"--output"})),
+    "version": ("version", 0, 0, frozenset()),
+    "memory": ("memory", 0, 0, frozenset()),
+    "processes": ("processes", 0, 0, frozenset({"--sort"})),
+    "mounts": ("mounts", 0, 0, frozenset()),
+}
+SHORT = {"-n": "--nodes", "-o": "--output"}
+# Never machineconfig, kernelcmdline (join token) or any secrets type.
+RESOURCES = frozenset({
+    "addresses", "blockdevices", "cpustats", "diagnostics",
+    "discoveredvolumes", "disks", "etcdmembers", "extensions", "hostname",
+    "kubeletstatuses", "links", "machinestatus", "members", "memorystats",
+    "mountstatus", "nodename", "nodestatuses", "resolvers", "routes",
+    "services", "staticpodstatus", "systemdisk", "timeservers", "timestatus",
+    "volumestatus"})
+# The WireGuard key material of links is only in the yaml and json forms.
+TABLE_ONLY = frozenset({"links"})
+SERVICE = re.compile(r"[a-z0-9][a-z0-9-]*\Z")
+RESOURCE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/@-]*\Z")
+TAIL = re.compile(r"[1-9][0-9]{0,2}\Z")
+PROC_HEADER = ("NODE", "PID", "STATE", "THREADS", "CPU-TIME", "VIRTMEM",
+               "RESMEM", "LABEL", "COMMAND")
+PROC_ROW = re.compile(
+    r"192\.168\.7\.\d+\s+(\d+)\s+([A-Z])\s+(\d+)\s+(\d+\.\d\d)\s+"
+    r"(\d+(?:\.\d+)? [kMGTP]?B)\s+(\d+(?:\.\d+)? [kMGTP]?B)\s+"
+    r"(?:\w+:\w+:\w+:s\d\S*\s+)?(\S+)(?:\s|\Z)")
+PROC_NAME = re.compile(r"[A-Za-z0-9._+:-]{1,40}\Z")
+
+
+def _check_value(name: str, value: str) -> None:
+    """Validates a flag value."""
+    if name == "--nodes":
+        good = value in NODES
+    elif name == "--output":
+        good = value in OUTPUTS
+    elif name == "--sort":
+        good = value in SORTS
+    else:
+        good = bool(TAIL.match(value)) and int(value) <= TAIL_MAX
+    if not good:
+        raise Refused(f"value not allowed for {name}: {value}")
+
+
+def _check_names(verb: str, names: list[str], output: str) -> None:
+    """Validates a verb's positional arguments."""
+    _, low, high, _ = VERBS[verb]
+    if not low <= len(names) <= high:
+        raise Refused(f"{verb} takes {low} to {high} names")
+    if verb in ("services", "logs"):
+        if not all(SERVICE.match(name) for name in names):
+            raise Refused("not a service name")
+    elif names:
+        if names[0] in TABLE_ONLY and output != "table":
+            raise Refused(f"{names[0]} has table output only")
+        if names[0] not in RESOURCES:
+            raise Refused(f"resource not allowed: {names[0]}; use one of: "
+                          f"{', '.join(sorted(RESOURCES))}")
+        if not all(RESOURCE_ID.match(name) for name in names[1:]):
+            raise Refused("not a resource id")
+
+
+def _parse(args: list[str]) -> tuple[str, list[str], dict[str, str]]:
+    """Validates arguments; returns (verb, positionals, flags)."""
+    if not args or args[0] not in VERBS:
+        raise Refused(f"verb must be one of: {', '.join(sorted(VERBS))}")
+    verb, names, flags = args[0], [], {}
+    allowed = VERBS[verb][3] | {"--nodes"}
+    rest = iter(args[1:])
+    for arg in rest:
+        if not arg.startswith("-"):
+            names.append(arg)
+            continue
+        flag, value = wrapperlib.split_flag(arg)
+        name = SHORT.get(flag, flag)
+        if name not in allowed:
+            raise Refused(f"flag not allowed for {verb}: {flag}")
+        if name in flags:
+            raise Refused(f"flag repeated: {flag}")
+        value = wrapperlib.flag_value(flag, value, rest)
+        _check_value(name, value)
+        flags[name] = value
+    if "--nodes" not in flags:
+        raise Refused(f"-n must be one of: {', '.join(sorted(NODES))}")
+    _check_names(verb, names, flags.get("--output", "table"))
+    if "--tail" in allowed:
+        flags.setdefault("--tail", str(TAIL_DEFAULT))
+    return verb, names, flags
+
+
+def _argv(verb: str, names: list[str], flags: dict[str, str]) -> list[str]:
+    """Builds the talosctl argv from validated arguments."""
+    out = [TALOSCTL, f"--talosconfig={TALOSCONFIG}",
+           f"--nodes={flags['--nodes']}", VERBS[verb][0], *names]
+    if verb == "logs":
+        out.append(f"--tail={int(flags['--tail']) + TAIL_CONTEXT}")
+    # talosctl's own dmesg --tail is a follow switch: never passed.
+    return out + [f"{name}={value}" for name, value in flags.items()
+                  if name not in ("--nodes", "--tail")]
+
+
+def build_argv(args: list[str]) -> list[str]:
+    """Validates arguments and returns the talosctl argv.
+
+    Args:
+      args: The wrapper's arguments: a verb, then flags and names.
+
+    Returns:
+      The argv to run, with the fixed config and one node.
+
+    Raises:
+      Refused: If any argument is outside the allowlist.
+    """
+    return _argv(*_parse(args))
+
+
+def _processes(text: str) -> str | None:
+    """Reduces the process table to numbers and executable names.
+
+    Command lines are dropped, since they can hold secrets. Their wrapped
+    lines match no row and go with them.
+
+    Args:
+      text: talosctl's process table.
+
+    Returns:
+      The reduced table, or None if the format is not recognised.
+    """
+    lines = text.splitlines()
+    if not lines or tuple(lines[0].split()) != PROC_HEADER:
+        return None
+    rows = [PROC_ROW.match(line) for line in lines[1:]]
+    if not rows or rows[0] is None:
+        return None
+    out = ["PID STATE THREADS CPU-TIME VIRTMEM RESMEM NAME"]
+    for row in rows:
+        if row:
+            name = row.group(7).rsplit("/", 1)[-1]
+            if not PROC_NAME.match(name):
+                name = "?"
+            out.append(" ".join(
+                [*(field.replace(" ", "") for field in row.groups()[:6]),
+                 name]))
+    return "\n".join(out) + "\n"
+
+
+def render(verb: str, flags: dict[str, str], raw: bytes,
+           cut: bool) -> str | None:
+    """Turns captured talosctl output into text that is safe to print.
+
+    Args:
+      verb: The wrapper verb.
+      flags: The validated flags.
+      raw: Captured stdout.
+      cut: True if the capture stopped early.
+
+    Returns:
+      The text, or None if it can't be printed safely.
+    """
+    text = toolrun.decode(raw, cut)
+    if verb == "processes":
+        text = _processes(text)
+        return None if text is None else masking.mask(text)
+    if "--tail" not in flags:
+        return masking.mask(text)
+    # talosctl prefixes each log line with the (only) node.
+    text = re.sub(rf"^{re.escape(flags['--nodes'])}: ", "", text,
+                  flags=re.MULTILINE)
+    return toolrun.log_tail(text, int(flags["--tail"]))
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.
+
+    Args:
+      argv: Argument list; defaults to sys.argv[1:].
+
+    Returns:
+      The process exit code.
+    """
+    try:
+        verb, names, flags = _parse(sys.argv[1:] if argv is None else argv)
+    except Refused as err:
+        return toolrun.fail(err, 2)
+    try:
+        with open(KEY_FILE, encoding="utf-8") as handle:
+            key = handle.read().strip()
+        res = boundedrun.run(
+            toolrun.bounded(_argv(verb, names, flags), TIMEOUT_S),
+            {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/nonexistent",
+             "LANG": "C.UTF-8", "SIDERO_SERVICE_ACCOUNT_KEY": key},
+            TIMEOUT_S, MAX_CAPTURE, MAX_STDERR)
+    except OSError as err:
+        return toolrun.fail(f"cannot read the key or run talosctl: {err}")
+    return toolrun.report(
+        "talosctl", res, TIMEOUT_S,
+        lambda raw, cut: render(verb, flags, raw, cut))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

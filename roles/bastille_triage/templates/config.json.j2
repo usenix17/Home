@@ -1,0 +1,22 @@
+{{ {
+  "listen_port": triage_port,
+  "push_token": vault_triage_push_token,
+  "discord_webhook": vault_triage_discord_webhook,
+  "token_path": triage_token_path,
+  "claude_bin": triage_claude_bin,
+  "agent_cmd": [triage_doas, "-n", "-u", triage_agent_user, triage_agent_launcher],
+  "workdir": triage_home,
+  "schema_path": triage_schema_path,
+  "model": triage_model,
+  "max_turns": triage_max_turns,
+  "timeout_s": triage_timeout_s,
+  "batch_window_s": triage_batch_window_s,
+  "dedupe_s": triage_dedupe_s,
+  "daily_cap": triage_daily_cap,
+  "queue_max": triage_queue_max,
+  "log_dir": triage_log_dir,
+  "state_dir": triage_state_dir,
+  "token_created": triage_token_created,
+  "token_lifetime_days": triage_token_lifetime_days,
+  "warn_days": triage_warn_days
+} | to_nice_json(indent=2) }}

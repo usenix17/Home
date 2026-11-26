@@ -7,9 +7,11 @@
     that:
       - watcher_discord_webhook is match('^https://discord(app)?\.com/api/webhooks/')
       - watcher_push_token | length >= 32
+      - watcher_triage_token is match('^[A-Za-z0-9_-]{32,}\Z')
     fail_msg: >-
-      Pass vault_watcher_discord_webhook and vault_watcher_push_token (OpenBao
-      cluster/monitoring-secrets discordWebhookUrl / watcherPushToken).
+      Pass vault_watcher_discord_webhook, vault_watcher_push_token and
+      vault_triage_push_token (OpenBao cluster/monitoring-secrets
+      discordWebhookUrl / watcherPushToken / triagePushToken).
     quiet: true
   no_log: true
 

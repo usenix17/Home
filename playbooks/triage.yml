@@ -1,0 +1,13 @@
+---
+# Deploy the read-only AI alert-triage jail on beastyboi (FreeBSD 15, Bastille).
+#
+# Connect by IP to avoid the *.starnix.net cert-first ssh wildcard tripping
+# the Wazuh sshd ban, and dry-run first:
+#   ansible-playbook -i inventory/inventory.yml playbooks/triage.yml \
+#     -e ansible_host=192.168.1.99 --check --diff
+
+- name: "AI alert-triage jail on beastyboi"
+  hosts: "beastyboi.starnix.net"
+  become: true
+  roles:
+    - role: "bastille_triage"

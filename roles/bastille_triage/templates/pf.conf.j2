@@ -1,0 +1,32 @@
+# Managed by Ansible (roles/bastille_triage).
+# Egress allowlist for the triage jail (own pf instance, VNET). Default
+# block out, logged to pflog0. Anthropic ranges from
+# https://platform.claude.com/docs/en/api/ip-addresses (2026-11-23).
+
+ext_if = "vnet0"
+dns = "{ {{ triage_dns_servers | join(', ') }} }"
+anthropic = "{ {{ (triage_anthropic_api_v4 + triage_anthropic_api_v6) | join(', ') }} }"
+ingress = "{ {{ triage_ingress_from | join(', ') }} }"
+
+set skip on lo0
+set block-policy return
+
+block log all
+
+# Receiver: Alertmanager (cluster) and the watcher push and probe it.
+pass in on $ext_if proto tcp from $ingress to ($ext_if) port {{ triage_port }}
+
+# DNS for the receiver, the agent and pkg (root).
+pass out on $ext_if proto { udp, tcp } to $dns port 53 user { root, {{ triage_uid }}, {{ triage_agent_uid }} }
+
+# Agent: the Anthropic API and the fixed tool endpoints only.
+pass out on $ext_if proto tcp to $anthropic port 443 user {{ triage_agent_uid }}
+{% for e in triage_agent_egress %}
+pass out on $ext_if proto tcp to {{ e.to }} port {{ e.port }} user {{ triage_agent_uid }}
+{% endfor %}
+
+# Receiver: Discord webhook (HTTPS, any address).
+pass out on $ext_if proto tcp to any port 443 user {{ triage_uid }}
+
+# Root: pkg and the base system (HTTP/HTTPS only).
+pass out on $ext_if proto tcp to any port { 80, 443 } user root

@@ -1,0 +1,9 @@
+context: triage-agent
+contexts:
+  triage-agent:
+    endpoints:
+      - {{ triage_omni_endpoint }}
+    auth:
+      siderov1:
+        identity: {{ triage_omni_identity }}
+    cluster: {{ triage_omni_cluster }}

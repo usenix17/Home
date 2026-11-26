@@ -1,0 +1,192 @@
+#!/usr/local/bin/python3.11 -I
+# pylint: disable=invalid-name
+"""Runs a read-only kubectl get/describe/logs/top/events with a fixed config.
+
+Only allowlisted flags pass; file, template, server, credential and
+impersonation flags are refused, as is any Secrets resource. The wrapper
+picks the API server. Output is bounded, and masked before any cut.
+"""
+import os
+import re
+import socket
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
+# pylint: disable=wrong-import-position
+from triage import boundedrun  # noqa: E402
+from triage import masking  # noqa: E402
+from triage import toolrun  # noqa: E402
+from triage import wrapperlib  # noqa: E402
+from triage.wrapperlib import Refused  # noqa: E402
+
+KUBECTL = "/usr/local/bin/kubectl"
+KUBECONFIG = "/usr/local/etc/triage-agent/kubeconfig"
+# Control planes, in the order they are tried. Each serving certificate
+# names its own address, and TLS is always verified.
+SERVERS = ("192.168.7.202", "192.168.7.203", "192.168.7.204")
+PORT = 6443
+PROBE_S = 2
+REQUEST_TIMEOUT = "--request-timeout=20s"
+TIMEOUT_S = 45
+TAIL_DEFAULT = 500
+TAIL_MAX = 5000
+# Extra log lines to fetch, so a value's key is seen before the tail cut.
+TAIL_CONTEXT = 100
+MAX_CAPTURE = 2 * 1024 * 1024
+MAX_STDERR = 64 * 1024
+VERBS = frozenset({"get", "describe", "logs", "top", "events"})
+OUTPUTS = frozenset({"wide", "json", "yaml", "name"})
+# Flags taking a value: long name -> short alias (or None).
+VALUED = {"--namespace": "-n", "--selector": "-l", "--field-selector": None,
+          "--output": "-o", "--tail": None, "--since": None,
+          "--container": "-c", "--sort-by": None}
+# Boolean flags: long name -> short alias (or None).
+BOOLEAN = {"--all-namespaces": "-A", "--previous": "-p"}
+SHORT = {short: name for name, short in {**VALUED, **BOOLEAN}.items()
+         if short}
+TAIL = re.compile(r"[1-9][0-9]{0,3}\Z")
+SECRET_KINDS = frozenset({"secret", "secrets"})
+
+
+def _canonical(flag: str) -> str:
+    """Maps a short flag to its long name; refuses unknown flags."""
+    name = SHORT.get(flag, flag)
+    if name not in VALUED and name not in BOOLEAN:
+        raise Refused(f"flag not allowed: {flag}")
+    return name
+
+
+def _check_value(name: str, value: str) -> None:
+    """Validates a flag value."""
+    if name == "--output" and value not in OUTPUTS:
+        raise Refused(f"output format not allowed: {value}")
+    if name == "--tail" and not (TAIL.match(value)
+                                 and int(value) <= TAIL_MAX):
+        raise Refused(f"--tail takes 1 to {TAIL_MAX}")
+
+
+def _check_resource(arg: str) -> None:
+    """Refuses any positional naming the Secrets resource."""
+    for part in arg.split(","):
+        kind = part.split("/", 1)[0].split(".", 1)[0]
+        if kind.strip().lower() in SECRET_KINDS:
+            raise Refused("secrets are not readable")
+
+
+def _parse(args: list[str]) -> tuple[list[str], dict[str, str]]:
+    """Validates arguments; returns (verb, names and switches), values."""
+    if not args or args[0] not in VERBS:
+        raise Refused(f"verb must be one of: {', '.join(sorted(VERBS))}")
+    out, values = [args[0]], {}
+    rest = iter(args[1:])
+    for arg in rest:
+        if not arg.startswith("-"):
+            _check_resource(arg)
+            out.append(arg)
+            continue
+        flag, value = wrapperlib.split_flag(arg)
+        name = _canonical(flag)
+        if name in BOOLEAN:
+            if value is not None:
+                raise Refused(f"flag takes no value: {flag}")
+            out.append(name)
+            continue
+        if name in values:
+            raise Refused(f"flag repeated: {flag}")
+        value = wrapperlib.flag_value(flag, value, rest)
+        _check_value(name, value)
+        values[name] = value
+    # One stream only: with a selector, kubectl joins the pods' logs.
+    if out[0] == "logs" and "--selector" not in values:
+        values.setdefault("--tail", str(TAIL_DEFAULT))
+    return out, values
+
+
+def _keep(words: list[str], values: dict[str, str]) -> int | None:
+    """Returns how many log lines to keep, or None to keep all."""
+    if words[0] == "logs" and "--selector" not in values:
+        return int(values["--tail"])
+    return None
+
+
+def _argv(words: list[str], values: dict[str, str],
+          server: str) -> list[str]:
+    """Builds the kubectl argv from validated arguments."""
+    values = dict(values)
+    keep = _keep(words, values)
+    if keep is not None:
+        values["--tail"] = str(keep + TAIL_CONTEXT)
+    return [KUBECTL, f"--kubeconfig={KUBECONFIG}", f"--server={server}",
+            REQUEST_TIMEOUT, *words,
+            *(f"{name}={value}" for name, value in values.items())]
+
+
+def build_argv(args: list[str], server: str) -> list[str]:
+    """Validates arguments and returns the kubectl argv.
+
+    Args:
+      args: The wrapper's arguments: a verb, then flags and names.
+      server: The API server URL the wrapper picked.
+
+    Returns:
+      The argv to run, with the fixed kubeconfig.
+
+    Raises:
+      Refused: If any argument is outside the allowlist.
+    """
+    return _argv(*_parse(args), server)
+
+
+def pick_server() -> str | None:
+    """Returns the first API server that accepts a connection, or None."""
+    for host in SERVERS:
+        try:
+            with socket.create_connection((host, PORT), PROBE_S):
+                return f"https://{host}:{PORT}"
+        except OSError:
+            continue
+    return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.
+
+    Args:
+      argv: Argument list; defaults to sys.argv[1:].
+
+    Returns:
+      The process exit code.
+    """
+    try:
+        words, values = _parse(sys.argv[1:] if argv is None else argv)
+    except Refused as err:
+        return toolrun.fail(err, 2)
+    keep = _keep(words, values)
+
+    def render(raw: bytes, cut: bool) -> str:
+        """Turns captured stdout into masked text."""
+        text = toolrun.decode(raw, cut)
+        if keep is not None:
+            return toolrun.log_tail(text, keep)
+        if words[0] == "logs":
+            text = masking.drop_orphans(text)
+        return masking.mask(text)
+
+    server = pick_server()
+    if server is None:
+        return toolrun.fail("no Kubernetes API server is reachable")
+    env = {"PATH": "/usr/local/bin:/usr/bin:/bin",
+           "HOME": os.environ.get("HOME", "/nonexistent"),
+           "LANG": os.environ.get("LANG", "C.UTF-8"), "KUBERC": "off"}
+    try:
+        res = boundedrun.run(
+            toolrun.bounded(_argv(words, values, server), TIMEOUT_S),
+            env, TIMEOUT_S, MAX_CAPTURE, MAX_STDERR)
+    except OSError as err:
+        return toolrun.fail(f"cannot run kubectl: {err}")
+    return toolrun.report("kubectl", res, TIMEOUT_S, render)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

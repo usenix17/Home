@@ -17,6 +17,19 @@ alerting:
       failure-threshold: 3
       success-threshold: 2
       send-on-resolved: true
+  # AI triage (roles/bastille_triage). It ignores resolved alerts.
+  custom:
+    url: "{{ watcher_triage_url }}/gatus"
+    method: "POST"
+    headers:
+      Authorization: "Bearer {{ watcher_triage_token }}"
+      Content-Type: "application/json"
+    body: >-
+      {"endpoint":"[ENDPOINT_GROUP]/[ENDPOINT_NAME]","status":"[ALERT_TRIGGERED_OR_RESOLVED]","description":"[ALERT_DESCRIPTION]","errors":"[RESULT_ERRORS]"}
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: false
 
 endpoints:
 {% for n in watcher_talos_nodes %}
@@ -28,6 +41,7 @@ endpoints:
       - "[CONNECTED] == true"
     alerts:
       - type: discord
+      - type: custom
 {% if n.control_plane | default(false) %}
   - name: "{{ n.name }} kube-apiserver"
     group: "talos"
@@ -37,6 +51,7 @@ endpoints:
       - "[CONNECTED] == true"
     alerts:
       - type: discord
+      - type: custom
 {% endif %}
 {% endfor %}
   - name: "Traefik ingress"
@@ -47,6 +62,7 @@ endpoints:
       - "[CONNECTED] == true"
     alerts:
       - type: discord
+      - type: custom
 {% for d in watcher_dns_servers %}
   - name: "DNS {{ d.name }}"
     group: "dns"
@@ -60,6 +76,7 @@ endpoints:
       - "[BODY] == {{ watcher_ingress_ip }}"
     alerts:
       - type: discord
+      - type: custom
 {% endfor %}
 {% for c in watcher_http_checks %}
   - name: "{{ c.name }}"
@@ -72,6 +89,7 @@ endpoints:
       - "[STATUS] == 200"
     alerts:
       - type: discord
+      - type: custom
 {% endfor %}
 {% for c in watcher_tcp_checks %}
   - name: "{{ c.name }}"
@@ -82,7 +100,19 @@ endpoints:
       - "[CONNECTED] == true"
     alerts:
       - type: discord
+      - type: custom
 {% endfor %}
+  # Discord only: a custom alert here would ask triage to triage itself.
+  - name: "triage /health"
+    group: "infra"
+    url: "{{ watcher_triage_url }}/health"
+    interval: 60s
+    client:
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
 
 # Dead man's switch: the in-cluster Alertmanager posts its always-firing
 # Watchdog to /api/v1/endpoints/cluster_alertmanager-watchdog/external.
@@ -95,5 +125,8 @@ external-endpoints:
       interval: {{ watcher_heartbeat_interval }}
     alerts:
       - type: discord
+        failure-threshold: 1
+        description: "In-cluster alerting has gone silent (no Watchdog heartbeat)"
+      - type: custom
         failure-threshold: 1
         description: "In-cluster alerting has gone silent (no Watchdog heartbeat)"
