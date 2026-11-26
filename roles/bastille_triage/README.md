@@ -306,10 +306,10 @@ itself, so the cron job does not rely on it.
   suppress the real alert for 6 hours, and say it is synthetic. Never send a
   test `KubeNodeNotReady` or `KubeNodeUnreachable` through Alertmanager: it
   also pages PagerDuty.
-- **Omni by IP**: pf lets triage-agent reach Omni at `triage_omni_ip` only. If
-  every `triage-talosctl` call fails, compare
-  `drill <the Omni host>` with the pin, update
-  `triage_agent_egress` and rerun the role (it restarts the jail).
+- **Omni by IP**: pf lets triage-agent reach Omni at `triage_omni_ip` only.
+  If every `triage-talosctl` call fails, `drill` the host in
+  `triage_omni_endpoint`, compare it with the pin, update `triage_omni_ip`
+  and rerun the role (it restarts the jail).
 
 ## Renewals
 

@@ -252,9 +252,11 @@ Contents:
 ### Token lifetime
 
 The setup-token lasts one year. It lives **alone** at its own OpenBao path
-`cluster/triage-claude` (builder call, from review), so that path's
-`created_time` is the token's issue date and nothing else bumps it. The role
-reads that date into the receiver's config. `/health` returns 503 within 30
+`cluster/triage-claude` (builder call, from review), so the `updated_time`
+of that path's current version is the token's issue date and nothing else
+bumps it. The metadata's own `created_time` stays at version 1's date across
+a `put`, so it is the wrong field. The role reads that date into the
+receiver's config. `/health` returns 503 within 30
 days of expiry, and the watcher's Gatus check on `/health` turns that into a
 Discord alert. Renewal: Sasha re-runs `claude setup-token`, then
 `read -rs T && vault kv put secret/cluster/triage-claude

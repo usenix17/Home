@@ -97,16 +97,28 @@ def test_transcript_path_is_the_agents():
 
 
 def test_dead_binaries_are_gone():
-    """omnictl and the python3 link are neither installed nor kept."""
+    """omnictl is not installed, and no task deletes the jail's python3."""
     assert not any("omnictl" in key for key in DEFAULTS)
-    gone = TASKS[index("Remove retired files")]
-    assert gone["ansible.builtin.file"]["state"] == "absent"
-    assert gone["loop"] == ["{{ triage_lib_dir }}/linux",
-                            "/usr/local/bin/python3"]
     for task in TASKS:
-        if task["name"] != "Remove retired files":
-            assert "omnictl" not in str(task) and "/linux\"" not in str(task)
-            assert not str(task).endswith("bin/python3")
+        assert "omnictl" not in str(task)
+        assert "/usr/local/bin/python3" not in str(task)
+
+
+def test_omni_details_are_not_in_defaults():
+    """The public role ships no Omni endpoint, IP or cluster name."""
+    for key in ("triage_omni_endpoint", "triage_omni_ip",
+                "triage_omni_cluster"):
+        assert DEFAULTS[key] == ""
+    assert {"to": "{{ triage_omni_ip }}", "port": 443} in \
+        DEFAULTS["triage_agent_egress"]
+    check = TASKS[index("Check the Omni endpoint, IP and cluster are set "
+                        "(host_vars)")]
+    assert len(check["ansible.builtin.assert"]["that"]) == 3
+
+
+def test_model_is_pinned():
+    """A CLI default change cannot swap the triage model."""
+    assert DEFAULTS["triage_model"] == "claude-opus-5-5"
 
 
 def test_defaults_name_the_owner_by_role():

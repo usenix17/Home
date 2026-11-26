@@ -190,7 +190,8 @@ triage_pidfile: "/var/run/triage.pid"
 triage_receiver_log: "{{ triage_log_dir }}/receiver.log"
 triage_run_log_days: 30
 triage_transcript_days: 30
-triage_model: null
+# Pinned so a CLI default change cannot swap the triage model.
+triage_model: "claude-opus-5-5"
 triage_max_turns: 25
 triage_timeout_s: 600
 triage_batch_window_s: 120
@@ -217,8 +218,10 @@ triage_agent_kubeconfig: "{{ triage_agent_etc_dir }}/kubeconfig"
 triage_agent_talosconfig: "{{ triage_agent_etc_dir }}/talosconfig"
 triage_agent_omni_key: "{{ triage_agent_etc_dir }}/omni.key"
 triage_agent_graylog_token: "{{ triage_agent_etc_dir }}/graylog.token"
-# Talos API through Omni, as a Reader service account.
+# Talos API through Omni, as a Reader service account. The endpoint, its
+# pinned IP and the cluster name live vaulted in the host's host_vars.
 triage_omni_endpoint: ""
+triage_omni_ip: ""
 triage_omni_cluster: ""
 triage_omni_identity: "triage-agent@serviceaccount.omni.sidero.dev"
 triage_agent_launcher: "{{ triage_lib_dir }}/libexec/triage-agent-run"
